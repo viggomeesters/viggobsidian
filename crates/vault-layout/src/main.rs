@@ -12,6 +12,7 @@ mod dossier_tables;
 mod event_header;
 mod index_navigation;
 mod link_style;
+mod mail_draft;
 mod mail_manifest;
 mod project_codes;
 mod raw_processing;
@@ -1006,6 +1007,11 @@ impl Scan<'_> {
             self.issue(path, "frontmatter", "expected a YAML frontmatter block");
             return Ok(None);
         };
+        if self.strict {
+            for message in mail_draft::findings(&body) {
+                self.issue(path, "strict-mail-draft", message);
+            }
+        }
         for line in table_wikilink_lines(&body) {
             let line = line + yaml.split('\n').count() + 2;
             self.issue(

@@ -136,6 +136,7 @@ fn allowed(target: &str) -> bool {
         "index_navigation",
         "link_style",
         "mail_manifest",
+        "mail_draft",
         "project_codes",
         "raw_processing",
         "raw_task",
@@ -152,6 +153,8 @@ fn allowed(target: &str) -> bool {
     }
     if [
         "policy.md",
+        "mail-format.md",
+        "mail-draft.md",
         "skills.md",
         "updates.md",
         "numbered-v1.yaml",
