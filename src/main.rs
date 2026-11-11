@@ -306,7 +306,9 @@ fn apply(vault: &Path, proposal: &Value) -> Result<Value> {
     if checked(vault, ".viggobsidian/pending.json")?.exists()
         || checked(vault, ".viggobsidian/rollback.json")?.exists()
     {
-        return fail("unfinished transaction: rollback with .viggobsidian/pending.json or .viggobsidian/rollback.json before applying");
+        return fail(
+            "unfinished transaction: rollback with .viggobsidian/pending.json or .viggobsidian/rollback.json before applying",
+        );
     }
     let package_root = root(Path::new(field(proposal, "package")?))?;
     let fresh = plan(vault, &package_root, &proposal["adoption"])?;
@@ -480,7 +482,7 @@ fn dirs(path: &Path) -> Result<Vec<PathBuf>> {
     out.sort();
     Ok(out)
 }
-fn check(vault: &Path) -> Result<Value> {
+fn check(vault: &Path, structure: bool) -> Result<Value> {
     let installed = state(vault)?;
     let mut errors = Vec::new();
     let mut warnings = Vec::new();
@@ -524,7 +526,8 @@ fn check(vault: &Path) -> Result<Value> {
         }
     }
     let mut projects = 0;
-    for path in dirs(vault)? {
+    let project_roots = if structure { dirs(vault)? } else { Vec::new() };
+    for path in project_roots {
         let name = path
             .file_name()
             .ok_or("missing name")?
@@ -592,7 +595,7 @@ fn check(vault: &Path) -> Result<Value> {
     }
     Ok(
         json!({"schema":"viggobsidian.check.v1","version":installed["version"],"profile":"numbered-v1",
-        "scope":"package-integrity-and-project-structure; local strict adapters remain required","projects":projects,"warnings":warnings,"errors":errors}),
+        "scope":if structure {"package-integrity-and-project-structure; local strict adapters remain required"}else{"package-integrity-and-integration; provider capability checks remain required"},"projects":projects,"warnings":warnings,"errors":errors}),
     )
 }
 fn pack(package_root: &Path, revision: &str) -> Result<Value> {
@@ -652,7 +655,7 @@ fn run() -> Result<bool> {
             &read_json(Path::new(get("--receipt")?))?,
         )?,
         "check" | "doctor" => {
-            let out = check(&root(Path::new(get("--vault")?))?)?;
+            let out = check(&root(Path::new(get("--vault")?))?, command == "check")?;
             ok = rows(&out, "errors")?.is_empty();
             out
         }

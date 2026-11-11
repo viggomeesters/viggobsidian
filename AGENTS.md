@@ -18,3 +18,16 @@ When the user invokes `Go`, `Go plan`, `Go <task-id>`, `Go loop`, or asks to con
 
 Do not redirect repository workflow state to a hidden central queue or retired vault. Nested `AGENTS.md` files may add directory-specific obligations, but they do not replace the root gateway or `.go` source of truth.
 <!-- go-workflow:agents-gateway:v1:end -->
+
+## Product boundaries
+
+Own code is Rust. Validate locally with locked tests, fmt and Clippy. Do not add
+GitHub Actions. Never import authentic vault content, history, credentials or
+local provider configuration. Publish only generic assets and fictional fixtures.
+One profile: numbered-v1, standalone projects under 20-projects, dynamic program
+roots 21-* through 29-*. Local adoption debt is not a second profile.
+
+Package updates must preserve user content and task/source identity. Explicit
+preimages, drift rejection, symlink/path guards and recoverable rollback are
+required. Source location never selects a target vault. Keep writers and deeper
+local checks behind explicit adapters until behavior parity is demonstrated.
