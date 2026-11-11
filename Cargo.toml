@@ -1,0 +1,13 @@
+[package]
+name = "viggobsidian"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT"
+description = "Versioned vault policy, checks and drift-safe package updates"
+publish = false
+
+[dependencies]
+serde_json = "1"
+sha2 = "=0.10.9"
+serde-saphyr = { version = "=2.0.0", default-features = false, features = ["deserialize"] }

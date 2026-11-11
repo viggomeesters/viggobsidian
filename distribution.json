@@ -1,0 +1,23 @@
+{
+  "files": [
+    {"source":"docs/policy.md","target":".viggobsidian/core/policy.md"},
+    {"source":"docs/skills.md","target":".viggobsidian/core/skills.md"},
+    {"source":"docs/updates.md","target":".viggobsidian/core/updates.md"},
+    {"source":"profiles/numbered-v1.yaml","target":".viggobsidian/core/numbered-v1.yaml"},
+    {"source":"schemas/vault-schema.yaml","target":".viggobsidian/core/vault-schema.yaml"},
+    {"source":"schemas/vault.schema.json","target":".viggobsidian/core/vault.schema.json"},
+    {"source":"templates/daily.md","target":".viggobsidian/core/daily.md"},
+    {"source":"assets/viggobsidian.css","target":".obsidian/snippets/viggobsidian.css"},
+    {"source":"assets/bases/vault-dossier.base","target":"99-system/vault/vault-navigation/standaard/wiki/vault-dossier.base"},
+    {"source":"assets/bases/vault-inbox.base","target":"99-system/vault/vault-navigation/standaard/wiki/vault-inbox.base"},
+    {"source":"assets/bases/vault-raw.base","target":"99-system/vault/vault-navigation/standaard/wiki/vault-raw.base"},
+    {"source":"assets/bases/vault-templates.base","target":"99-system/vault/vault-navigation/standaard/wiki/vault-templates.base"},
+    {"source":"skills/vault/SKILL.md","target":".agents/skills/vault/SKILL.md"},
+    {"source":"skills/vault-log/SKILL.md","target":".agents/skills/vault-log/SKILL.md"},
+    {"source":"skills/vault-process/SKILL.md","target":".agents/skills/vault-process/SKILL.md"},
+    {"source":"skills/vault-task/SKILL.md","target":".agents/skills/vault-task/SKILL.md"},
+    {"source":"skills/vault-tackle/SKILL.md","target":".agents/skills/vault-tackle/SKILL.md"},
+    {"source":"skills/vault-hub/SKILL.md","target":".agents/skills/vault-hub/SKILL.md"},
+    {"source":"skills/vault-brief/SKILL.md","target":".agents/skills/vault-brief/SKILL.md"}
+  ]
+}

@@ -1,0 +1,36 @@
+filters:
+  and:
+    - 'file.ext == "md"'
+    - 'file.inFolder(this.file.folder)'
+    - '!file.name.contains(".sync-conflict-")'
+formulas:
+  filename: link(file.path, file.name)
+  action_day: if(note.work_date, date(note.work_date).format("YYYY-MM-DD"), "")
+properties:
+  formula.filename:
+    displayName: Note
+  note.status:
+    displayName: Status
+  formula.action_day:
+    displayName: Action date
+views:
+  - type: table
+    name: Open tasks
+    limit: 25
+    filters:
+      and:
+        - 'note.type == "task"'
+        - '["🔴 to-do", "🟠 in progress", "🔵 waiting", "🟣 backlog"].contains(note.status)'
+    order:
+      - note.status
+      - formula.action_day
+      - formula.filename
+    sort:
+      - property: note.work_date
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      formula.filename: 360
+      note.status: 132
+      formula.action_day: 110

@@ -1,0 +1,27 @@
+schema: viggobsidian.policy.v1
+profile: numbered-v1
+identities:
+  preserve: [project_id, component-id, component_id, task_id, source_id, uuid, registration]
+  project_code: "[A-Z][A-Z0-9]{1,11}"
+project:
+  parent: "20-projects OR numbered program root 21-* through 29-*"
+  name: YYYY-MM-projectnaam
+  component: code-NN-onderdeel
+  wiki_component: code-00-project-wiki
+  folder_code_case: lowercase
+  display_code_case: uppercase
+  layers: [wiki, raw]
+  participants_and_roles: project-00
+source:
+  original_bytes: preserve
+  provenance: required
+  task_execution_from_capture: false
+daily:
+  folder: 10-daily/notes
+  filename: YYYY-MM-DD.md
+  created_notes: "file.ctime.date() == date(this.file.name)"
+  order: DESC
+updates:
+  edited_managed_files: conflict
+  content_mutation: forbidden
+  release_pin: required
