@@ -1,0 +1,27 @@
+{
+  "schema": "go-workflow.repo-local.hierarchy.v1",
+  "kind": "hierarchy",
+  "project": "viggobsidian",
+  "epics": [
+    {
+      "id": "foundation",
+      "title": "Public framework foundation",
+      "features": [],
+      "tasks": [
+        "foundation-v01"
+      ]
+    },
+    {
+      "id": "workflow",
+      "title": "Workflow",
+      "features": [
+        {
+          "id": "repo-local-workflow",
+          "title": "Repo-local workflow",
+          "tasks": []
+        }
+      ],
+      "tasks": []
+    }
+  ]
+}

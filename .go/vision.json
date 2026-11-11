@@ -1,0 +1,22 @@
+{
+  "schema": "go-workflow.repo-local.vision.v1",
+  "kind": "vision",
+  "project": "viggobsidian",
+  "status": "active",
+  "north_star": "One public source for vault policy, schemas, appearance, skills and reproducible updates.",
+  "wedge": "A single numbered profile with standalone projects in 20-projects and programs in 21-* onward.",
+  "target_user": "Obsidian users maintaining structured vaults with agents",
+  "core_promise": "Versioned policy and deterministic checks without leaking content or overwriting local edits.",
+  "product_principles": [
+    "repo-local",
+    "json-first",
+    "proof-first"
+  ],
+  "non_goals": [
+    "No GitHub Actions, no automatic background writer, no mass content migration."
+  ],
+  "success_metrics": [
+    "go-workflow-stack validate passes",
+    "go-workflow-stack readback is useful"
+  ]
+}

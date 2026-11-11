@@ -1,0 +1,13 @@
+{
+  "schema": "go-workflow.repo-local.architecture-principles.v1",
+  "kind": "architecture_principles",
+  "project": "viggobsidian",
+  "principles": [
+    {
+      "id": "content-preservation",
+      "statement": "Preserve source content and stable task identity",
+      "rationale": "Updates are package maintenance, not content rewrites",
+      "enforcement": "Tests reject managed-file drift"
+    }
+  ]
+}
