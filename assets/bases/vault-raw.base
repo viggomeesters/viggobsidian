@@ -1,0 +1,40 @@
+filters:
+  and:
+    - file.ext == "md"
+    - file.inFolder(this.file.folder)
+    - file.path != this.file.path
+    - '(note.layout_issue != null && note.layout_issue != "") || ((note.wiki_status == "pending" || note.wiki_status == "processed") && note.type != "collection" && note.category != "index")'
+    - '!file.name.contains(".sync-conflict-")'
+    - '!file.name.startsWith("README")'
+formulas:
+  filename: link(file.path, file.name)
+  created: if(note.created, date(note.created), file.ctime)
+  created_day: formula.created.format("YYYY-MM-DD")
+  updated_day: if(note.updated.isType("date"), note.updated.date(), date(note.updated))
+  wiki_processed_day: if(note.wiki_processed_on.isType("date"), note.wiki_processed_on.date(), date(note.wiki_processed_on))
+  wiki_state: if(note.wiki_processed_on && (note.wiki_status == "pending" || (note.updated && formula.updated_day > formula.wiki_processed_day)), "outdated", note.wiki_status)
+  wiki_badge: if(note.layout_issue != null && note.layout_issue != "", "⚠️ Issue", if(formula.wiki_state == "pending", "🔴 Pending", if(formula.wiki_state == "outdated", "🟠 Outdated", "🟢 Processed")))
+properties:
+  formula.filename:
+    displayName: Note
+  formula.created_day:
+    displayName: Created
+  formula.wiki_badge:
+    displayName: Status
+views:
+  - type: table
+    name: Latest sources
+    order:
+      - formula.wiki_badge
+      - formula.created_day
+      - formula.filename
+    sort:
+      - property: formula.created
+        direction: DESC
+      - property: file.name
+        direction: ASC
+    limit: 25
+    columnSize:
+      formula.filename: 360
+      formula.wiki_badge: 132
+      formula.created_day: 110

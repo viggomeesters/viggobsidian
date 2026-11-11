@@ -1,0 +1,33 @@
+filters:
+  and:
+    - 'file.ext == "md"'
+    - 'file.folder == "00-inbox/" + file.name'
+    - '!file.name.contains(".sync-conflict-")'
+formulas:
+  status: '"Binnengekomen"'
+  package: 'link(file.path, file.name)'
+  added: 'if(note.created, date(note.created), file.ctime)'
+  added_day: 'formula.added.format("YYYY-MM-DD")'
+properties:
+  formula.status:
+    displayName: Status
+  formula.package:
+    displayName: Package
+  formula.added_day:
+    displayName: Added
+views:
+  - type: table
+    name: Inbox packages
+    order:
+      - formula.status
+      - formula.added_day
+      - formula.package
+    sort:
+      - property: formula.added
+        direction: DESC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      formula.status: 145
+      formula.package: 440
+      formula.added_day: 120

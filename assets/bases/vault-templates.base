@@ -1,0 +1,33 @@
+filters:
+  and:
+    - 'file.folder == "90-templates"'
+    - 'file.ext == "md"'
+    - 'file.name != "90-templates"'
+    - '!file.name.contains(".sync-conflict-")'
+formulas:
+  template_type: 'if(file.name.startsWith("agent-"), "Agenttaken", if(file.name.startsWith("folder-note-"), "Foldernotes", "Overige"))'
+  modified: 'file.mtime.format("YYYY-MM-DD")'
+  template: 'link(file.path, file.name)'
+properties:
+  formula.template_type:
+    displayName: Type
+  formula.modified:
+    displayName: Gewijzigd
+  formula.template:
+    displayName: Template
+views:
+  - type: table
+    name: Templates
+    order:
+      - formula.template_type
+      - formula.modified
+      - formula.template
+    sort:
+      - property: formula.template_type
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      formula.template_type: 132
+      formula.modified: 120
+      formula.template: 390

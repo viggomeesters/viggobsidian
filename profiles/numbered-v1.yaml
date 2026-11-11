@@ -1,0 +1,17 @@
+id: numbered-v1
+version: 1
+roots:
+  inbox: 00-inbox
+  daily: 10-daily
+  projects: 20-projects
+  programs: "21-* through 29-*"
+  topics: 30-topics
+  templates: 90-templates
+  system: 99-system
+project_folder: YYYY-MM-projectnaam
+component_folder: code-NN-onderdeel
+project_wiki: code-00-project-wiki
+component_layers: [wiki, raw]
+daily_notes: 10-daily/notes/YYYY-MM-DD.md
+daily_created_sort: DESC
+entities: project-00
