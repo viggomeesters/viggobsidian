@@ -200,45 +200,45 @@ lokale dieptechecks. Verander geen hashes of uitzonderingen om fouten te verberg
 
 ### Event Note v1.1-bubbels
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ## Voorbeeldnotes
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ## Een batch omzetten
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ### Bronvolledigheid en inhoudelijke acceptatie
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ### Uitvoering per dossier
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ## FAQ · Implementatie en Rust-checker
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ### Hoe zien de drie dossierpagina’s eruit?
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ### Wat controleert de Rust-checker?
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ### Waar volgen we de uitrol?
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ### Welke opdracht gebruik ik per dossier?
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ## Projecten en onderdelen
 
-Zie [[99-system/vault/vault-navigation/vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
+Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
