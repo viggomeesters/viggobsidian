@@ -1,6 +1,56 @@
 {
   "files": [
     {
+      "sha256": "a79c44c70d7f6ac44e86abd54568623a74892151337980ba6f86ec924107a639",
+      "source": "docs/navigation.md",
+      "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
+    },
+    {
+      "sha256": "f5d4b88916ab0e86b0bf931e0f8c5e42b7ab2b4089f544997a7373ce32959be6",
+      "source": "docs/compat/folder-note.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/folder-note.md"
+    },
+    {
+      "sha256": "e7128c46e912da14ad0e24b527603166eae395aed89c80646f6926ac36327ff9",
+      "source": "docs/compat/folder-workspace.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/folder-workspace.md"
+    },
+    {
+      "sha256": "6536eeb9707003b4965144dd663d7ee59d32377d0377abe65fbc1d43aa8c75b6",
+      "source": "docs/compat/project-folder-note.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/project-folder-note.md"
+    },
+    {
+      "sha256": "e0173a763193257c0a9a6399949202fdfbfdbf627dc2ecb8595f378cacda62d9",
+      "source": "docs/compat/root-folder-note.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/root-folder-note.md"
+    },
+    {
+      "sha256": "bd3324c21b1fb4b468e52bf5263280c971a6882cf18bc1de8637bb7b377962ae",
+      "source": "docs/compat/vault-navigation-check.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/vault-navigation-check.md"
+    },
+    {
+      "sha256": "3d5e976be43e85a9a4c75ea5bb2ef177db3c42d2c385a0e4861b60f274400414",
+      "source": "docs/compat/vault-schema-check.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/vault-schema-check.md"
+    },
+    {
+      "sha256": "91b8f628e07a89bfb05fa11ee3a940ba34a0adb37013b8918680406767fc4332",
+      "source": "schemas/navigation-contract.yaml",
+      "target": ".viggobsidian/core/navigation-contract.yaml"
+    },
+    {
+      "sha256": "91b8f628e07a89bfb05fa11ee3a940ba34a0adb37013b8918680406767fc4332",
+      "source": "schemas/navigation-contract.yaml",
+      "target": ".agents/tools/vault-layout/fixtures/navigation-contract.yaml"
+    },
+    {
+      "sha256": "63b9ba8af5be32aade91d9638e705fb74446015666fdc8f503e55c70e9e8d3ef",
+      "source": "crates/vault-layout/src/navigation_contract.rs",
+      "target": ".agents/tools/vault-layout/src/navigation_contract.rs"
+    },
+    {
       "sha256": "0cca8800a863848106276cfb5f3cd4076a9c7878954855bf8d2b430fb09c034d",
       "source": "docs/mail-format.md",
       "target": ".viggobsidian/core/mail-format.md"
@@ -16,7 +66,7 @@
       "target": ".agents/tools/vault-layout/src/mail_draft.rs"
     },
     {
-      "sha256": "c795af9b9e8da869016a2b909914f148bfaa5c77f6e0cc406adda94bddb877c1",
+      "sha256": "d4945750046f3fd2e2ae4c919e81e59e627098bc95ba83e8d47d94176a721bf4",
       "source": "docs/policy.md",
       "target": ".viggobsidian/core/policy.md"
     },
@@ -76,7 +126,7 @@
       "target": "99-system/vault/vault-navigation/standaard/wiki/vault-templates.base"
     },
     {
-      "sha256": "e51ac0c69fb408527b8095e92f040bc43cd2e1dc939d62041a847cab7c2bc0ad",
+      "sha256": "26639c13097e240f3831a5179a627c8b28765604117254c9a06ff6c8a3d9dd5f",
       "source": "skills/vault/SKILL.md",
       "target": ".agents/skills/vault/SKILL.md"
     },
@@ -207,7 +257,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "e566109451cfd62e6e98c91d58660e22a74a7aee0f7283b19d9d8ff0231f6f04",
+      "sha256": "b43e0661f31376e14339ad0b578bf88edf891bd8645936cb40d7e0c0621a2f35",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -232,7 +282,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "70e489ce5533dd7d4f00c0f5c2e04551fcabb760491a54594f783640a55b28d6",
+      "sha256": "cd0c2b3f882e77d048a374e3dda3634ccd253a5219ea32017c3c9bf900dc66f8",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -242,7 +292,7 @@
       "target": ".viggobsidian/core/lucide-license.txt"
     }
   ],
-  "revision": "f2b96df1b53ad03238af89814bd847ad252f4fdd",
+  "revision": "cf841cc94ec3929b9a133de5797b6e4f3453a3ed",
   "schema": "viggobsidian.package.v1",
-  "version": "0.3.0"
+  "version": "0.4.0"
 }
