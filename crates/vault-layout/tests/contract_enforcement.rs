@@ -295,6 +295,19 @@ fn strict_raw_task_requires_event_note_v1_activity() {
         "{}",
         String::from_utf8_lossy(&result.stdout)
     );
+    let untouched = fs::read(fixture.0.join(&note)).unwrap();
+    let invalid_mail = format!(
+        "{}\n> <!-- viggobsidian:mail-draft:v1 recipients=resolved -->\n> Mailstatus: concept\n> <!-- /viggobsidian:mail-draft -->\n",
+        String::from_utf8_lossy(&untouched)
+    );
+    fixture.write(&note, &invalid_mail);
+    let report = fixture.strict(package);
+    assert_eq!(report.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&report.stdout).contains("strict-mail-draft"));
+    assert_eq!(
+        fs::read(fixture.0.join(&note)).unwrap(),
+        invalid_mail.as_bytes()
+    );
 }
 
 #[test]

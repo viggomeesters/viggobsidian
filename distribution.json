@@ -1,5 +1,8 @@
 {
   "files": [
+    { "source": "docs/mail-format.md", "target": ".viggobsidian/core/mail-format.md" },
+    { "source": "templates/mail-draft.md", "target": ".viggobsidian/core/mail-draft.md" },
+    { "source": "crates/vault-layout/src/mail_draft.rs", "target": ".agents/tools/vault-layout/src/mail_draft.rs" },
     {
       "source": "docs/policy.md",
       "target": ".viggobsidian/core/policy.md"

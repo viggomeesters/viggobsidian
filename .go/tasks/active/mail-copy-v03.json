@@ -1,0 +1,43 @@
+{
+  "schema": "go-workflow.repo-local.task.v1",
+  "kind": "task",
+  "execution_mode": "mechanical",
+  "shareable_delivery": "none",
+  "id": "mail-copy-v03",
+  "project": "viggobsidian",
+  "status": "active",
+  "summary": "Ship recipient subject body mail fields inside Event Note bubbles",
+  "description": "Resolve overlapping issues3 and5 using the latest three-field requirement: verified recipients, subject and body; role-preserving optional Cc/Bcc, unresolved-recipient handling, source binding, native copy behavior, opt-in checker and templates; release and update both vaults without historical bulk conversion.",
+  "scope": {
+    "read": [
+      "**"
+    ],
+    "modify": [
+      "**"
+    ]
+  },
+  "acceptance": [
+    "Issues3 and5 latest criteria are implemented consistently in policy, skills, executable validation and fictional fixtures.",
+    "To, subject and plaintext body copy independently in native Obsidian; source bindings and mail state stay inside the named author bubble outside copy blocks.",
+    "Recipient evidence, unresolved addresses, Cc/Bcc separation, quote/fence integrity and mixed-mode safety have positive and negative tests; no send or task-state side effects.",
+    "Reviewed PR, release, both drift-safe vault updates, local checks and source writeback are verified."
+  ],
+  "verification": [
+    "cargo test --workspace --locked",
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --locked -- -D warnings"
+  ],
+  "claim": {
+    "agent": "codex",
+    "claimed_at": "2026-11-11T21:14:57+01:00",
+    "base_commit": "26bcab590e5336cbfe1a593cd62575dd6c43ca69"
+  },
+  "work_status": "in_progress",
+  "review_status": "none",
+  "review_history": [],
+  "evidence": [],
+  "github": {
+    "repository": "viggomeesters/viggobsidian",
+    "issue": 5
+  }
+}

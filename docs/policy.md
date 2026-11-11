@@ -16,6 +16,13 @@ Lees de actuele eigenaar en de volledige relevante bron vóór een wijziging. Ra
 
 Foldernotes, context, navigatie en bron-/activiteitweergave volgen de gedeelde CSS en `vault-layout`-engine. Lokale schema’s bezitten exacte scopes en delegaties; lokale writers behouden hun authority. Broninventarissen, volledige v1.1-Activity-bubbels, Base-contracten, projectcodes en linknavigatie worden uit dezelfde Rust-bron gecontroleerd. Een strengere samengevoegde controle mag bestaande inhoudsafwijkingen zichtbaar maken; schakel geen controles uit om een migratie groen te laten lijken.
 
+## Mailconcepten
+
+Nieuwe en inhoudelijk gewijzigde mailconcepten volgen `mail-format.md` en het
+gedeelde `mail-draft.md`-sjabloon: afzonderlijk kopieerbare To, Onderwerp en Body
+binnen dezelfde auteursbubble, met gecontroleerde ontvangers en bronbinding.
+Historie, taakstatus en verzending worden niet door deze opmaak veranderd.
+
 ## Daily
 
 Daily’s staan onder `10-daily/notes/YYYY-MM-DD.md`. Toon automatisch de notes die op die dag zijn aangemaakt via een embedded Base met `file.ctime.date() == date(this.file.name)`, sluit de daily zelf uit en sorteer `file.ctime` aflopend. De notenaam bepaalt de dag. Bewaar menselijke daginhoud en bestaande links; voeg voor agentoutput geen handmatige linkrijen toe als automatische dekking volstaat. Een kopie/import kan een nieuwe filesystem-aanmaakdatum krijgen; dit overzicht is geen bronhistorie.
