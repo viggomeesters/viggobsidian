@@ -9,6 +9,43 @@ use std::{
 };
 
 #[test]
+fn adopted_engine_reads_shared_metadata_contract_and_refuses_missing_core() {
+    let (fixture, raw) = intake_fixture("21-program", "shared-navigation-contract");
+    let schema = fixture.0.join("99-system/contracts/vault-schema.yaml");
+    let local = fs::read_to_string(&schema).unwrap().replace(
+        "required: [type, category]",
+        "required: [type, category, legacy_only]",
+    );
+    fs::write(&schema, local).unwrap();
+    fixture.write(".viggobsidian/installed.json", "{}");
+    fixture.write(
+        ".viggobsidian/core/navigation-contract.yaml",
+        include_str!("../fixtures/navigation-contract.yaml"),
+    );
+    let input = json!({"date":"2026-11-11", "slug":"shared-task", "title":"Shared contract", "request":"Fictional input"});
+    let created = intake(&fixture, &raw, &input);
+    assert!(
+        created.status.success(),
+        "{}",
+        String::from_utf8_lossy(&created.stdout)
+    );
+    let receipt: Value = serde_json::from_slice(&created.stdout).unwrap();
+    let package = Path::new(receipt["path"].as_str().unwrap())
+        .parent()
+        .unwrap()
+        .to_str()
+        .unwrap();
+    assert!(fixture.strict(package).status.success());
+    fs::remove_file(
+        fixture
+            .0
+            .join(".viggobsidian/core/navigation-contract.yaml"),
+    )
+    .unwrap();
+    assert_eq!(fixture.strict(package).status.code(), Some(2));
+}
+
+#[test]
 fn check_all_rejects_mutating_mode_combinations_before_writes() {
     let fixture = Fixture::new("exclusive-checks");
     fixture.write("untouched.md", "[[unresolved/target]]");

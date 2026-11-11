@@ -1,5 +1,15 @@
 {
   "files": [
+    { "source": "docs/navigation.md", "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md" },
+    { "source": "docs/compat/folder-note.md", "target": "99-system/vault/vault-navigation/standaard/wiki/folder-note.md" },
+    { "source": "docs/compat/folder-workspace.md", "target": "99-system/vault/vault-navigation/standaard/wiki/folder-workspace.md" },
+    { "source": "docs/compat/project-folder-note.md", "target": "99-system/vault/vault-navigation/standaard/wiki/project-folder-note.md" },
+    { "source": "docs/compat/root-folder-note.md", "target": "99-system/vault/vault-navigation/standaard/wiki/root-folder-note.md" },
+    { "source": "docs/compat/vault-navigation-check.md", "target": "99-system/vault/vault-navigation/standaard/wiki/vault-navigation-check.md" },
+    { "source": "docs/compat/vault-schema-check.md", "target": "99-system/vault/vault-navigation/standaard/wiki/vault-schema-check.md" },
+    { "source": "schemas/navigation-contract.yaml", "target": ".viggobsidian/core/navigation-contract.yaml" },
+    { "source": "schemas/navigation-contract.yaml", "target": ".agents/tools/vault-layout/fixtures/navigation-contract.yaml" },
+    { "source": "crates/vault-layout/src/navigation_contract.rs", "target": ".agents/tools/vault-layout/src/navigation_contract.rs" },
     { "source": "docs/mail-format.md", "target": ".viggobsidian/core/mail-format.md" },
     { "source": "templates/mail-draft.md", "target": ".viggobsidian/core/mail-draft.md" },
     { "source": "crates/vault-layout/src/mail_draft.rs", "target": ".agents/tools/vault-layout/src/mail_draft.rs" },
