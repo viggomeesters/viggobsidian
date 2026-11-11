@@ -96,7 +96,7 @@
       "target": ".agents/skills/vault-brief/SKILL.md"
     }
   ],
-  "revision": "109faf29507208097f1bc8697fef7af5da3396fa",
+  "revision": "6e9914bb6701c20c32a7e1ec1cd4af1e597fbcc9",
   "schema": "viggobsidian.package.v1",
   "version": "0.1.0"
 }
