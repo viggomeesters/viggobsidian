@@ -91,6 +91,20 @@ fn allowed(target: &str) -> bool {
     if relative(target).is_err() {
         return false;
     }
+    if target == "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
+        || [
+            "folder-note",
+            "folder-workspace",
+            "project-folder-note",
+            "root-folder-note",
+            "vault-navigation-check",
+            "vault-schema-check",
+        ]
+        .iter()
+        .any(|name| target == format!("99-system/vault/vault-navigation/standaard/wiki/{name}.md"))
+    {
+        return true;
+    }
     if SKILLS
         .iter()
         .any(|s| target == format!(".agents/skills/{s}/SKILL.md"))
@@ -113,6 +127,7 @@ fn allowed(target: &str) -> bool {
     }
     if [
         "layout-contract.yaml",
+        "navigation-contract.yaml",
         "vault-raw.base",
         "vault-dossier.base",
     ]
@@ -137,6 +152,7 @@ fn allowed(target: &str) -> bool {
         "link_style",
         "mail_manifest",
         "mail_draft",
+        "navigation_contract",
         "project_codes",
         "raw_processing",
         "raw_task",
@@ -153,6 +169,7 @@ fn allowed(target: &str) -> bool {
     }
     if [
         "policy.md",
+        "navigation-contract.yaml",
         "mail-format.md",
         "mail-draft.md",
         "skills.md",

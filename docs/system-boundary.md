@@ -1,5 +1,13 @@
 # Wat hoort waar?
 
+Vanaf v0.4 is `docs/navigation.md` de ene actieve navigatiestandaard. De oude
+folder-note-/workspace-/checknotenames worden als dunne releasebeheerde ingangen
+geïnstalleerd met behoud van kopankers. Het generieke navigation-contract wordt
+door de Rust-engine gebruikt; lokale exacte scopes en overige domeinregels
+blijven in het bestaande vaultschema. Bevroren legacy-/roadmapinterfaces zijn
+expliciet lokaal beschreven en krijgen geen nieuwe caller als navigatiedefault.
+Hun historische herstelpins worden niet vernieuwd als bijeffect van deze release.
+
 | Onderdeel | ViggObsidian | Lokale vault |
 | --- | --- | --- |
 | Navigatie, programma/project/onderdeel, Wiki/Raw | Canoniek beleid en profiel | Inhoudelijke projecten, namen en migraties |

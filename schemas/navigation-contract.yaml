@@ -1,0 +1,41 @@
+schema: viggobsidian.navigation.v1
+profile: numbered-v1
+version: 1
+hierarchy:
+  standalone_projects: 20-projects
+  programs: "21-* through 29-*"
+  project: YYYY-MM-projectnaam
+  component: code-NN-onderdeel
+  project_wiki: code-00-project-wiki
+  component_layers: [wiki, raw]
+  new_central_task_collections: false
+navigation:
+  child_coverage: physical-direct-children-one-to-one
+  shortcuts: [Back, Finder]
+  content_callout: navigation
+  collections_layer: navigation
+  dossiers_layer: wiki
+presentation:
+  dossier: [navigation, vault-task-summary, Open tasks]
+  raw: [shortcuts, vault-raw-summary, Latest sources]
+  wiki_toc_threshold: 4
+  event_format: event-note-v1.1
+  provenance_inside_author_bubble: true
+  mailbox_fields: [To, Onderwerp, Body]
+layout:
+  validation_profiles:
+    minimal:
+      required: [type, category]
+  common_fields:
+    layer:
+      allowed_values: [navigation, wiki]
+  contracts:
+    raw_package:
+      required_fields: [type, category, wiki_status]
+      wiki_status_values:
+        pending: Awaiting source review
+        processed: Reviewed with exact Wiki destination or explicit no-change rationale
+boundaries:
+  preserve: [source_id, task_id, project_id, component-id, component_id, registration]
+  local: [exact-scopes, delegations, providers, legacy-contracts, identity, appearance]
+  historical_migration: explicit-per-dossier

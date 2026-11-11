@@ -5,6 +5,12 @@ description: "Lees vaultkennis, leg input vast, verwerk bronnen of pak bestaande
 
 # Vault
 
+Lees voor inrichting of onderhoud de releasebeheerde
+`99-system/vault/vault-navigation/vault-navigation-handleiding.md` en het generieke
+`.viggobsidian/core/navigation-contract.yaml`. De lokale navigatie-adapter staat
+in `.viggobsidian/navigation-local.md`. Oude centrale taken-/meetingcollecties
+zijn alleen compatibiliteit voor bestaande callers, geen nieuwe default.
+
 Lees `../../docs/policy.md` in de broncheckout, of `.viggobsidian/core/policy.md` in de expliciet gekozen doelvault. Lees vervolgens die doelvaults `AGENTS.md` en `.viggobsidian/local-adapter.md`. De locatie van deze skill bepaalt nooit de doelvault. Zonder expliciete, bewezen doelroot geen mutatie.
 
 Kies de gevraagde werking: `vault-log` bewaart input; `vault-process` verwerkt bronnen naar eigenaar, Raw en Wiki; `vault-tackle` vervolgt een bestaande actie; `vault-task` voert een concrete opdracht uit; `vault-hub` maakt afgeleide taaknavigatie; `vault-brief` geeft een actuele briefing. Een kennisvraag leest de actuele eigenaar en relevante bronnen zonder impliciete uitvoering. Laad alleen de gekozen ingang en de lokale adapterroute.

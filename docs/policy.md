@@ -2,6 +2,11 @@
 
 ViggObsidian beheert gedeeld beleid, schema’s, CSS en vaultskills. Een geïnstalleerd bestand is een versiegebonden distributiekopie. Wijzig de bron in deze repository via Issue → PR → review → merge → release; pas de release daarna bewust op iedere vault toe.
 
+De volledige gedeelde navigatiestandaard staat in `docs/navigation.md`, lokaal
+geïnstalleerd op `99-system/vault/vault-navigation/vault-navigation-handleiding.md`.
+`schemas/navigation-contract.yaml` bezit de generieke machinekeuzes. Lokale
+compatibiliteitsinterfaces zijn geen tweede actief profiel voor nieuwe dossiers.
+
 ## Eén profiel
 
 `numbered-v1` gebruikt `00-inbox`, `10-daily`, `20-projects`, programmaroots `21-naam` tot en met `29-naam`, `30-topics`, `90-templates` en `99-system`. `20-projects` bezit losse projecten. Een programma groepeert samenhangende projecten en krijgt geen vaste productgebonden naam. Een project staat in precies één programma of bij de losse projecten; verwijs elders naar dat project.

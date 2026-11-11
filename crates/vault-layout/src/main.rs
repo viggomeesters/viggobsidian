@@ -14,6 +14,7 @@ mod index_navigation;
 mod link_style;
 mod mail_draft;
 mod mail_manifest;
+mod navigation_contract;
 mod project_codes;
 mod raw_processing;
 mod raw_task;
@@ -218,6 +219,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         return Err("the selected folder is a symbolic link".into());
     }
     let mut schema: Value = serde_saphyr::from_str(&fs::read_to_string(vault.join(SCHEMA))?)?;
+    navigation_contract::apply(&vault, &mut schema)?;
     if !schema["validation_profiles"]["minimal"]["required"].is_array()
         || !schema["contracts"]["raw_package"]["required_fields"].is_array()
         || !schema["contracts"]["raw_package"]["wiki_status_values"].is_object()
