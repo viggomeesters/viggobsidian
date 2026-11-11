@@ -220,9 +220,14 @@
       "sha256": "6b88fe57cb4d13e320857092355d2e89aa27426898e3adb558ac343ebc9dac70",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
+    },
+    {
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+      "source": "LICENSES/lucide.txt",
+      "target": ".viggobsidian/core/lucide-license.txt"
     }
   ],
-  "revision": "b7b44c397be63d7512025350e966c02e1b6f9801",
+  "revision": "5503829e0cb823111b8c368f552274a44e80c785",
   "schema": "viggobsidian.package.v1",
   "version": "0.2.0"
 }
