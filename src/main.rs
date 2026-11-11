@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+mod css;
 const STATE: &str = ".viggobsidian/installed.json";
 const SKILLS: &[&str] = &[
     "vault",
@@ -96,7 +97,57 @@ fn allowed(target: &str) -> bool {
     {
         return true;
     }
-    if [".obsidian/snippets/viggobsidian.css"].contains(&target) {
+    if [
+        "viggobsidian.css",
+        "folder-note.css",
+        "agents-callout.css",
+        "active-note-contrast.css",
+    ]
+    .iter()
+    .any(|name| target == format!(".obsidian/snippets/{name}"))
+    {
+        return true;
+    }
+    if target == ".viggobsidian/core/folder-note.css" {
+        return true;
+    }
+    if [
+        "layout-contract.yaml",
+        "vault-raw.base",
+        "vault-dossier.base",
+    ]
+    .iter()
+    .any(|name| target == format!(".agents/tools/vault-layout/fixtures/{name}"))
+        || target == ".agents/tools/vault-layout/tests/contract_enforcement.rs"
+    {
+        return true;
+    }
+    if ["Cargo.toml", "Cargo.lock"]
+        .iter()
+        .any(|name| target == format!(".agents/tools/vault-layout/{name}"))
+    {
+        return true;
+    }
+    if [
+        "main",
+        "activity_layout",
+        "dossier_tables",
+        "event_header",
+        "index_navigation",
+        "link_style",
+        "mail_manifest",
+        "project_codes",
+        "raw_processing",
+        "raw_task",
+        "shortcut_links",
+        "source_inventory",
+        "wiki_layout",
+        "work_intake",
+        "work_package",
+    ]
+    .iter()
+    .any(|name| target == format!(".agents/tools/vault-layout/src/{name}.rs"))
+    {
         return true;
     }
     if [
@@ -189,6 +240,11 @@ fn package(package: &Path) -> Result<(Value, String)> {
     let mut targets = BTreeSet::new();
     for item in rows(&manifest, "files")? {
         let target = field(item, "target")?;
+        if !item["transform"].is_null()
+            && (item["transform"] != "css-v1" || target != ".obsidian/snippets/folder-note.css")
+        {
+            return fail("unknown or misplaced package transform");
+        }
         if !allowed(target) || !targets.insert(target) {
             return fail(format!("forbidden or duplicate target: {target}"));
         }
@@ -203,6 +259,30 @@ fn package(package: &Path) -> Result<(Value, String)> {
     }
     Ok((manifest, hash(&bytes)))
 }
+fn materialize(
+    vault: &Path,
+    package_root: &Path,
+    item: &Value,
+) -> Result<(Vec<u8>, Option<Value>)> {
+    let source = fs::read(checked(package_root, field(item, "source")?)?)?;
+    if hash(&source) != field(item, "sha256")? {
+        return fail("package source changed");
+    }
+    if item["transform"].is_null() {
+        return Ok((source, None));
+    }
+    if item["transform"] != "css-v1" || item["target"] != ".obsidian/snippets/folder-note.css" {
+        return fail("invalid transform");
+    }
+    let config_name = ".viggobsidian/appearance.json";
+    let config = fs::read(checked(vault, config_name)?)?;
+    let bytes = css::render(
+        std::str::from_utf8(&source)?,
+        &serde_json::from_slice(&config)?,
+    )?;
+    let recipe = json!({"kind":"css-v1","source_sha256":item["sha256"],"config":config_name,"config_sha256":hash(&config),"sha256":hash(&bytes)});
+    Ok((bytes, Some(recipe)))
+}
 fn state(vault: &Path) -> Result<Value> {
     match bytes_at(vault, STATE)? {
         None => Ok(Value::Null),
@@ -216,11 +296,25 @@ fn state(vault: &Path) -> Result<Value> {
             let mut files = BTreeMap::new();
             for item in rows(&manifest, "files")? {
                 let target = field(item, "target")?;
-                if !allowed(target)
-                    || files
-                        .insert(target.to_string(), item["sha256"].clone())
-                        .is_some()
+                let expected = if item["transform"] == "css-v1"
+                    && target == ".obsidian/snippets/folder-note.css"
                 {
+                    let derivation = &value["derived"][target];
+                    if derivation["kind"] != "css-v1"
+                        || derivation["source_sha256"] != item["sha256"]
+                        || derivation["config"] != ".viggobsidian/appearance.json"
+                    {
+                        return fail("invalid installed CSS derivation");
+                    }
+                    field(derivation, "config_sha256")?;
+                    field(derivation, "sha256")?;
+                    derivation["sha256"].clone()
+                } else if item["transform"].is_null() {
+                    item["sha256"].clone()
+                } else {
+                    return fail("unsupported installed transform");
+                };
+                if !allowed(target) || files.insert(target.to_string(), expected).is_some() {
                     return fail("invalid installed manifest target");
                 }
             }
@@ -262,10 +356,15 @@ fn plan(vault: &Path, package_root: &Path, adoption: &Value) -> Result<Value> {
     }
     let mut changes = Vec::new();
     let mut next = BTreeMap::new();
+    let mut derived = BTreeMap::new();
     for item in rows(&manifest, "files")? {
         let target = field(item, "target")?;
         let preimage = digest_at(vault, target)?;
-        let desired = &item["sha256"];
+        let (bytes, recipe) = materialize(vault, package_root, item)?;
+        let desired = &Value::String(hash(&bytes));
+        if let Some(recipe) = recipe {
+            derived.insert(target, recipe);
+        }
         if !preimage.is_null()
             && installed["files"][target].is_null()
             && adoption[target] != preimage
@@ -293,7 +392,7 @@ fn plan(vault: &Path, package_root: &Path, adoption: &Value) -> Result<Value> {
         json!({"schema":"viggobsidian.plan.v1","vault":vault,"package":package_root,
         "version":manifest["version"],"revision":manifest["revision"],"manifest_sha256":manifest_sha256,
         "previous_state_sha256":digest_at(vault,STATE)?,"adoption":adoption,"changes":changes,
-        "next_state":{"schema":"viggobsidian.installed.v1","version":manifest["version"],"revision":manifest["revision"],"manifest_sha256":manifest_sha256,"manifest_bytes":fs::read_to_string(checked(package_root,"package.json")?)?,"files":next}}),
+        "next_state":{"schema":"viggobsidian.installed.v1","version":manifest["version"],"revision":manifest["revision"],"manifest_sha256":manifest_sha256,"manifest_bytes":fs::read_to_string(checked(package_root,"package.json")?)?,"files":next,"derived":derived}}),
     )
 }
 fn apply(vault: &Path, proposal: &Value) -> Result<Value> {
@@ -344,9 +443,9 @@ fn apply(vault: &Path, proposal: &Value) -> Result<Value> {
             .iter()
             .find(|i| i["target"] == target)
             .ok_or("missing package target")?;
-        let bytes = fs::read(checked(&package_root, field(item, "source")?)?)?;
-        if hash(&bytes) != field(item, "sha256")? {
-            return fail("package changed during apply");
+        let (bytes, _) = materialize(vault, &package_root, item)?;
+        if hash(&bytes) != field(change, "after")? {
+            return fail("package or local CSS configuration changed during apply");
         }
         atomic(vault, target, &bytes)?;
     }
@@ -496,14 +595,30 @@ fn check(vault: &Path, structure: bool) -> Result<Value> {
             }
         }
     }
+    if let Some(derived) = installed["derived"].as_object() {
+        for (target, recipe) in derived {
+            let config = fs::read(checked(vault, field(recipe, "config")?)?)?;
+            let shared = fs::read(checked(vault, ".viggobsidian/core/folder-note.css")?)?;
+            if hash(&config) != field(recipe, "config_sha256")?
+                || hash(&shared) != field(recipe, "source_sha256")?
+                || hash(&css::render(
+                    std::str::from_utf8(&shared)?,
+                    &serde_json::from_slice(&config)?,
+                )?) != field(recipe, "sha256")?
+            {
+                errors.push(format!(
+                    "CSS inputs changed; preview/apply required: {target}"
+                ));
+            }
+        }
+    }
     let integration = read_json(&checked(vault, ".viggobsidian/integration.json")?)?;
-    let valid_keys = ["schema", "profile", "adoption", "local_adapter"];
-    if !integration
+    let valid_keys = ["schema", "profile", "adoption", "local_adapter", "layout"];
+    if !integration.as_object().is_some_and(|o| {
+        (o.len() == 4 || o.len() == 5) && o.keys().all(|k| valid_keys.contains(&k.as_str()))
+    }) || !integration["adoption"]
         .as_object()
-        .is_some_and(|o| o.len() == 4 && o.keys().all(|k| valid_keys.contains(&k.as_str())))
-        || !integration["adoption"]
-            .as_object()
-            .is_some_and(|o| o.keys().all(|k| k == "legacy_project_roots"))
+        .is_some_and(|o| o.keys().all(|k| k == "legacy_project_roots"))
         || (!integration["adoption"]["legacy_project_roots"].is_null()
             && !integration["adoption"]["legacy_project_roots"].is_array())
     {
@@ -514,6 +629,12 @@ fn check(vault: &Path, structure: bool) -> Result<Value> {
         || integration["local_adapter"] != ".viggobsidian/local-adapter.md"
     {
         errors.push("invalid integration contract".into());
+    }
+    if integration.get("layout").is_some()
+        && integration["layout"]
+            != json!({"engine":".agents/tools/vault-layout/Cargo.toml","css_configuration":".viggobsidian/appearance.json","source":"viggobsidian-release"})
+    {
+        errors.push("invalid layout integration contract".into());
     }
     if !checked(vault, ".viggobsidian/local-adapter.md")?.is_file() {
         errors.push("missing local adapter".into());
@@ -620,7 +741,11 @@ fn pack(package_root: &Path, revision: &str) -> Result<Value> {
         }
         let source = field(item, "source")?;
         let bytes = fs::read(checked(package_root, source)?)?;
-        files.push(json!({"source":source,"target":target,"sha256":hash(&bytes)}));
+        let mut entry = json!({"source":source,"target":target,"sha256":hash(&bytes)});
+        if !item["transform"].is_null() {
+            entry["transform"] = item["transform"].clone();
+        }
+        files.push(entry);
     }
     let manifest = json!({"schema":"viggobsidian.package.v1","version":env!("CARGO_PKG_VERSION"),"revision":revision,"files":files});
     atomic(
@@ -645,6 +770,10 @@ fn run() -> Result<bool> {
     let command = args.first().map(String::as_str).unwrap_or("help");
     let mut ok = true;
     let output = match command {
+        "css-split" => {
+            let (shared, routes) = css::split(&fs::read_to_string(get("--input")?)?)?;
+            json!({"shared":shared,"appearance":{"schema":"viggobsidian.appearance.v1","routes":routes}})
+        }
         "pack" => pack(&root(Path::new(get("--package")?))?, get("--revision")?)?,
         "plan" => {
             let adoption = if args.iter().any(|a| a == "--adopt") {
@@ -673,7 +802,7 @@ fn run() -> Result<bool> {
         }
         "help" | "--help" => {
             println!(
-                "viggobsidian 0.1\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md."
+                "viggobsidian 0.2\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md."
             );
             return Ok(true);
         }

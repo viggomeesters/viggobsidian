@@ -1,25 +1,2 @@
-/* ViggObsidian core. Route-specific colours/icons belong in a local snippet. */
-.vault-navigation {
-  --vo-card-radius: 10px;
-  --vo-card-gap: 1rem;
-  --vo-card-accent: var(--interactive-accent);
-}
-.vault-navigation .dashboardtile {
-  border: 1px solid var(--background-modifier-border);
-  border-radius: var(--vo-card-radius);
-  background: var(--background-secondary);
-}
-.vault-navigation .dashboardtile:hover {
-  border-color: var(--vo-card-accent);
-}
-.vault-navigation table,
-.folder-note table { width: 100%; }
-.vault-navigation .bases-embed .bases-header {
-  border: 0;
-}
-.vault-wiki a.internal-link[data-href*="#"] {
-  text-underline-offset: .15em;
-}
-.vault-event-v1-1 .callout[data-callout="info"] {
-  --callout-color: var(--color-blue-rgb);
-}
+/* Compatibility asset from v0.1. Complete active styles are now in folder-note.css,
+   agents-callout.css and active-note-contrast.css. No second stylesheet to maintain. */

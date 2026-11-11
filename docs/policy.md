@@ -14,7 +14,7 @@ Topics zijn blijvende onderwerpen zonder begrensd projectresultaat. Een architec
 
 Lees de actuele eigenaar en de volledige relevante bron vóór een wijziging. Raw bewaart oorspronkelijke input, bijlagen, herkomst, registratie en bestaande taak-ID’s. Wiki beschrijft de onderhouden kennis en verwijst bij de inhoudelijke uitspraak naar de echte bron en passage. Maak onderscheid tussen feit, voorstel, besluit en uitgevoerde actie. Markeer een bron pas als verwerkt nadat de inhoud inhoudelijk is beoordeeld; vermeld waarom een bron niets toevoegt. Een groene validator bewijst geen inhoudelijke verwerking.
 
-Foldernotes, context, navigatie en bron-/activiteitweergave volgen de lokaal aangesloten renderer en strikte layoutcontrole. Nieuwe core-regels mogen bestaande writergrenzen niet omzeilen. Bestaande dieptecontroles blijven adaptercontroles totdat hun gedrag aantoonbaar in de gedeelde checker is overgenomen.
+Foldernotes, context, navigatie en bron-/activiteitweergave volgen de gedeelde CSS en `vault-layout`-engine. Lokale schema’s bezitten exacte scopes en delegaties; lokale writers behouden hun authority. Broninventarissen, volledige v1.1-Activity-bubbels, Base-contracten, projectcodes en linknavigatie worden uit dezelfde Rust-bron gecontroleerd. Een strengere samengevoegde controle mag bestaande inhoudsafwijkingen zichtbaar maken; schakel geen controles uit om een migratie groen te laten lijken.
 
 ## Daily
 

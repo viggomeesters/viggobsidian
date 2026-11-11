@@ -1,6 +1,51 @@
 use super::*;
 
 #[test]
+fn derived_css_binds_local_configuration_rejects_stale_plans_and_rolls_back() {
+    let f = Fixture::new();
+    let shared = ".vault-dashboard { display: grid; }";
+    fs::write(f.package.join("layout.css"), shared).unwrap();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["files"].as_array_mut().unwrap().extend([
+        json!({"source":"layout.css","target":".viggobsidian/core/folder-note.css","sha256":hash(shared.as_bytes())}),
+        json!({"source":"layout.css","target":".obsidian/snippets/folder-note.css","sha256":hash(shared.as_bytes()),"transform":"css-v1"})]);
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    let config = json!({"schema":"viggobsidian.appearance.v1","routes":[{"selectors":".vault-dashboard a[data-href=\"fictional\"]","declarations":"--dashboard-accent: red;"}]});
+    atomic(
+        &f.vault,
+        ".viggobsidian/appearance.json",
+        &serde_json::to_vec(&config).unwrap(),
+    )
+    .unwrap();
+    let old_plan = f.plan();
+    let changed = config.to_string().replace("red", "blue");
+    atomic(
+        &f.vault,
+        ".viggobsidian/appearance.json",
+        changed.as_bytes(),
+    )
+    .unwrap();
+    assert!(apply(&f.vault, &old_plan).is_err());
+    let result = apply(&f.vault, &f.plan()).unwrap();
+    let css = fs::read_to_string(f.vault.join(".obsidian/snippets/folder-note.css")).unwrap();
+    assert!(css.contains("blue"));
+    assert!(!css.contains("red;"));
+    assert!(state(&f.vault).is_ok());
+    assert_eq!(apply(&f.vault, &f.plan()).unwrap()["status"], "unchanged");
+    let receipt = read_json(&f.vault.join(result["receipt"].as_str().unwrap())).unwrap();
+    rollback(&f.vault, &receipt).unwrap();
+    assert!(!f.vault.join(".obsidian/snippets/folder-note.css").exists());
+    assert_eq!(
+        fs::read_to_string(f.vault.join(".viggobsidian/appearance.json")).unwrap(),
+        changed
+    );
+}
+
+#[test]
 fn doctor_reports_integrity_separately_from_strict_adoption() {
     let f = Fixture::new();
     apply(&f.vault, &f.plan()).unwrap();
