@@ -306,7 +306,7 @@ fn apply(vault: &Path, proposal: &Value) -> Result<Value> {
     if checked(vault, ".viggobsidian/pending.json")?.exists()
         || checked(vault, ".viggobsidian/rollback.json")?.exists()
     {
-        return fail("unfinished transaction: recover pending.json before applying");
+        return fail("unfinished transaction: rollback with .viggobsidian/pending.json or .viggobsidian/rollback.json before applying");
     }
     let package_root = root(Path::new(field(proposal, "package")?))?;
     let fresh = plan(vault, &package_root, &proposal["adoption"])?;
