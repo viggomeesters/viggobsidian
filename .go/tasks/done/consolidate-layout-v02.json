@@ -1,0 +1,131 @@
+{
+  "schema": "go-workflow.repo-local.task.v1",
+  "kind": "task",
+  "execution_mode": "mechanical",
+  "shareable_delivery": "none",
+  "id": "consolidate-layout-v02",
+  "project": "viggobsidian",
+  "status": "done",
+  "summary": "Consolidate full CSS and deep Rust layout engine",
+  "description": "Move full shared CSS and both deep layout checker variants into one public source with local configuration, preserve caller behavior, install both vaults and run strict checks.",
+  "scope": {
+    "read": [
+      "**"
+    ],
+    "modify": [
+      "**"
+    ]
+  },
+  "acceptance": [
+    "One public source owns all generic CSS and deep Rust checker code; local sensitive routing and configuration remain private.",
+    "Both vault launchers and writer hash bindings use pinned installed shared sources; no independently maintained checker forks remain.",
+    "Old/new behavior parity, Rust tests, strict live checks and background native CSS rendering are recorded; preexisting content findings remain distinguishable."
+  ],
+  "verification": [
+    "cargo test --workspace --locked",
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --locked -- -D warnings"
+  ],
+  "claim": {
+    "agent": "codex",
+    "claimed_at": "2026-11-11T17:02:58+01:00",
+    "base_commit": "fe4ffe5fb794c8d642db5fe57e387095a2741364"
+  },
+  "work_status": "completed",
+  "review_status": "approved",
+  "review_history": [
+    {
+      "created_at": "2026-11-11T17:45:58+01:00",
+      "agent": "system_source_review",
+      "status": "approved",
+      "evidence": "Independent engine merge and exclusive-mutator-flag review approved after regression repair; CSS privacy/alias review approved by skills_source_review; native before/after styles and text unchanged. Strict content debt explicitly remains open, without lowered gates.",
+      "transaction_id": "c0c9ed17c6f74488bd5768f7d5298e18"
+    }
+  ],
+  "evidence": [
+    {
+      "schema": "go-workflow.finish-evidence.v1",
+      "created_at": "2026-11-11T17:45:58+01:00",
+      "task_id": "consolidate-layout-v02",
+      "agent": "codex",
+      "summary": "verification=cargo test --workspace --locked:76 passed; cargo fmt --all --check:passed; cargo clippy --workspace --all-targets --locked -- -D warnings:passed; native rendering:100 links and inspected elements unchanged at800/1200px; critic=system_source_review and skills_source_review independently approved merged engine, mutator guards, CSS derivation, privacy and alias behavior; runtime=codex; summary=Both pinned installations pass package doctor and standalone tests. Strict checks ran and remain non-green on preserved historical content and newly enabled v1.1 checks; see docs/validation-v0.2.md",
+      "changed_files": [
+        ".go/tasks/active/consolidate-layout-v02.json"
+      ],
+      "no_diff": false,
+      "git": {
+        "claim_base_commit": "fe4ffe5fb794c8d642db5fe57e387095a2741364",
+        "observed_head_commit": "6604d82e04369165ce05ba4eeae82b3fed2ed5d0"
+      },
+      "verification": {
+        "command": "cargo test --workspace --locked:76 passed",
+        "result": "cargo test --workspace --locked:76 passed"
+      },
+      "runtime": {
+        "agent": "codex",
+        "runtime": "codex",
+        "model": null,
+        "billing_mode": "unknown"
+      },
+      "usage": {
+        "schema": "go-workflow.usage-attribution.v1",
+        "runtime_kind": "codex",
+        "billing_mode": "unknown",
+        "owner": "codex",
+        "model": null,
+        "token_estimate": null,
+        "api_equivalent_cost_usd": null,
+        "provider_invoice_cost_usd": null,
+        "cost_label": "api_equivalent_not_invoice_cost",
+        "observed_phases": [],
+        "observed_overhead": {
+          "schema": "go-workflow.overhead-report.v1",
+          "workload_contract_sha256": "5e92f33962cee7088d1bbd7f9777b68facb85a3db24a28e9fe6a6b61a14c14fc",
+          "phases": [
+            {
+              "phase": "command",
+              "invocations": 1,
+              "commands": {
+                "03d1303ef14d3f4bc93b63dec6c08de0972c017248f84f745c8edd61d766804d": 1
+              },
+              "observed": {
+                "snapshot_compact_json_bytes": null,
+                "packet_json_bytes": null,
+                "context_environment_utf8_bytes": null,
+                "decoded_stdout_utf8_bytes": null,
+                "decoded_stderr_utf8_bytes": null,
+                "elapsed_milliseconds": 2415,
+                "raw_stdout_bytes": 6147,
+                "raw_stderr_bytes": 562
+              },
+              "coverage": {
+                "snapshot_compact_json_bytes": 0,
+                "packet_json_bytes": 0,
+                "context_environment_utf8_bytes": 0,
+                "decoded_stdout_utf8_bytes": 0,
+                "decoded_stderr_utf8_bytes": 0,
+                "elapsed_milliseconds": 1,
+                "raw_stdout_bytes": 1,
+                "raw_stderr_bytes": 1
+              }
+            }
+          ],
+          "stale_contract_records": 0,
+          "runtime_models": {},
+          "desktop_poll_rounds": null,
+          "provider_model_requests": null,
+          "coverage": "Go runner observations only. Explicit zeros are measured; missing values are unknown. Byte fields overlap and must not be added as token cost."
+        }
+      },
+      "review": {
+        "outcome": "system_source_review and skills_source_review independently approved merged engine, mutator guards, CSS derivation, privacy and alias behavior",
+        "skip_reason": null
+      }
+    }
+  ],
+  "github": {
+    "repository": "viggomeesters/viggobsidian",
+    "issue": 4,
+    "pull_request": 6
+  }
+}
