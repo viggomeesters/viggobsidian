@@ -158,6 +158,7 @@ fn allowed(target: &str) -> bool {
         "vault-schema.yaml",
         "vault.schema.json",
         "daily.md",
+        "lucide-license.txt",
     ]
     .iter()
     .any(|s| target == format!(".viggobsidian/core/{s}"))

@@ -176,6 +176,10 @@
     {
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
+    },
+    {
+      "source": "LICENSES/lucide.txt",
+      "target": ".viggobsidian/core/lucide-license.txt"
     }
   ]
 }
