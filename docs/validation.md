@@ -2,7 +2,7 @@
 
 Lokaal gecontroleerd op 11 november 2026:
 
-- Rust: 15 regressietests; fmt en Clippy met warnings als fouten.
+- Rust: 16 regressietests; fmt en Clippy met warnings als fouten.
 - Onafhankelijke review van updater, herstel, doelrootselectie, skills, lokale providerbruggen en publieke inhoud. Gevonden Unicode- en hervattingsfouten zijn gerepareerd en met regressies afgedekt.
 - Fixtures: nieuwe installatie, identieke herhaling, update en rollback, expliciete adoptie, lokale drift, verouderde/tampered previews, bronhashwijziging, padtraversal, symlinks, locks, gedeeltelijke apply, onderbroken meerbestandsrollback en behoud van taak-/bronbytes.
 - Twee afzonderlijke live-installaties: hetzelfde pakket, expliciete lokale adapters en schone package-doctor. Herhaalde apply meldt `unchanged`. Vier bestaande Base-assets worden zonder bytewijziging als releasebeheerd geregistreerd.

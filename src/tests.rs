@@ -1,6 +1,39 @@
 use super::*;
 
 #[test]
+fn doctor_reports_integrity_separately_from_strict_adoption() {
+    let f = Fixture::new();
+    apply(&f.vault, &f.plan()).unwrap();
+    atomic(
+        &f.vault,
+        ".viggobsidian/local-adapter.md",
+        b"# Explicit test providers",
+    )
+    .unwrap();
+    atomic(&f.vault,".viggobsidian/integration.json",&serde_json::to_vec(&json!({
+        "schema":"viggobsidian.integration.v1","profile":"numbered-v1",
+        "adoption":{"legacy_project_roots":["15-projects"]},"local_adapter":".viggobsidian/local-adapter.md"
+    })).unwrap()).unwrap();
+    fs::create_dir_all(f.vault.join("15-projects/2026-11-test/00-project-wiki")).unwrap();
+    assert!(
+        rows(&check(&f.vault, false).unwrap(), "errors")
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        !rows(&check(&f.vault, true).unwrap(), "errors")
+            .unwrap()
+            .is_empty()
+    );
+    atomic(&f.vault, ".viggobsidian/integration.json", b"{}").unwrap();
+    assert!(
+        !rows(&check(&f.vault, false).unwrap(), "errors")
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
 fn rollback_resumes_after_first_of_multiple_assets() {
     let f = Fixture::new();
     let mut manifest = read_json(&f.package.join("package.json")).unwrap();

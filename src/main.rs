@@ -497,6 +497,18 @@ fn check(vault: &Path, structure: bool) -> Result<Value> {
         }
     }
     let integration = read_json(&checked(vault, ".viggobsidian/integration.json")?)?;
+    let valid_keys = ["schema", "profile", "adoption", "local_adapter"];
+    if !integration
+        .as_object()
+        .is_some_and(|o| o.len() == 4 && o.keys().all(|k| valid_keys.contains(&k.as_str())))
+        || !integration["adoption"]
+            .as_object()
+            .is_some_and(|o| o.keys().all(|k| k == "legacy_project_roots"))
+        || (!integration["adoption"]["legacy_project_roots"].is_null()
+            && !integration["adoption"]["legacy_project_roots"].is_array())
+    {
+        errors.push("integration does not match the published schema".into());
+    }
     if integration["schema"] != "viggobsidian.integration.v1"
         || integration["profile"] != "numbered-v1"
         || integration["local_adapter"] != ".viggobsidian/local-adapter.md"
