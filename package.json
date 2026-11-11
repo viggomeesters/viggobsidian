@@ -1,7 +1,7 @@
 {
   "files": [
     {
-      "sha256": "5b7e4da8ed32b704fa0ba22b1483ff79fcd1bc40b1793d87199b9ba291e89adf",
+      "sha256": "b99689221223c387038005eef71c55692396176662d955136142e362bceb09c3",
       "source": "docs/policy.md",
       "target": ".viggobsidian/core/policy.md"
     },
@@ -11,7 +11,7 @@
       "target": ".viggobsidian/core/skills.md"
     },
     {
-      "sha256": "22b82015730cf09656077d44e73921f66468ebe7a7cdccb385d0840add65408c",
+      "sha256": "e4990099e136b5c5e7dad77f803a0c8fbf2334d8002672f524ac26e3c6e78e00",
       "source": "docs/updates.md",
       "target": ".viggobsidian/core/updates.md"
     },
@@ -26,7 +26,7 @@
       "target": ".viggobsidian/core/vault-schema.yaml"
     },
     {
-      "sha256": "23098ec75f31bc586781ed3ae3774635b1997f92fa83e16d772ed7c4f37adeb3",
+      "sha256": "509ea3ef1b8fce5915dd0e21c5556a920c8ebaad6095ffa5bfc50aab06e8f6f8",
       "source": "schemas/vault.schema.json",
       "target": ".viggobsidian/core/vault.schema.json"
     },
@@ -36,7 +36,7 @@
       "target": ".viggobsidian/core/daily.md"
     },
     {
-      "sha256": "642708144ca5519f63457ff8d4fa0a3bec0e853eb9920f78beab62bcf7716a95",
+      "sha256": "f34b4686fe849649d4f4b761509c702e75e5d779eb2cd166e2e9f4b15ec52b6b",
       "source": "assets/viggobsidian.css",
       "target": ".obsidian/snippets/viggobsidian.css"
     },
@@ -94,9 +94,140 @@
       "sha256": "b7109364e62d02913f16027d4be5b30451e75fc2997a906973e001ed683c272f",
       "source": "skills/vault-brief/SKILL.md",
       "target": ".agents/skills/vault-brief/SKILL.md"
+    },
+    {
+      "sha256": "5c7557bdd9e47274a5be4b662bfd7f692ea8f7b8dd270486c4ede65c18b692c7",
+      "source": "assets/folder-note.css",
+      "target": ".viggobsidian/core/folder-note.css"
+    },
+    {
+      "sha256": "3ae7cb5786c8ea8104b86cf0577fa27f64ca38095286f39b82bb69c29fd11e16",
+      "source": "assets/agents-callout.css",
+      "target": ".obsidian/snippets/agents-callout.css"
+    },
+    {
+      "sha256": "46fbcaf938fb74bebaa77d5b49385138ffeada13e281c5602238943b2ac2be4c",
+      "source": "assets/active-note-contrast.css",
+      "target": ".obsidian/snippets/active-note-contrast.css"
+    },
+    {
+      "sha256": "5c7557bdd9e47274a5be4b662bfd7f692ea8f7b8dd270486c4ede65c18b692c7",
+      "source": "assets/folder-note.css",
+      "target": ".obsidian/snippets/folder-note.css",
+      "transform": "css-v1"
+    },
+    {
+      "sha256": "cf6abdbcc56c7cb4387c353ddfa2d376c3d6772915340e0abfc43b012bc44c22",
+      "source": "crates/vault-layout/Cargo.toml",
+      "target": ".agents/tools/vault-layout/Cargo.toml"
+    },
+    {
+      "sha256": "87cc83d1ec075e7323aabcd6a64e19f40ed4692cb7cfbaee346f29b0c339bec5",
+      "source": "crates/vault-layout/Cargo.lock",
+      "target": ".agents/tools/vault-layout/Cargo.lock"
+    },
+    {
+      "sha256": "abe72090cd4047857b6b620a510ba4c7caaf227901d89a54d2d2951e855f726b",
+      "source": "crates/vault-layout/src/activity_layout.rs",
+      "target": ".agents/tools/vault-layout/src/activity_layout.rs"
+    },
+    {
+      "sha256": "4682328fda81a98606f50dfd07648a0c21eb72b7bd041d048572d2a2ce772b25",
+      "source": "crates/vault-layout/src/work_package.rs",
+      "target": ".agents/tools/vault-layout/src/work_package.rs"
+    },
+    {
+      "sha256": "15f7958ea8d9808ad0c5e9be25bd6f4887f0a43c459c4d286c4eb3b2b5640186",
+      "source": "crates/vault-layout/src/link_style.rs",
+      "target": ".agents/tools/vault-layout/src/link_style.rs"
+    },
+    {
+      "sha256": "21d276af60487f809ca2304f8b78eabd7084087c88fa24563036085a26d488b4",
+      "source": "crates/vault-layout/src/wiki_layout.rs",
+      "target": ".agents/tools/vault-layout/src/wiki_layout.rs"
+    },
+    {
+      "sha256": "6e8b96cbbaa279c64de716aecbaeeb40c5813674359c3091346f90974351e25b",
+      "source": "crates/vault-layout/src/index_navigation.rs",
+      "target": ".agents/tools/vault-layout/src/index_navigation.rs"
+    },
+    {
+      "sha256": "fbe90b97362f72023e3ef09c64e4e77851390ff3ff499517cd757aba717aea0a",
+      "source": "crates/vault-layout/src/source_inventory.rs",
+      "target": ".agents/tools/vault-layout/src/source_inventory.rs"
+    },
+    {
+      "sha256": "316ac00238fef194e8dc4446fb3d8fe755316f11191ada12fdb0cd990917caf7",
+      "source": "crates/vault-layout/src/raw_task.rs",
+      "target": ".agents/tools/vault-layout/src/raw_task.rs"
+    },
+    {
+      "sha256": "a6e3b7be0e86bde38a232a4a49b70d3d5d52e98ebaebd35a6ed049b189c650a5",
+      "source": "crates/vault-layout/src/dossier_tables.rs",
+      "target": ".agents/tools/vault-layout/src/dossier_tables.rs"
+    },
+    {
+      "sha256": "e20ae5b3c065be5430de8f0d46b19a32223dd0e98a9396ff38ca8e0d59e83705",
+      "source": "crates/vault-layout/src/mail_manifest.rs",
+      "target": ".agents/tools/vault-layout/src/mail_manifest.rs"
+    },
+    {
+      "sha256": "a2fe64f62c5c5c777e3bc82f7c530f73e8e16118db39661464b569d380683abc",
+      "source": "crates/vault-layout/src/work_intake.rs",
+      "target": ".agents/tools/vault-layout/src/work_intake.rs"
+    },
+    {
+      "sha256": "ff00e22b1a4df7a2167216a26e165a08904753df1f427a0d0db7444c2e66af75",
+      "source": "crates/vault-layout/src/shortcut_links.rs",
+      "target": ".agents/tools/vault-layout/src/shortcut_links.rs"
+    },
+    {
+      "sha256": "e746f1dbf04c5bde8167693f6f6a333c2cfc779fdbaafb66e710d11527f9480c",
+      "source": "crates/vault-layout/src/event_header.rs",
+      "target": ".agents/tools/vault-layout/src/event_header.rs"
+    },
+    {
+      "sha256": "7b5502687ab67e50edb2b15d92d136f634b5531cbe56b6d70a9fc196fb2cf75c",
+      "source": "crates/vault-layout/src/raw_processing.rs",
+      "target": ".agents/tools/vault-layout/src/raw_processing.rs"
+    },
+    {
+      "sha256": "fced4913288be5e4b192dcfca8c23f9af78729a3773b3e4f7ebb81327bd3204a",
+      "source": "crates/vault-layout/src/main.rs",
+      "target": ".agents/tools/vault-layout/src/main.rs"
+    },
+    {
+      "sha256": "0ad8fe7ec15134e5d572b9c9d8616629557460c31f90b00c125f3a695b3db3f6",
+      "source": "crates/vault-layout/src/project_codes.rs",
+      "target": ".agents/tools/vault-layout/src/project_codes.rs"
+    },
+    {
+      "sha256": "e485e75a6d36408f6962fe32eeb4346a7bf5a8ca1da60da2d5d80ae24efd5df8",
+      "source": "assets/bases/vault-raw.base",
+      "target": ".agents/tools/vault-layout/fixtures/vault-raw.base"
+    },
+    {
+      "sha256": "67a9340f57ee3e9c03be832f6b80e6ee4b3b417808654b1e0d1071b9d37fdc75",
+      "source": "assets/bases/vault-dossier.base",
+      "target": ".agents/tools/vault-layout/fixtures/vault-dossier.base"
+    },
+    {
+      "sha256": "84aee119d28276088dc430a8f779526a005e5382943428a79baad37a0ffb7ac5",
+      "source": "schemas/layout-contract.yaml",
+      "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
+    },
+    {
+      "sha256": "6b88fe57cb4d13e320857092355d2e89aa27426898e3adb558ac343ebc9dac70",
+      "source": "crates/vault-layout/tests/contract_enforcement.rs",
+      "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
+    },
+    {
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+      "source": "LICENSES/lucide.txt",
+      "target": ".viggobsidian/core/lucide-license.txt"
     }
   ],
-  "revision": "6e9914bb6701c20c32a7e1ec1cd4af1e597fbcc9",
+  "revision": "5503829e0cb823111b8c368f552274a44e80c785",
   "schema": "viggobsidian.package.v1",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

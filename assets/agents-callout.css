@@ -1,0 +1,10 @@
+/* Callout type for agent instructions: > [!agents] */
+.callout[data-callout="agents"] {
+  --callout-color: 139, 92, 246 !important;
+  --callout-icon: lucide-bot !important;
+  background-color: rgba(139, 92, 246, 0.1);
+  border-left: 3px solid rgb(139, 92, 246);
+}
+.callout[data-callout="agents"] .callout-title {
+  color: rgb(139, 92, 246);
+}

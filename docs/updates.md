@@ -9,7 +9,15 @@ cargo build --release --locked
 ./target/release/viggobsidian check --vault /path/to/vault
 ```
 
-Preview schrijft niets naar de vault. Apply controleert de hele preview opnieuw, weigert lokale drift en maakt een receipt met oude bytes vóór de eerste wijziging. De manifestallowlist beperkt de updater tot gedeelde instructies, zeven skills, één CSS-snippet en vier Base-assets. Hij verandert geen notities, projecten, registraties, runtimeproviders, Gitremotes, pluginconfig of root-AGENTS. Verwijderen van eerder beheerde assets is bewust nog niet ondersteund; dat vereist een expliciete migratie.
+Preview schrijft niets naar de vault. Apply controleert de hele preview opnieuw, weigert lokale drift en maakt een receipt met oude bytes vóór de eerste wijziging. De manifestallowlist beperkt de updater tot gedeelde instructies, zeven skills, de actieve CSS, vier Bases en de expliciete Rust-cratebestanden met regressiefixtures. Hij verandert geen notities, projecten, registraties, runtimeproviders, Gitremotes, pluginconfig of root-AGENTS. Verwijderen van eerder beheerde assets is bewust nog niet ondersteund; dat vereist een expliciete migratie.
+
+## Stijlen en diepe layoutcontrole vanaf v0.2
+
+De lokale `.viggobsidian/appearance.json` bevat geordende bestemming-/avatarregels en een optionele `human_alias`. De compiler combineert deze gegevens met de gedeelde CSS tot het bestaande actieve `.obsidian/snippets/folder-note.css`. Het manifest bewaart de bronhash; de installatie bewaart daarnaast de configuratiehash en afgeleide outputhash. Preview/apply berekent dit geheel opnieuw en weigert een verouderde preview. Een lokale configuratiewijziging vraagt een nieuwe preview/apply; wijzig de gegenereerde CSS nooit rechtstreeks. Bewaar originele stylesheets en beoordeel de gerenderde cascade bij eerste adoptie.
+
+De engine staat regulier geïnstalleerd onder `.agents/tools/vault-layout`; de bestaande launcher blijft werken. `--strict PAD` toetst een scope, `--check-all` alle genummerde collecties, `--check-work` daarnaast het Work-package-/linkstijlcontract. De checker bevat de strengere controles uit beide oorspronkelijke varianten en kan dus meer bestaande inhoudsproblemen melden. Het updatecommando migreert die inhoud niet.
+
+Een opname van `css-split --input FILE` is uitsluitend lokaal voorwerk; inspecteer iedere gedeelde regel vóór publicatie. Automatisch splitsen op selectors is geen volledige privacybeoordeling. Geïnstalleerde fixtures zijn reguliere releasebestanden; de repository verwijst voor Base-fixtures naar haar eigen canonieke assets. Voer dezelfde update niet gelijktijdig op meerdere Syncthing-hosts uit: de updatelock is lokaal.
 
 ## Eerste adoptie
 

@@ -1,0 +1,25 @@
+# Minimal executable layout contract; deployments add local scope/delegation.
+version: 1
+work_project_code_roots: [20-projects, 21-program, 22-program, 23-program, 24-program, 25-program, 26-program]
+validation_profiles:
+  minimal:
+    required: [type, category]
+  project:
+    required: [type, category, status]
+  task:
+    required: [type, category, status]
+common_fields:
+  layer:
+    allowed_values: [navigation, wiki]
+contracts:
+  raw_package:
+    required_fields: [type, category, wiki_status]
+    wiki_status_values:
+      pending: Awaiting source review
+      processed: Reviewed with exact Wiki destination
+  task:
+    required_fields: [type, category, status]
+    status_values: ["🔴 to-do", "🟠 in progress", "🔵 waiting", "🟢 done", "⚫ cancelled", "🟣 backlog"]
+  project:
+    required_fields: [type, category, status]
+    status_values: [planned, active, waiting, completed, cancelled, historical-context]

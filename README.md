@@ -13,12 +13,16 @@ Eén profiel: `20-projects` voor losse projecten, `21-programma` tot en met `29-
 ## Rust CLI
 
 ```sh
-cargo test --locked
-cargo build --release --locked
+cargo test --workspace --locked
+cargo build --workspace --release --locked
 ./target/release/viggobsidian --help
+./target/release/vault-layout --vault /path/to/vault --strict 20-projects
+./target/release/vault-layout --vault /path/to/vault --check-all
 ```
 
-`doctor` controleert pakketintegriteit en de integratieconfiguratie. `check` toetst daarnaast de project-/onderdeelstructuur aan het nieuwe profiel en meldt ook bestaande adoptieafwijkingen. Bestaande diepere layout-, bronregistratie- en taakcontroles blijven expliciete lokale adapters. Deze eerste release claimt geen volledige vervanging van bestaande vaultcheckers.
+`doctor` controleert pakketintegriteit, de integratieconfiguratie en de afgeleide CSS. `check` toetst daarnaast de project-/onderdeelstructuur aan het profiel. De gedeelde `vault-layout`-engine verzorgt de volledige layout-, navigatie-, broninventaris-, Event Note- en projectcodecontrole. `--check-all` bezoekt alle genummerde collecties; `--check-work` voegt het expliciet aangesloten Work-package- en linkstijlcontract toe. Registratie- en domeinwriters behouden hun lokale authority.
+
+De volledige actieve CSS heeft één bron. `folder-note.css` wordt samengesteld uit `assets/folder-note.css` en lokale `.viggobsidian/appearance.json`; `agents-callout.css` en `active-note-contrast.css` komen rechtstreeks uit de release. Exacte bestemmingen, avataridentiteit en externe dossierafbeeldingen staan uitsluitend lokaal. Geïnstalleerde checkers en CSS zijn reguliere, gehashte distributiebestanden op bestaande paden. Wijzig de bron upstream en update beide installaties; onderhoud geen lokale codefork.
 
 `plan` toont een versiegebonden update; `apply` weigert lokale drift en bewaart herstelbytes; `rollback` herstelt alleen een passende, ongewijzigde postimage. Inhoud, secrets, runtimeproviders en persoonlijke configuratie staan buiten het pakketoppervlak. Installatie start geen achtergrondservice en publiceert geen vaultinhoud.
 

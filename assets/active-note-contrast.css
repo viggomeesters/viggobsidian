@@ -1,0 +1,26 @@
+/* Match the 31% accent tint of the HOME2.2 navigation tiles. */
+body:not(.is-mobile) {
+  --active-note-accent: #75b4fa;
+}
+
+/* Use the native token so the tab and its curved corners share one fill. */
+body:not(.is-mobile) .workspace-split.mod-root .workspace-tab-header.mod-active {
+  --tab-background-active: color-mix(in srgb, var(--active-note-accent) 31%, var(--background-primary-alt));
+  color: var(--text-normal);
+}
+
+body:not(.is-mobile) .nav-file-title.is-active,
+body.hide-folder-note:not(.is-mobile) .nav-folder-title.fn-is-active {
+  background-color: color-mix(in srgb, var(--active-note-accent) 43%, var(--background-primary-alt));
+  box-shadow: inset 3px 0 var(--active-note-accent);
+}
+
+body:not(.is-mobile) .nav-file-title.is-active > .tree-item-inner,
+body.hide-folder-note:not(.is-mobile) .nav-folder-title.fn-is-active > .tree-item-inner {
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+body:not(.is-mobile) .mod-left-split > .workspace-sidedock-vault-profile {
+  --vault-profile-display: none;
+}

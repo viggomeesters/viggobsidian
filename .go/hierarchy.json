@@ -8,7 +8,8 @@
       "title": "Public framework foundation",
       "features": [],
       "tasks": [
-        "foundation-v01"
+        "foundation-v01",
+        "consolidate-layout-v02"
       ]
     },
     {
