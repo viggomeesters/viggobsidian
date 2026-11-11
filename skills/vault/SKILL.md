@@ -5,6 +5,12 @@ description: "Lees vaultkennis, leg input vast, verwerk bronnen of pak bestaande
 
 # Vault
 
+Letterlijke menselijke input blijft van de mens, ook bij opslag door een agent:
+gebruik een eigen canonical `human`-bubble met de werkelijke auteur. Agentduiding
+blijft apart. Groepeer procesuitleg bij haar resultaat. Een herziene oplevering
+krijgt een complete nieuwe versie onderaan; herschrijf geen historische versie
+als vervanging voor die nieuwe oplevering. Mail volgt het gedeelde mailcontract.
+
 Lees voor inrichting of onderhoud de releasebeheerde
 `99-system/vault/vault-navigation/vault-navigation-handleiding.md` en het generieke
 `.viggobsidian/core/navigation-contract.yaml`. De lokale navigatie-adapter staat

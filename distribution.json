@@ -1,5 +1,6 @@
 {
   "files": [
+    { "source": "crates/vault-layout/src/activity_delivery.rs", "target": ".agents/tools/vault-layout/src/activity_delivery.rs" },
     { "source": "docs/navigation.md", "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md" },
     { "source": "docs/compat/folder-note.md", "target": "99-system/vault/vault-navigation/standaard/wiki/folder-note.md" },
     { "source": "docs/compat/folder-workspace.md", "target": "99-system/vault/vault-navigation/standaard/wiki/folder-workspace.md" },

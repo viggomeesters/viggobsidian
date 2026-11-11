@@ -146,6 +146,7 @@ fn allowed(target: &str) -> bool {
     if [
         "main",
         "activity_layout",
+        "activity_delivery",
         "dossier_tables",
         "event_header",
         "index_navigation",

@@ -128,10 +128,11 @@ pub(crate) fn check_v11(body: &str) -> Result<(), &'static str> {
                 return Err("keep every Activity message fully inside its dated bubble");
             }
             let mut direct = 0;
+            let mail_payload = crate::activity_delivery::visible_mail_payload_lines(block);
             let mut folded = false;
             let mut fence = None;
             let mut nested = false;
-            for line in rest {
+            for (index, line) in rest.iter().enumerate() {
                 let was_nested = nested;
                 nested = line.starts_with("> >");
                 if !nested {
@@ -144,7 +145,7 @@ pub(crate) fn check_v11(body: &str) -> Result<(), &'static str> {
                 {
                     folded = true;
                 }
-                if !folded {
+                if !folded && !mail_payload.contains(&(index + 1)) {
                     direct += line.len();
                 }
                 let content = crate::index_navigation::quote_content(line);
