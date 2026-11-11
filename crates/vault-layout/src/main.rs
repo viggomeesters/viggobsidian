@@ -7,6 +7,7 @@ use std::{
     process::ExitCode,
 };
 
+mod activity_delivery;
 mod activity_layout;
 mod dossier_tables;
 mod event_header;
@@ -1012,6 +1013,9 @@ impl Scan<'_> {
         if self.strict {
             for message in mail_draft::findings(&body) {
                 self.issue(path, "strict-mail-draft", message);
+            }
+            for message in activity_delivery::findings(&body) {
+                self.issue(path, "strict-activity-delivery", message);
             }
         }
         for line in table_wikilink_lines(&body) {

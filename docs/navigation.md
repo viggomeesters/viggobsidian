@@ -138,6 +138,12 @@ inhoudelijke samenvatting. Nieuwe/gewijzigde mailconcepten volgen
 bronbinding en conceptstatus daarbuiten binnen dezelfde bubble. Opmaak verstuurt
 niets en verandert geen taakstatus.
 
+Een herzien resultaat krijgt een volledige nieuwe opleverbubble onderaan;
+historische versies blijven ongewijzigd. Letterlijke menselijke input gebruikt
+de canonical `human`-rol, ook bij opslag door een agent. Gevalideerde maildelivery-
+kopieerblokken mogen direct zichtbaar blijven boven de gewone lengtegrens;
+lange uitleg buiten die mailvelden blijft onder Details. Zie het mailcontract.
+
 Een bubble begint bijvoorbeeld met `> [!activity-message|assistant] Assistant`
 onder een `> [!activity-day|YYYY-MM-DD]`-scheiding. Het tijd-/auteursstempel volgt
 het bewezen kanaal; schrijf geen historische minuten bij benadering. `Context`

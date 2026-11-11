@@ -5,6 +5,9 @@
 > [!activity-message|assistant] Assistant
 > `12:00 · Assistant · draft`
 >
+> <!-- viggobsidian:mail-delivery:v1 id=follow-up version=1 -->
+> **Mailconcept v1**
+>
 > <!-- viggobsidian:mail-draft:v1 recipients=resolved -->
 > Mailstatus: concept
 > Bron: [[fictional-contact]] — fictief voorbeeld; team@example.org is geen echte ontvanger.

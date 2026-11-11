@@ -1,5 +1,28 @@
 # Mailconcepten in Event Note v1.1
 
+## Auteurschap en nieuwe versies
+
+Letterlijke menselijke input krijgt een eigen `activity-message|human`-bubble,
+met de werkelijke menselijke auteur. De identiteit van de schrijvende tool
+verandert het auteurschap niet. Agentinterpretatie staat in een agentbubble.
+Gebruik bij nieuw vastgelegde letterlijke input de marker
+`<!-- viggobsidian:input:v1 author=human -->` binnen die human-bubble; de checker
+kan de gemarkeerde rol toetsen, maar niet bewijzen wie een zin heeft bedacht.
+
+Iedere nieuwe of herziene oplevering krijgt een nieuwe bubble onderaan met het
+volledige bruikbare resultaat. Gebruik bij mail een stabiel doel-ID en stijgend
+versienummer: `<!-- viggobsidian:mail-delivery:v1 id=follow-up version=1 -->` en
+zichtbaar `**Mailconcept v1**`. Houd hetzelfde ID voor correcties van dezelfde mail;
+v2/v3 volgen onderaan. Verander v1/v2 niet achteraf om de nieuwste versie te leveren.
+Een losse melding “aangepast” onderaan vervangt nooit een volledige nieuwe versie.
+Beperk procesbubbles: groepeer toelichting en bronbinding bij hetzelfde resultaat,
+met lange onderbouwing onder Details. Meng geen auteurs of oplevermomenten.
+Een volledig gevalideerde maildelivery blijft direct zichtbaar, ook boven de
+gewone lengtegrens. Historische versies blijven behouden; de checker herschrijft
+of vouwt ze niet automatisch. Syntax bewijst geen inhoudelijke volledigheid.
+
+## Kopieerbare velden
+
 Nieuwe en inhoudelijk gewijzigde mailconcepten gebruiken het gedeelde sjabloon
 `.viggobsidian/core/mail-draft.md`. Dit contract geldt per concept binnen één
 gedateerde, benoemde Activity-bubble. Het verplaatst geen historische mails.

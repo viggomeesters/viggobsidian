@@ -29,6 +29,11 @@ De CLI schrijft JSON naar stdout. Redirect naar een nieuw lokaal planbestand bui
 
 ## Herstel
 
+Vanaf v0.5 behouden `human` en de geconfigureerde `human_alias` allebei de menselijke
+uitlijning en lokale avatar. De alias vervangt de canonical rol niet. Namen van
+assistent-/systeemrollen zijn geen geldige menselijke alias. Een update wijzigt
+geen auteursmetadata of historische notes om een stijlprobleem te repareren.
+
 ```sh
 ./target/release/viggobsidian rollback --vault /path/to/vault --receipt /path/to/vault/.viggobsidian/receipts/ID.json
 ```
