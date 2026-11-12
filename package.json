@@ -111,7 +111,7 @@
       "target": ".viggobsidian/core/policy.md"
     },
     {
-      "sha256": "8934a0af06ae4f0d993a495b3073ed534b97e413427a878a835ba6bed2f83400",
+      "sha256": "552010ecd43fa5c558cb133db21b71cc9a53d38535a2a7205c3123bf6e2b4d00",
       "source": "docs/skills.md",
       "target": ".viggobsidian/core/skills.md"
     },
@@ -1042,7 +1042,7 @@
       "target": ".agents/skills/go-vision/PROCEDURE.md"
     },
     {
-      "sha256": "26fb01ef351db9997c970f2c7f1e789b1ee8ad580d12ba2e8f9788495944f1a1",
+      "sha256": "29e1978e2ca3f34bc8a6f6a1e7e3b2ae2751e709406cab17247a22ac5a502e63",
       "source": "skills/go/PROCEDURE.md",
       "target": ".agents/skills/go/PROCEDURE.md"
     },
@@ -1582,7 +1582,7 @@
       "target": ".agents/skills/reisplanner/SKILL.md"
     },
     {
-      "sha256": "0d9838fa5c64e44b19770caf7e1781d9327fcfc2497fcaeddcd219c1c0b38665",
+      "sha256": "e3523143f61eddf5851972759e727a0d7d53ea502070320148770ac4c003e08c",
       "source": "skills/release/PROCEDURE.md",
       "target": ".agents/skills/release/PROCEDURE.md"
     },
@@ -1822,7 +1822,7 @@
       "target": ".agents/skills/youtube/PROCEDURE.md"
     },
     {
-      "sha256": "ba609408c8765b91104457402cba9b6f930b77d4c670a7a9704a6e4cccda4422",
+      "sha256": "9ad8d2d774d41a40d61c00a15d389ba9daa76d9ffbd8c8006a0139a740c70003",
       "source": "schemas/skill-library.json",
       "target": ".viggobsidian/core/skill-library.json"
     },
@@ -1830,9 +1830,34 @@
       "sha256": "01b0639bc52adc7deb24a539cba505ebeb55479c66ba1e6875aa62725feececc",
       "source": "docs/skill-library.md",
       "target": ".viggobsidian/core/skill-library.md"
+    },
+    {
+      "sha256": "5d0a79c288d273dbdb4becf9982b66987bfe2477d3cfe186b5aebd404e88c7c0",
+      "source": "skills/obsidian-plugin-development/PROCEDURE.md",
+      "target": ".agents/skills/obsidian-plugin-development/PROCEDURE.md"
+    },
+    {
+      "sha256": "6f3a583571ac4fd35ff987c3e95d50c78921f86c45c4a8851fa82c9d05bd30ea",
+      "source": "skills/obsidian-plugin-development/references/checklist.md",
+      "target": ".agents/skills/obsidian-plugin-development/references/checklist.md"
+    },
+    {
+      "sha256": "e843541aaf926776ef096cd264f3f1665f6f48de9af798cf4e989464661216be",
+      "source": "skills/obsidian-plugin-development/references/failure-catalog.md",
+      "target": ".agents/skills/obsidian-plugin-development/references/failure-catalog.md"
+    },
+    {
+      "sha256": "f4a92f79f2f031648c3521b7cb4dd49be226a38919a0f73a2c002de767248237",
+      "source": "skills/obsidian-plugin-development/references/plan-template.md",
+      "target": ".agents/skills/obsidian-plugin-development/references/plan-template.md"
+    },
+    {
+      "sha256": "e0d424ea2c0e3d775b3e9dafa607c6e408d3a4101ecd0cb7ad988b20b732985a",
+      "source": "skills/obsidian-plugin-development/references/evidence-template.json",
+      "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ],
-  "revision": "91a4a4465ed4e05beeb87a259bffef39d65e64d0",
+  "revision": "a1fcf53dcbcf3277c390530631745e9d687cbca3",
   "schema": "viggobsidian.package.v1",
-  "version": "0.14.2"
+  "version": "0.15.0"
 }
