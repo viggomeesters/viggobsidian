@@ -26,15 +26,29 @@ fn keys(value: &Value, allowed: &[&str]) -> Result<()> {
 fn checked_path(vault: &Path, raw: &str) -> Result<PathBuf> {
     let path = Path::new(raw);
     if raw.contains('\\')
-        || raw
-            .split('/')
-            .any(|p| p.is_empty() || (p.starts_with('.') && p != ".mail-source.json"))
+        || raw.split('/').any(|p| {
+            p.is_empty()
+                || (p.starts_with('.')
+                    && ![".mail-source.json", ".reading-list-source.json"].contains(&p))
+        })
         || path
             .components()
             .any(|p| !matches!(p, Component::Normal(_)))
         || path.components().count() < 2
     {
         return Err("write-set paths must be visible, relative, normalized files".into());
+    }
+    if path
+        .parent()
+        .into_iter()
+        .flat_map(Path::components)
+        .filter_map(|p| match p {
+            Component::Normal(s) => s.to_str(),
+            _ => None,
+        })
+        .any(|p| p.starts_with('.'))
+    {
+        return Err("producer manifests must be leaf files, not hidden directories".into());
     }
     let mut current = vault.to_path_buf();
     for part in path.components() {
@@ -400,4 +414,69 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"legacy_findings":legacy_findings,"adoption":adoption,"findings":errors,"preservation":preservation}),
         code,
     ))
+}
+
+#[cfg(test)]
+mod manifest_path_tests {
+    use super::*;
+    #[test]
+    fn supported_producer_manifest_names_are_leaf_files_only() {
+        let absent = Path::new("/a-fictional-nonexistent-vault");
+        for name in [".mail-source.json", ".reading-list-source.json"] {
+            assert!(
+                checked_path(
+                    absent,
+                    &format!("30-topics/example/raw/20200101-source/{name}")
+                )
+                .is_ok()
+            );
+            assert!(checked_path(absent, &format!("30-topics/example/{name}/child.md")).is_err());
+        }
+        for path in [
+            "30-topics/example/.mail-source.json/.mail-source.json",
+            "30-topics/example/.reading-list-source.json/.reading-list-source.json",
+            "30-topics/example/.other.json",
+            "30-topics/.private/note.md",
+            "30-topics/example/../.mail-source.json",
+            "30-topics/example/.reading-list-source.json/../note.md",
+            "30-topics/example//.mail-source.json",
+        ] {
+            assert!(checked_path(absent, path).is_err(), "{path}");
+        }
+    }
+}
+
+#[cfg(all(test, unix))]
+mod manifest_fs_tests {
+    use super::*;
+    use std::{
+        os::unix::fs::symlink,
+        sync::atomic::{AtomicU64, Ordering},
+    };
+    static SERIAL: AtomicU64 = AtomicU64::new(0);
+    #[test]
+    fn producer_manifest_paths_refuse_directory_and_symlink_targets_and_parents() {
+        let root = std::env::temp_dir().join(format!(
+            "manifest-leaf-{}-{}",
+            std::process::id(),
+            SERIAL.fetch_add(1, Ordering::Relaxed)
+        ));
+        fs::create_dir_all(root.join("a/b")).unwrap();
+        for name in [".mail-source.json", ".reading-list-source.json"] {
+            let relative = format!("a/b/{name}");
+            let p = root.join(&relative);
+            fs::write(&p, "{}").unwrap();
+            assert!(checked_path(&root, &relative).is_ok());
+            fs::remove_file(&p).unwrap();
+            fs::create_dir(&p).unwrap();
+            assert!(checked_path(&root, &relative).is_err());
+            fs::remove_dir(&p).unwrap();
+            symlink("missing.json", &p).unwrap();
+            assert!(checked_path(&root, &relative).is_err());
+            fs::remove_file(&p).unwrap();
+        }
+        symlink("b", root.join("a/linked")).unwrap();
+        assert!(checked_path(&root, "a/linked/.reading-list-source.json").is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
 }

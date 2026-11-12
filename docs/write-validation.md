@@ -11,6 +11,14 @@ including both ends of moves and changed parent navigation. Paths must be
 visible relative normalized file paths without symlinks. Hidden provider state
 is validated separately by its owning writer.
 
+The two supported producer manifests, `.mail-source.json` and
+`.reading-list-source.json`, may be declared as regular leaf files so complete
+package moves include their real write set. Neither name may be a hidden
+directory. Other hidden paths remain refused. Their owning source provider must
+verify the complete inventory and manifest-pinned bytes before and after a move;
+this path support does not authorize manifest edits, change capture identity or
+exempt ordinary Raw notes from validation.
+
 Capture the baseline before mutation and bind the entire JSON report into the
 writer's sealed plan alongside exact preimages, checker binary/hash and input
 configuration pins. After mutation, submit the same changes with `phase:
