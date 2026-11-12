@@ -9,6 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod css;
+mod plugin_check;
 mod procedure_surface;
 mod skill_library;
 const STATE: &str = ".viggobsidian/installed.json";
@@ -808,6 +809,11 @@ fn run() -> Result<bool> {
     let command = args.first().map(String::as_str).unwrap_or("help");
     let mut ok = true;
     let output = match command {
+        "plugin-check" => {
+            let out = plugin_check::run(&args)?;
+            ok = out["phasePassed"] == true;
+            out
+        }
         "css-split" => {
             let (shared, routes) = css::split(&fs::read_to_string(get("--input")?)?)?;
             json!({"shared":shared,"appearance":{"schema":"viggobsidian.appearance.v1","routes":routes}})
@@ -839,9 +845,11 @@ fn run() -> Result<bool> {
             out
         }
         "help" | "--help" => {
-            println!(
-                "viggobsidian 0.2\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md."
-            );
+            println!(concat!(
+                "viggobsidian ",
+                env!("CARGO_PKG_VERSION"),
+                "\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md and skills/obsidian-plugin-development/PROCEDURE.md."
+            ));
             return Ok(true);
         }
         _ => return fail("unknown command"),

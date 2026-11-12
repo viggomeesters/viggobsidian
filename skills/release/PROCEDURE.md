@@ -15,6 +15,8 @@ Verify the actual publish service, account, repository, branch, version/tag and 
 
 ## Prepare
 
+For an Obsidian-plugin manifest (`id`, `minAppVersion`), use [Obsidian plugin development](../obsidian-plugin-development/PROCEDURE.md) and its read-only phase preflight. First registration requires the matching public GitHub release before Submit; a draft or source-preview pass is not installable publication. Verify default-branch metadata, exact tag/commit, anonymous asset bytes, full official build review and the actual catalog channel separately.
+
 Inspect current version, latest relevant tags/releases, commit range, branch sync and package metadata. Choose the bump according to actual compatibility changes and repository policy, or record a precise no-release reason. Do not invent a version just to satisfy ceremony.
 
 Draft release notes before changing external tags or systems. Describe the user-visible behavior, compatibility/migration requirements and material limits. For a release artifact run its required build, tests and packaging checks on the exact candidate. Dependency changes include the lockfile and applicable maintenance/license/install-script review.

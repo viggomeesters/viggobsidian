@@ -11,6 +11,8 @@ Read `.agents/skill-adapters/go.md` from the explicitly selected target root whe
 
 ## Execute and prove
 
+For Obsidian-plugin work (an explicit plugin request or root manifest with `id` and `minAppVersion`), load [Obsidian plugin development](../obsidian-plugin-development/PROCEDURE.md) before implementation or version/publication preparation. Its phase-aware preflight distinguishes an existing-plugin source preview from a public release and actual catalog installation. For a first submission, verify the public exact-tag release before sending the owner to Submit.
+
 1. Reuse or create an Issue describing the problem, desired behavior, scope and important constraints. Avoid duplicate task registries; a local note is not a required extra workflow engine.
 2. Inspect unrelated edits and create a scoped branch or isolated checkout when useful. Preserve existing user work, identity, data writers and live-runtime authority. Stage explicit reviewed paths.
 3. Implement the authorized result using the repository's actual architecture and language/dependency rules. Use available specialist procedures only when their subject is relevant. Do not bootstrap an unrelated stack or turn ordinary work into a mandatory framework migration.
