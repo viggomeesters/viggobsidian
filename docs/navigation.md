@@ -145,7 +145,13 @@ kopieerblokken mogen direct zichtbaar blijven boven de gewone lengtegrens;
 lange uitleg buiten die mailvelden blijft onder Details. Zie het mailcontract.
 
 Een bubble begint bijvoorbeeld met `> [!activity-message|assistant] Assistant`
-onder een `> [!activity-day|YYYY-MM-DD]`-scheiding. Het tijd-/auteursstempel volgt
+onder een `> [!activity-day|YYYY-MM-DD]`-scheiding, met direct daarna het stempel
+als inlinecode: `09:42 · Assistant · draft`.
+Nieuwe of expliciet omgezette notes gebruiken `activity_contract: provenance-v1`:
+de strikte checker verplicht stempels voor alle auteurs en doelgebonden,
+gegroepeerde agentresultaten. Het volledige machinecontract staat in het
+mailcontract; bronwaarheid en tijdzone blijven inhoudelijke controle.
+Het tijd-/auteursstempel volgt
 het bewezen kanaal; schrijf geen historische minuten bij benadering. `Context`
 blijft vóór Activity. Status en actiedatum komen uit de taakmetadata; een lege
 actiedatum blijft leeg. Een simpele taak krijgt geen verplicht tweede werkdossier;

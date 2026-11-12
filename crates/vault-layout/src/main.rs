@@ -1033,6 +1033,21 @@ impl Scan<'_> {
         };
         match serde_saphyr::from_str_with_options::<Value>(&yaml, options) {
             Ok(data) if data.is_object() => {
+                if self.strict
+                    && let Some(contract) = data.get("activity_contract")
+                {
+                    if contract.as_str() != Some("provenance-v1") {
+                        self.issue(
+                            path,
+                            "strict-activity-provenance",
+                            "unknown activity_contract",
+                        );
+                    } else {
+                        for message in activity_delivery::provenance_findings(&body) {
+                            self.issue(path, "strict-activity-provenance", message);
+                        }
+                    }
+                }
                 if crate::text(&data, "activity_format") == Some("chat-v1") {
                     for message in activity_layout::findings(&body) {
                         self.issue(path, "activity-message", message);
