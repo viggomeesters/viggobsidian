@@ -42,6 +42,18 @@
   "evidence": [],
   "github": {
     "repository": "viggomeesters/viggobsidian",
-    "issue": 14
+    "issue": 14,
+    "pull_request": 15
+  },
+  "completion_evidence": {
+    "schema": "go-workflow.completion-evidence.v1",
+    "verification": {
+      "path": ".go/runs/write-set-validation-v07/completion/verification-2ed9ed84fa8f4fd99edcd9852ea1a719.json",
+      "sha256": "59fe22db5aed564ddb268cb032250fc55a8a0366085090338de7b9a4361a0ba9"
+    },
+    "critic": {
+      "path": ".go/runs/write-set-validation-v07/completion/critic-bf1c7390fd10439a958828c64f7096fa.json",
+      "sha256": "fbb29af7e430aea7d49b5548e4d3f9e93119e3d67dca3a567b75d181d63617f0"
+    }
   }
 }
