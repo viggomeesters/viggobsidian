@@ -45,13 +45,14 @@
   "evidence": [],
   "github": {
     "repository": "viggomeesters/viggobsidian",
-    "issue": 12
+    "issue": 12,
+    "pull_request": 13
   },
   "completion_evidence": {
     "schema": "go-workflow.completion-evidence.v1",
     "verification": {
-      "path": ".go/runs/activity-provenance-v06/completion/verification-efca5bd96d2d451b98574710ead011fc.json",
-      "sha256": "98e219069f1308477742f80643934b5ccee0c790939a7a59c46343a922b3858f"
+      "path": ".go/runs/activity-provenance-v06/completion/verification-fa9ec2bb50fc4a4d9851fd70f50883c8.json",
+      "sha256": "c294bb13045a3fa76fe331c8366a619d67a13657cb20b0aca62190ee55c38597"
     }
   }
 }
