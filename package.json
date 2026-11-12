@@ -1,6 +1,11 @@
 {
   "files": [
     {
+      "sha256": "3fffb7afbf37d5a191a5bd08a139cb387dba3ff456994ab8aac0616bdf503df3",
+      "source": "crates/vault-layout/fixtures/procedure-assets.json",
+      "target": ".agents/tools/vault-layout/fixtures/procedure-assets.json"
+    },
+    {
       "sha256": "f71cd011ba8899814e3822211d261be029b7fe998dcb03875c8c1f7b1136750b",
       "source": "fixtures/activity-deliveries.md",
       "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
@@ -317,7 +322,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "a9860c66c6d9cef9949c9dc6a00315463b83cc6553e922876049377a0d27aa28",
+      "sha256": "2ab4d890bcdd63d80ace21df77608f21d39dd9f1e6e40168c214703f3db8172d",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -1827,7 +1832,7 @@
       "target": ".viggobsidian/core/skill-library.md"
     }
   ],
-  "revision": "ed55982a8f9d2d254bb5c85b7ed819d01b3ce675",
+  "revision": "91a4a4465ed4e05beeb87a259bffef39d65e64d0",
   "schema": "viggobsidian.package.v1",
-  "version": "0.14.1"
+  "version": "0.14.2"
 }
