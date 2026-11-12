@@ -134,23 +134,18 @@ struct Fixture(PathBuf);
 
 fn procedure_fixture(name: &str) -> Fixture {
     let fixture = Fixture::new(name);
-    let repository = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let distribution: Value =
-        serde_json::from_slice(&fs::read(repository.join("distribution.json")).unwrap()).unwrap();
+    // Compiled generic bytes, never a live vault or source-checkout fallback.
+    let bundle: Value =
+        serde_json::from_str(include_str!("../fixtures/procedure-assets.json")).unwrap();
+    assert_eq!(bundle["schema"], "viggobsidian.procedure-test-fixture.v1");
     let mut entries = Vec::new();
     let mut files = serde_json::Map::new();
-    for entry in distribution["files"].as_array().unwrap() {
-        let target = entry["target"].as_str().unwrap();
-        if !(target.starts_with(".agents/skills/")
-            || target.starts_with(".viggobsidian/core/procedures"))
-        {
-            continue;
-        }
-        let bytes = fs::read(repository.join(entry["source"].as_str().unwrap())).unwrap();
-        let hash = format!("{:x}", Sha256::digest(&bytes));
+    for (target, body) in bundle["files"].as_object().unwrap() {
+        let bytes = body["content"].as_str().unwrap().as_bytes();
+        let hash = format!("{:x}", Sha256::digest(bytes));
         fixture.write(target, bytes);
         files.insert(target.into(), json!(hash));
-        entries.push(json!({"source":entry["source"],"target":target,"sha256":hash}));
+        entries.push(json!({"source":body["source"],"target":target,"sha256":hash}));
     }
     let manifest=json!({"schema":"viggobsidian.package.v1","version":"0.9.0","revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","files":entries}).to_string();
     fixture.write(".viggobsidian/installed.json",json!({"schema":"viggobsidian.installed.v1","version":"0.9.0","revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","manifest_sha256":format!("{:x}",Sha256::digest(manifest.as_bytes())),"manifest_bytes":manifest,"files":files}).to_string());

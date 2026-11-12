@@ -1,6 +1,10 @@
 {
   "files": [
     {
+      "source": "crates/vault-layout/fixtures/procedure-assets.json",
+      "target": ".agents/tools/vault-layout/fixtures/procedure-assets.json"
+    },
+    {
       "source": "fixtures/activity-deliveries.md",
       "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
     },
