@@ -5,6 +5,9 @@ const TOC: &str = "```wiki-toc";
 
 pub fn findings(body: &str) -> (bool, Vec<(&'static str, &'static str)>) {
     let mut findings = Vec::new();
+    if technical_inventory(body) {
+        findings.push(("wiki-source-inventory", "keep source inventories, byte counts and hashes in a Raw source event; link there from readable Wiki prose"));
+    }
     let lines = body.lines().map(str::trim_end).collect::<Vec<_>>();
     let start = lines
         .iter()
@@ -122,6 +125,29 @@ pub fn findings(body: &str) -> (bool, Vec<(&'static str, &'static str)>) {
     (facts_position, findings)
 }
 
+fn technical_inventory(body: &str) -> bool {
+    let mut fenced = false;
+    body.lines().any(|line| {
+        let line = line.trim();
+        if line.starts_with("```") || line.starts_with("~~~") {
+            fenced = !fenced;
+            return false;
+        }
+        if fenced || !line.starts_with('|') {
+            return false;
+        }
+        let cells = line
+            .trim_matches('|')
+            .split('|')
+            .map(|s| s.trim().to_lowercase())
+            .collect::<Vec<_>>();
+        cells.iter().any(|s| s.contains("sha-256") || s == "sha256")
+            && cells
+                .iter()
+                .any(|s| s == "bytes" || s.contains("bronpad") || s.contains("gelezen"))
+    })
+}
+
 pub(crate) fn shortcut(line: &str, label: &str) -> bool {
     line.strip_prefix("> - [[")
         .and_then(|link| link.strip_suffix("]]"))
@@ -217,6 +243,22 @@ mod tests {
         assert_eq!(
             codes(&format!("{INTRO}{MARKER}{SECTIONS}\n## Woning\n")),
             ["wiki-toc-anchor"]
+        );
+    }
+
+    #[test]
+    fn source_hash_tables_belong_in_raw_but_domain_tables_remain_valid() {
+        assert!(
+            codes(&format!(
+                "{INTRO}## Source\n| Bron | Bytes | SHA-256 |\n|---|---|---|\n"
+            ))
+            .contains(&"wiki-source-inventory")
+        );
+        assert!(
+            !codes(&format!(
+                "{INTRO}## Measurements\n| Date | Value |\n|---|---|\n"
+            ))
+            .contains(&"wiki-source-inventory")
         );
     }
 }
