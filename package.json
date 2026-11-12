@@ -302,7 +302,7 @@
       "target": ".agents/tools/vault-layout/src/event_header.rs"
     },
     {
-      "sha256": "7b5502687ab67e50edb2b15d92d136f634b5531cbe56b6d70a9fc196fb2cf75c",
+      "sha256": "36ba214959cb092b310bba6152efae6f8a8a3af887498a41dcec35df8da3327a",
       "source": "crates/vault-layout/src/raw_processing.rs",
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
@@ -1867,7 +1867,7 @@
       "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ],
-  "revision": "1bb784964bd07fb8f38895d72ea30b3c96e84d97",
+  "revision": "897f8e914cda88a8a4de4f204b290f0095a341d8",
   "schema": "viggobsidian.package.v1",
   "version": "0.17.0"
 }
