@@ -1,6 +1,10 @@
 {
   "files": [
     {
+      "source": "fixtures/activity-deliveries.md",
+      "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
+    },
+    {
       "source": "crates/vault-layout/src/maintenance.rs",
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
