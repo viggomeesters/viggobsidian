@@ -1,6 +1,5 @@
 //! A sealed writer's exact change set, with bounded dossier/dependency coverage.
-//! Changed owners never inherit baseline exemptions. Only unchanged ancestor
-//! boundaries can retain byte-identical pre-existing findings.
+//! Legacy exceptions require explicit adoption and immutable historical bytes.
 use crate::{
     Finding, SCHEMA, Scan, TILE_CSS, navigation_contract, tile_styles, without_css_comments,
 };
@@ -100,6 +99,7 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         .map(|(p, e)| json!({"path":p,"expect":e}))
         .collect();
     let baseline = &request["baseline"];
+    let adoption = crate::adoption::load(vault)?;
     if phase == "baseline" && !baseline.is_null() {
         return Err("baseline phase cannot import a baseline".into());
     }
@@ -116,11 +116,14 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
                 "owned_findings",
                 "boundary_findings",
                 "findings",
+                "adoption",
+                "legacy_findings",
             ],
         )?;
         if baseline["schema"] != REPORT
             || baseline["phase"] != "baseline"
             || baseline["changes"] != json!(changes)
+            || baseline["adoption"] != adoption
         {
             return Err("write-set baseline is not bound to the exact changes".into());
         }
@@ -171,6 +174,21 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         }
         for ancestor in parent.ancestors().filter(|p| !p.as_os_str().is_empty()) {
             boundary.insert(ancestor.to_path_buf());
+        }
+    }
+    // Deleting Raw or moving an entrance cannot shrink preimage coverage.
+    if phase == "validate" {
+        for (path, recursive) in baseline["owned_scopes"]
+            .as_object()
+            .ok_or("baseline owners missing")?
+        {
+            let checked = checked_path(vault, &format!("{path}/owner.md"))?;
+            let dir = checked.parent().unwrap().to_path_buf();
+            let previous = recursive.as_bool().ok_or("invalid baseline owner depth")?;
+            owned
+                .entry(dir)
+                .and_modify(|full| *full |= previous)
+                .or_insert(previous);
         }
     }
     let full: Vec<_> = owned
@@ -255,7 +273,36 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         }
     }
     let boundary_findings = findings(&scan.findings);
-    let mut errors = owned_findings.clone();
+    let old_owned: BTreeSet<_> = baseline["owned_findings"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(Value::to_string)
+        .collect();
+    let mut legacy_findings = Vec::new();
+    let mut errors = Vec::new();
+    for row in &owned_findings {
+        let path = row["path"].as_str().ok_or("finding path missing")?;
+        let exempt = crate::adoption::formatting(vault, row)?
+            && (phase == "baseline" || old_owned.contains(&row.to_string()))
+            && crate::adoption::retained(vault, &adoption, path)?;
+        if exempt {
+            legacy_findings.push(row.clone());
+        } else {
+            errors.push(row.clone());
+        }
+    }
+    // Adopted strict owners cannot disappear during an ordinary content move.
+    if phase == "validate" {
+        for (owner, entry) in adoption["owners"].as_object().unwrap() {
+            if entry["state"] == "strict"
+                && paths.keys().any(|p| p.starts_with(owner))
+                && !vault.join(owner).is_dir()
+            {
+                errors.push(json!({"path":owner,"code":"adoption-strict-owner","message":"strict owner relocation requires explicit maintenance adoption"}));
+            }
+        }
+    }
     errors.extend(
         boundary_findings
             .iter()
@@ -268,7 +315,7 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         0
     };
     Ok((
-        json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"findings":errors}),
+        json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"legacy_findings":legacy_findings,"adoption":adoption,"findings":errors}),
         code,
     ))
 }

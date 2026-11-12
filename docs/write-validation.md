@@ -21,8 +21,65 @@ writer's existing rollback; never rewrite plan pins to bypass drift checks.
 Each changed file owns its direct folder. Raw/Wiki changes own their complete
 dossier, including source inventories and processed-source references. Ancestor
 navigation is checked without recursively visiting unrelated siblings. Changed
-owners receive all strict checks; they never inherit baseline exceptions. Only
-exact unchanged ancestor findings may remain. New boundary findings fail.
+owners receive all strict checks. Only exact unchanged ancestor findings and
+explicitly adopted historical formatting findings may remain. New boundary
+findings fail. Preimage owners remain in scope after a move or deletion.
+
+## Phased dossier adoption (v0.8)
+
+No adoption state means strict validation. `.viggobsidian/adoption.json` is local
+operator state, outside the ordinary content writer's allowed write set. The
+checker binds its full state and byte hash (including absence) into the sealed
+baseline. The adapter must pin this file before installing any content, and
+must reject drift before writing as well as validate afterwards.
+
+Register exact existing owners through `vault-layout --adoption-plan`, providing
+JSON on stdin:
+
+```json
+{"schema":"viggobsidian.adoption-request.v1","owners":{"30-topics/example":"legacy"}}
+```
+
+Review the resulting full strict scan, existing file inventory and hashes before
+passing that plan on stdin to `--adoption-apply`. This administration command
+updates only local adoption state and retains a preimage receipt. It does not
+change notes, approve migration or grant writer authority. Keep the receipt
+private. Exact successful replays return `already-applied`. After an interrupted
+administration, pass the same reviewed plan to `--adoption-recover`: it checks
+the receipt, exact state preimage/postimage and pending/lock bytes before cleanup
+and completion. Drift or foreign recovery members remain untouched. Do not run
+recovery while the original operator is still active; the lock is local.
+
+Legacy recognition is a review aid, never an automatic exemption. The exact
+owner and recorded original files establish the boundary. The deepest explicit
+owner wins; unrecorded new files never inherit historical exceptions. The finite
+formatting allowlist excludes source inventories, manifests, missing source
+bytes, source status/processing, identities, symlinks and link target integrity.
+Full strict audits are unchanged and continue to show all historical debt.
+
+A finding is tolerated only if it already exists in the sealed baseline and
+the affected file retains its registered historical bytes. Append may preserve
+the immutable original prefix, but every accumulated addition must independently
+pass provenance-v1, Activity, mail and delivery checks. Start appended content
+with a separate dated Activity-day and named, stamped bubbles with result goals
+for agent contributions. A malformed append cannot reuse a deduplicated old
+finding. Arbitrary revisions receive no historical byte exception: either the
+result validates fully or use an explicitly authorized migration provider.
+Non-file structural debt remains blocking; register the exact legacy source
+files through their existing owner rather than introducing broad skip scopes.
+
+After source-by-source semantic migration acceptance, request `strict` for that
+owner through the same preview/apply protocol. Promotion requires a clean full
+strict scan. Existing legacy snapshots cannot be refreshed; strict owners cannot
+be downgraded or loosened by registering a legacy child. The ordinary content
+writer cannot relocate a strict owner out of its registered boundary. A separate
+maintenance migration must explicitly maintain adoption identity and provenance.
+Changing a note's metadata never changes this administrative state.
+
+Reports keep `owned_findings`, separate `legacy_findings`, blocking `findings`
+and the selected adoption state. Accepted legacy writes are not proof of full
+ViggObsidian conformance or completed migration. Old pre-v0.8 write-set baselines
+require a new plan; never add missing pins to an existing sealed plan.
 
 This interface supplies validation, not write authority. Local adapters retain
 their existing routing, locking, source registry, preimage and rollback duties.

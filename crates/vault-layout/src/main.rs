@@ -9,6 +9,7 @@ use std::{
 
 mod activity_delivery;
 mod activity_layout;
+mod adoption;
 mod dossier_tables;
 mod event_header;
 mod index_navigation;
@@ -70,6 +71,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut new_work_task = false;
     let mut link_style = None;
     let mut write_set_mode = false;
+    let mut adoption_mode = None;
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
@@ -82,6 +84,11 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             Some("--check-work") => check_work = true,
             Some("--check-all") => check_all = true,
             Some("--write-set") if !write_set_mode => write_set_mode = true,
+            Some("--adoption-plan") if adoption_mode.is_none() => adoption_mode = Some("plan"),
+            Some("--adoption-apply") if adoption_mode.is_none() => adoption_mode = Some("apply"),
+            Some("--adoption-recover") if adoption_mode.is_none() => {
+                adoption_mode = Some("recover")
+            }
             Some("--new-work-task") => new_work_task = true,
             Some("--link-style") if link_style.is_none() => link_style = Some(false),
             Some("--fix-link-style") if link_style.is_none() => link_style = Some(true),
@@ -110,7 +117,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         }
     }
     let vault = vault.canonicalize()?;
-    if write_set_mode {
+    if write_set_mode || adoption_mode.is_some() {
         if folder.is_some()
             || tiles_only
             || indexes
@@ -124,10 +131,16 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             || check_all
             || new_work_task
             || link_style.is_some()
+            || (write_set_mode && adoption_mode.is_some())
         {
             return Err(USAGE.into());
         }
-        return write_set::run(&vault, serde_json::from_reader(io::stdin().lock())?);
+        let input = serde_json::from_reader(io::stdin().lock())?;
+        return if let Some(apply) = adoption_mode {
+            adoption::run(&vault, apply, input)
+        } else {
+            write_set::run(&vault, input)
+        };
     }
     if let Some(apply) = link_style {
         if check_work

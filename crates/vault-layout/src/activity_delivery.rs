@@ -3,6 +3,29 @@ use std::collections::BTreeMap;
 const DELIVERY: &str = "<!-- viggobsidian:mail-delivery:v1 ";
 const INPUT: &str = "<!-- viggobsidian:input:v1 author=human -->";
 
+pub(crate) fn valid_stamp(stamp: &str, author: &str) -> bool {
+    let parts: Vec<_> = stamp.split(" · ").collect();
+    let [time, name, channel] = parts.as_slice() else {
+        return false;
+    };
+    let clock = *time == "—"
+        || time.split_once(':').is_some_and(|(hour, minute)| {
+            hour.len() == 2
+                && minute.len() == 2
+                && hour
+                    .bytes()
+                    .chain(minute.bytes())
+                    .all(|b| b.is_ascii_digit())
+                && hour.parse::<u8>().is_ok_and(|n| n < 24)
+                && minute.parse::<u8>().is_ok_and(|n| n < 60)
+        });
+    clock
+        && *name == author
+        && !channel.trim().is_empty()
+        && *channel == channel.trim()
+        && !channel.contains('`')
+}
+
 /// Whole-note opt-in: validate visible provenance without interpreting source prose.
 pub(crate) fn provenance_findings(body: &str) -> Vec<String> {
     if let Err(message) = crate::activity_layout::check_v11(&format!("\n{body}")) {
@@ -63,28 +86,7 @@ pub(crate) fn provenance_findings(body: &str) -> Vec<String> {
             .get(1)
             .and_then(|l| l.strip_prefix("> `"))
             .and_then(|s| s.strip_suffix('`'));
-        if !stamp.is_some_and(|stamp| {
-            let parts: Vec<_> = stamp.split(" · ").collect();
-            let [time, name, channel] = parts.as_slice() else {
-                return false;
-            };
-            let clock = *time == "—"
-                || time.split_once(':').is_some_and(|(hour, minute)| {
-                    hour.len() == 2
-                        && minute.len() == 2
-                        && hour
-                            .bytes()
-                            .chain(minute.bytes())
-                            .all(|b| b.is_ascii_digit())
-                        && hour.parse::<u8>().is_ok_and(|n| n < 24)
-                        && minute.parse::<u8>().is_ok_and(|n| n < 60)
-                });
-            clock
-                && *name == author
-                && !channel.trim().is_empty()
-                && *channel == channel.trim()
-                && !channel.contains('`')
-        }) {
+        if !stamp.is_some_and(|stamp| valid_stamp(stamp, author)) {
             result.push(format!("{author}: start the bubble with `HH:mm · {author} · channel`, or use — for unknown time"));
         }
         if role == "human" {
@@ -347,6 +349,8 @@ mod tests {
             good.replace("23:59", "24:00"),
             good.replace("23:59", "23:60"),
             good.replace("23:59", "9:04"),
+            good.replace("23:59", "+1:00"),
+            good.replace("23:59", "01:+1"),
             good.replace("· Alex ·", "· Codex ·"),
             good.replace(" · Codex-chat", ""),
             good.replace("Codex-chat`", " `"),
