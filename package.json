@@ -96,7 +96,7 @@
       "target": ".agents/tools/vault-layout/src/mail_draft.rs"
     },
     {
-      "sha256": "d4945750046f3fd2e2ae4c919e81e59e627098bc95ba83e8d47d94176a721bf4",
+      "sha256": "ad5d07747d6036dc5f11f91271d1f539ff085ae7ebc670eafe4fef3fff0375ff",
       "source": "docs/policy.md",
       "target": ".viggobsidian/core/policy.md"
     },
@@ -171,7 +171,7 @@
       "target": ".agents/skills/vault-process/SKILL.md"
     },
     {
-      "sha256": "53718414d53b8746812003a086351e40784357ed41023b3e82ebc7d955b57724",
+      "sha256": "2a82603332dacd97d1919512019ff015081bebd2e6ce1b0d57ca0f966359db1b",
       "source": "skills/vault-task/SKILL.md",
       "target": ".agents/skills/vault-task/SKILL.md"
     },
@@ -732,7 +732,7 @@
       "target": ".agents/skills/obsidian-enrich/references/range.md"
     }
   ],
-  "revision": "fb70e16d9bfe7ca91957ead1592cbd2063608836",
+  "revision": "481849ec650d4e9e0c7e56b888ff3ad860efaa5e",
   "schema": "viggobsidian.package.v1",
-  "version": "0.10.0"
+  "version": "0.11.0"
 }

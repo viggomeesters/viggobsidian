@@ -2,6 +2,14 @@
 
 ViggObsidian beheert gedeeld beleid, schema’s, CSS en vaultskills. Een geïnstalleerd bestand is een versiegebonden distributiekopie. Wijzig de bron in deze repository via Issue → PR → review → merge → release; pas de release daarna bewust op iedere vault toe.
 
+## Repositorywerk
+
+GitHub Issue → PR → merge is de standaard voor repositorywerk, ook wanneer de opdracht uit een vault komt. Hergebruik of maak het Issue, werk op een branch, controleer lokaal en laat passend onafhankelijk reviewen. Merge binnen de gegeven autorisatie en sluit het Issue op basis van het werkelijke resultaat. Een expliciete advies-, plan- of PR-only-opdracht behoudt haar eindpunt. GitHub Actions blijven uit.
+
+`.go/`, `.go-workflow/`, stackfreshness, workflowclaims en stackbootstrap zijn uitgefaseerd. Maak of herstel geen oude workflowstate en laat historische instructies die route niet opnieuw verplichten. GitHub bezit technische werkstatus en PR-/mergebewijs; de vault bewaart menselijke broncontext en verwijzingen zonder tweede repositorytaakregister. Een vaultnote is geen verplichte intake voor rechtstreeks repositorywerk.
+
+Dit verandert geen productruntime, registratieclaim, datawriter, rootkeuze, publicatiegrens of inhoudelijke veiligheidscontrole. Lokale adapters en providers moeten de GitHub-route ondersteunen en mogen geen Go-runtime als afrondingsvoorwaarde eisen.
+
 De volledige gedeelde navigatiestandaard staat in `docs/navigation.md`, lokaal
 geïnstalleerd op `99-system/vault/vault-navigation/vault-navigation-handleiding.md`.
 `schemas/navigation-contract.yaml` bezit de generieke machinekeuzes. Lokale
