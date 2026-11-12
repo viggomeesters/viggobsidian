@@ -254,3 +254,11 @@ Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
+# Validation of changed content
+
+For transactional writes, follow the installed
+`.viggobsidian/core/write-validation.md` protocol: exact changed files, a sealed
+pre-write baseline, strict affected dossier checks and shallow ancestor checks.
+Do not broaden a writer scope to the entire collection because an entrance is
+missing or malformed. Keep full vault audits as separate maintenance evidence.
+

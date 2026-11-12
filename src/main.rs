@@ -162,6 +162,7 @@ fn allowed(target: &str) -> bool {
         "wiki_layout",
         "work_intake",
         "work_package",
+        "write_set",
     ]
     .iter()
     .any(|name| target == format!(".agents/tools/vault-layout/src/{name}.rs"))
@@ -170,6 +171,7 @@ fn allowed(target: &str) -> bool {
     }
     if [
         "policy.md",
+        "write-validation.md",
         "navigation-contract.yaml",
         "mail-format.md",
         "mail-draft.md",

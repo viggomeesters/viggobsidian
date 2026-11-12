@@ -132,6 +132,219 @@ fn link_style_cli_checks_repairs_and_rechecks_without_touching_sources() {
 
 struct Fixture(PathBuf);
 
+fn write_check(fixture: &Fixture, phase: &str, changes: Value, baseline: Value) -> (Output, Value) {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+        .arg("--vault")
+        .arg(&fixture.0)
+        .arg("--write-set")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    serde_json::to_writer(child.stdin.take().unwrap(), &json!({"schema":"viggobsidian.write-set.v1","phase":phase,"changes":changes,"baseline":baseline})).unwrap();
+    let output = child.wait_with_output().unwrap();
+    let report = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
+    (output, report)
+}
+
+fn nav(fixture: &Fixture, folder: &str, back: &str, children: &str) -> String {
+    format!(
+        "---\ntype: collection\ncategory: index\nlayer: navigation\n---\n# Navigation\n\n> [!navigation|shortcuts]\n> - [[{back}|Back]]\n> - [Finder](file://{}/{folder})\n\n{children}",
+        fixture.0.display()
+    )
+}
+
+#[test]
+fn direct_dossier_changes_cover_raw_dependencies_and_mail_manifests() {
+    let fixture = Fixture::new("write-set-direct-wiki");
+    fixture.write(
+        "topics/dossier/dossier.md",
+        "---\ntype: note\ncategory: knowledge\nlayer: wiki\n---\n# Wiki\n",
+    );
+    fixture.write("topics/dossier/raw/raw.md", "Invalid Raw entrance");
+    fixture.write(
+        "topics/dossier/raw/20261112-source/20261112-source.md",
+        "Invalid source",
+    );
+    let changes = json!([{"path":"topics/dossier/dossier.md","expect":"present"},
+        {"path":"topics/dossier/raw/20261112-source/.mail-source.json","expect":"present"}]);
+    let (output, baseline) = write_check(&fixture, "baseline", changes.clone(), Value::Null);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(baseline["owned_scopes"], json!({"topics/dossier":true}));
+    assert!(
+        baseline["owned_findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["path"].as_str().unwrap().contains("20261112-source"))
+    );
+    let (output, _) = write_check(&fixture, "validate", changes, baseline);
+    assert_eq!(output.status.code(), Some(1));
+    let (_, direct) = write_check(
+        &fixture,
+        "baseline",
+        json!([{"path":"topics/dossier/dossier.md","expect":"present"}]),
+        Value::Null,
+    );
+    assert_eq!(direct["owned_scopes"], json!({"topics/dossier":true}));
+}
+
+#[test]
+fn exact_write_set_ignores_finance_but_rejects_changed_health_and_boundary_regressions() {
+    let fixture = Fixture::new("write-set-health");
+    fixture.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
+    fixture.write("topics/topics.md", nav(&fixture,"topics","HOME","> [!navigation]\n> - [[topics/health/health|Health]]\n> - [[topics/finance/finance|Finance]]\n"));
+    let health = nav(&fixture, "topics/health", "topics/topics", "");
+    fixture.write("topics/health/health.md", &health);
+    fixture.write(
+        "topics/finance/finance.md",
+        "Unrelated invalid legacy content.",
+    );
+    let changes = json!([{"path":"topics/health/health.md","expect":"present"}]);
+    let (output, baseline) = write_check(&fixture, "baseline", changes.clone(), Value::Null);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    fixture.write(
+        "topics/health/health.md",
+        health.replace("# Navigation", "# Updated Health"),
+    );
+    let (output, report) = write_check(&fixture, "validate", changes.clone(), baseline.clone());
+    assert!(output.status.success(), "{report}");
+    assert!(!report.to_string().contains("topics/finance/finance.md"));
+    assert_eq!(fixture.strict("topics").status.code(), Some(1));
+    fixture.write("topics/health/health.md", "Invalid changed Health.");
+    let (output, report) = write_check(&fixture, "validate", changes.clone(), baseline.clone());
+    assert_eq!(output.status.code(), Some(1), "{report}");
+    fixture.write("topics/health/health.md", &health);
+    fixture.write(
+        "topics/extra/extra.md",
+        nav(&fixture, "topics/extra", "topics/topics", ""),
+    );
+    let (output, report) = write_check(&fixture, "validate", changes, baseline);
+    assert_eq!(
+        output.status.code(),
+        Some(1),
+        "new missing parent tile must fail: {report}"
+    );
+}
+
+#[test]
+fn exact_write_set_creation_and_deletion_require_parent_navigation() {
+    let fixture = Fixture::new("write-set-create");
+    fixture.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
+    fixture.write(
+        "topics/topics.md",
+        nav(
+            &fixture,
+            "topics",
+            "HOME",
+            "> [!navigation]\n> - [[topics/health/health|Health]]\n",
+        ),
+    );
+    let health = nav(&fixture, "topics/health", "topics/topics", "");
+    fixture.write("topics/health/health.md", &health);
+    let child = "topics/health/new/new.md";
+    let changes = json!([{"path":child,"expect":"present"},{"path":"topics/health/health.md","expect":"present"}]);
+    let (_, baseline) = write_check(&fixture, "baseline", changes.clone(), Value::Null);
+    fixture.write(
+        child,
+        nav(&fixture, "topics/health/new", "topics/health/health", ""),
+    );
+    assert_eq!(
+        write_check(&fixture, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+    fixture.write(
+        "topics/health/health.md",
+        format!("{health}> [!navigation]\n> - [[topics/health/new/new|New]]\n"),
+    );
+    let (output, report) = write_check(&fixture, "validate", changes, baseline);
+    assert!(output.status.success(), "{report}");
+    let deletion = json!([{"path":child,"expect":"absent"},{"path":"topics/health/health.md","expect":"present"}]);
+    let (_, baseline) = write_check(&fixture, "baseline", deletion.clone(), Value::Null);
+    fs::remove_dir_all(fixture.0.join("topics/health/new")).unwrap();
+    assert_eq!(
+        write_check(&fixture, "validate", deletion.clone(), baseline.clone())
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+    fixture.write("topics/health/health.md", health);
+    let (output, report) = write_check(&fixture, "validate", deletion, baseline);
+    assert!(output.status.success(), "{report}");
+}
+
+#[test]
+fn write_set_rejects_escapes_symlinks_unknown_fields_and_wrong_baselines() {
+    let fixture = Fixture::new("write-set-input");
+    for path in [
+        "../escape.md",
+        "/absolute/file.md",
+        "topics/../file.md",
+        "topics//file.md",
+        ".hidden/file.md",
+    ] {
+        assert_eq!(
+            write_check(
+                &fixture,
+                "baseline",
+                json!([{"path":path,"expect":"present"}]),
+                Value::Null
+            )
+            .0
+            .status
+            .code(),
+            Some(2)
+        );
+    }
+    fs::create_dir_all(fixture.0.join("topics")).unwrap();
+    symlink(&fixture.0, fixture.0.join("topics/link")).unwrap();
+    assert_eq!(
+        write_check(
+            &fixture,
+            "baseline",
+            json!([{"path":"topics/link/file.md","expect":"present"}]),
+            Value::Null
+        )
+        .0
+        .status
+        .code(),
+        Some(2)
+    );
+    let changes = json!([{"path":"topics/file.md","expect":"present"}]);
+    assert_eq!(
+        write_check(&fixture, "validate", changes.clone(), json!({}))
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    assert_eq!(
+        write_check(
+            &fixture,
+            "baseline",
+            json!([changes[0], changes[0]]),
+            Value::Null
+        )
+        .0
+        .status
+        .code(),
+        Some(2)
+    );
+}
+
 #[test]
 fn provenance_contract_is_enforced_by_strict_cli_and_legacy_stays_compatible() {
     let fixture = Fixture::new("provenance-cli");
