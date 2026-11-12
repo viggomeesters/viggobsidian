@@ -1273,6 +1273,59 @@ fn strict_system_check_requires_its_policy() {
 }
 
 #[test]
+fn explicit_writer_history_paths_keep_other_files_and_symlinks_blocked() {
+    let fixture = Fixture::new("writer-history-policy");
+    let history = "99-system/agents/guide-wijzigingshistorie.md";
+    fixture.write(
+        "99-system/contracts/system-layout.yaml",
+        "collections: [99-system/agents]\nfixed_files: [99-system/agents/guide.md]\ndelegated: {}\n",
+    );
+    fixture.write(
+        "99-system/agents/agents.md",
+        format!("---\ntype: collection\ncategory: index\nlayer: navigation\n---\n# Agents\n\n> [!navigation|shortcuts]\n> - [[99-system/99-system|Back]]\n> - [Finder](file://{}/99-system/agents)\n", fixture.0.display()),
+    );
+    fixture.write("99-system/agents/guide.md", "# Existing owner\n");
+    let original = "# History\n\nPreserved previous wording, evidence and owner.\n";
+    fixture.write(history, original);
+    let findings = || {
+        let report: Value =
+            serde_json::from_slice(&fixture.strict("99-system/agents").stdout).unwrap();
+        report["findings"].as_array().unwrap().clone()
+    };
+    assert!(
+        findings()
+            .iter()
+            .any(|f| f["code"] == "loose-file" && f["path"] == history)
+    );
+    let schema_path = fixture.0.join("99-system/contracts/vault-schema.yaml");
+    let mut schema: Value =
+        serde_saphyr::from_str(&fs::read_to_string(&schema_path).unwrap()).unwrap();
+    schema["strict_layout_exceptions"]["writer_files"] =
+        json!({history:"Exact local history writer output"});
+    fs::write(&schema_path, serde_json::to_vec(&schema).unwrap()).unwrap();
+    assert!(findings().is_empty());
+    let other = "99-system/agents/other-wijzigingshistorie.md";
+    fixture.write(other, "# Unregistered\n");
+    assert!(
+        findings()
+            .iter()
+            .any(|f| f["code"] == "loose-file" && f["path"] == other)
+    );
+    fs::remove_file(fixture.0.join(other)).unwrap();
+    assert_eq!(
+        fs::read_to_string(fixture.0.join(history)).unwrap(),
+        original
+    );
+    fs::remove_file(fixture.0.join(history)).unwrap();
+    symlink("guide.md", fixture.0.join(history)).unwrap();
+    assert!(
+        findings()
+            .iter()
+            .any(|f| f["code"] == "symlink" && f["path"] == history)
+    );
+}
+
+#[test]
 fn delegation_preserves_physical_navigation_coverage() {
     let fixture = Fixture::new("delegated-navigation");
     fixture.write(

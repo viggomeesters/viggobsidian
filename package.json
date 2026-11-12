@@ -312,7 +312,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "c0dcf0df7cf32b77790fb573d09217bb05bad055afe67e64d2d3d726fd38117f",
+      "sha256": "ec7cce6695131b90b5970a1eab463b288372fbe0c28ce4e5298b0738d4af4aab",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -357,7 +357,7 @@
       "target": ".viggobsidian/core/procedures/batches-imports.md"
     },
     {
-      "sha256": "5d3a6f3d7e5f6e26c53f21112ec7a4f1d5bc52a51c1f1a4a7982968e33485e88",
+      "sha256": "8bac6faa54e62eca7562232faf2ed5b36fb8c891af3c1073f84d462fe2f4bfed",
       "source": "procedures/maintenance-context.md",
       "target": ".viggobsidian/core/procedures/maintenance-context.md"
     },
@@ -732,7 +732,7 @@
       "target": ".agents/skills/obsidian-enrich/references/range.md"
     }
   ],
-  "revision": "481849ec650d4e9e0c7e56b888ff3ad860efaa5e",
+  "revision": "ec2a98c82d82aef9f8efc3c66ad89a291f9423ff",
   "schema": "viggobsidian.package.v1",
-  "version": "0.11.0"
+  "version": "0.12.0"
 }
