@@ -24,6 +24,7 @@ mod source_inventory;
 mod wiki_layout;
 mod work_intake;
 mod work_package;
+mod write_set;
 
 const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json)";
 const SCHEMA: &str = "99-system/contracts/vault-schema.yaml";
@@ -68,6 +69,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut check_all = false;
     let mut new_work_task = false;
     let mut link_style = None;
+    let mut write_set_mode = false;
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
@@ -79,6 +81,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             Some("--strict") => strict = true,
             Some("--check-work") => check_work = true,
             Some("--check-all") => check_all = true,
+            Some("--write-set") if !write_set_mode => write_set_mode = true,
             Some("--new-work-task") => new_work_task = true,
             Some("--link-style") if link_style.is_none() => link_style = Some(false),
             Some("--fix-link-style") if link_style.is_none() => link_style = Some(true),
@@ -107,6 +110,25 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         }
     }
     let vault = vault.canonicalize()?;
+    if write_set_mode {
+        if folder.is_some()
+            || tiles_only
+            || indexes
+            || !paths.is_empty()
+            || !anchors
+            || scope_policy.is_some()
+            || resolve_code.is_some()
+            || stage_raw_task
+            || strict
+            || check_work
+            || check_all
+            || new_work_task
+            || link_style.is_some()
+        {
+            return Err(USAGE.into());
+        }
+        return write_set::run(&vault, serde_json::from_reader(io::stdin().lock())?);
+    }
     if let Some(apply) = link_style {
         if check_work
             || check_all
@@ -574,6 +596,15 @@ impl Scan<'_> {
     }
 
     fn folder_with_raw_parent(&mut self, folder: &Path, under_raw: bool) -> io::Result<()> {
+        self.folder_with_depth(folder, under_raw, true)
+    }
+
+    fn folder_with_depth(
+        &mut self,
+        folder: &Path,
+        under_raw: bool,
+        recurse: bool,
+    ) -> io::Result<()> {
         if self.strict
             && folder.starts_with(self.vault.join("99-system/vault"))
             && matches!(
@@ -770,7 +801,7 @@ impl Scan<'_> {
             for child in children {
                 self.raw_package_child(&child)?;
             }
-        } else if !package {
+        } else if !package && recurse {
             for child in children {
                 self.folder(&child)?;
             }

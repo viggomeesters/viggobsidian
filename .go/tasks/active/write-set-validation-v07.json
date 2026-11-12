@@ -1,0 +1,47 @@
+{
+  "schema": "go-workflow.repo-local.task.v1",
+  "kind": "task",
+  "execution_mode": "mechanical",
+  "shareable_delivery": "none",
+  "id": "write-set-validation-v07",
+  "project": "viggobsidian",
+  "status": "active",
+  "summary": "Validate exact write set without unrelated sibling blockers",
+  "description": "Rust shared write-set impact/boundary validation, preserve all owned errors; independent review and both-vault release. Existing Python bridge thin local maintenance integration only, native transaction/hash/rollback semantics preserved; no new dependencies. User explicitly authorizes messaging content chat; it owns registry and Health notes.",
+  "scope": {
+    "read": [
+      "**"
+    ],
+    "modify": [
+      "crates/vault-layout/**",
+      "src/**",
+      "docs/**",
+      "distribution.json",
+      "Cargo.toml",
+      "Cargo.lock",
+      "package.json"
+    ]
+  },
+  "acceptance": [
+    "Valid changed Health passes despite untouched invalid Finance; malformed changed content and introduced navigation boundary errors fail and rollback.",
+    "Path/symlink/baseline/binary/source drift guards remain; generic mode installed both vaults with real adapter transaction proof and full scans retained."
+  ],
+  "verification": [
+    "cargo test --workspace --locked",
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --locked -- -D warnings"
+  ],
+  "claim": {
+    "agent": "codex",
+    "claimed_at": "2026-11-12T06:01:55+01:00",
+    "base_commit": "fe3c8b64feaeb971e32adbfe5e2024d004f40cf5"
+  },
+  "work_status": "in_progress",
+  "review_status": "none",
+  "review_history": [],
+  "evidence": [],
+  "github": {
+    "repository": "viggomeesters/viggobsidian",
+    "issue": 14
+  }
+}
