@@ -117,7 +117,12 @@ fn local(dir: &Path, candidate: &str, installed: Option<&Path>) -> Result<Value>
     let commit = git(dir, &["rev-parse", &format!("{candidate}^{{commit}}")])?;
     let changed = git(dir, &["diff", "--name-only", &commit, "--"])?;
     let bound = changed.lines().all(|path| {
-        path.starts_with("docs/")
+        (path.starts_with("docs/")
+            && matches!(
+                Path::new(path).extension().and_then(|s| s.to_str()),
+                Some("md" | "png" | "jpg" | "jpeg" | "webp")
+            ))
+            || (path.starts_with("docs/evidence/") && path.ends_with(".json"))
             || matches!(
                 path,
                 "README.md" | "CHANGELOG.md" | "SECURITY.md" | "CONTRIBUTING.md" | "LICENSE"
@@ -1087,6 +1092,8 @@ mod collector_tests {
             true
         );
         for file in [
+            "docs/parser.ts",
+            "docs/build.mjs",
             "scripts/build.mjs",
             "lib/parser.ts",
             "rollup.config.mjs",
