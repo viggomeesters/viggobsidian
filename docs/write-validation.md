@@ -105,10 +105,16 @@ retaining the entire original metadata and body. Tasks and source events are
 excluded. The destination is independently checked as a strict owner. Missing
 targets, another handoff and cycles fail.
 
-`locator-rebind` takes `before` and an exact old/new file `mapping`. It changes
-only whole wikilink targets or complete inline-code file locators; metadata,
-free prose, quotes and fenced source examples remain immutable. Raw, imported
-and provider sources are excluded; a maintained source-index is permitted.
+`locator-rebind` takes `before` and an exact locator `mapping`. It changes whole
+WikiLink targets (including basenames), local Markdown-link URIs, complete
+single-backtick file locators and declared `external-tasks[].path` bindings.
+All other metadata, bound task IDs/status, labels, anchors, free prose, quotes,
+HTML source and code examples remain immutable. A null local-URI mapping renders
+fixed historical-unavailable text retaining the original URI. Markdown denotes
+the link syntax; PDF, EML and CSV source targets are valid. Complex multiline
+inline-code transitions fail closed. Raw, imported and provider sources are
+excluded; a maintained source-index is permitted. See navigation.md for the
+bounded locator grammar; this is no general rewrite or metadata waiver.
 
 For an owner containing these deterministic transformations, the baseline seals
 every other unchanged file's hash and preserves only identical old findings on
