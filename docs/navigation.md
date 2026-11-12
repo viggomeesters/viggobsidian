@@ -168,6 +168,29 @@ blijft vóór Activity. Status en actiedatum komen uit de taakmetadata; een lege
 actiedatum blijft leeg. Een simpele taak krijgt geen verplicht tweede werkdossier;
 een bestaand `work_dossier` blijft gebonden aan zijn echte statuseigenaar.
 
+### Ongewijzigde applicatie-exports in Raw
+
+Behoud exportpayloads waarop een applicatie exacte paden, YAML-fences en volledige
+bestandshashes bindt. De gewone Eventnote kan `export_artifacts: source-export.json`
+declareren. Dat manifest gebruikt `schema: viggobsidian.source-export.v1`, de exacte
+`package_note`, een `consumer`-slug en `artifacts` met per bestand `path`, `bytes`,
+`sha256` en `format`. Alleen directe secundaire Markdownbestanden zijn toegestaan.
+
+De engine valideert gesloten exporterformaten: `migration-records-v1` voor complete
+YAML-records met overeenkomende bron-ID's, titels/ID-koppen en unieke recordankers;
+`derived-month-summary-v1` voor de vaste historische maandtabel en dagbron-ID's;
+`reported-health-log-v1` voor gedateerde oorspronkelijke loginput met geldige
+vastleggingstijd en gescheiden bronafbakening. Taakidentiteit, Wiki-laag en
+verwerkingsmetadata zijn geen exportpayload. Ontbrekende of gewijzigde bytes,
+onbekende formats, dubbele paden, symlinks en padontsnappingen worden geweigerd.
+Eén fout maakt de gehele inventaris ongeldig; niet-geïnventariseerde Markdown
+blijft onder de normale Raw-regels vallen.
+
+Het manifest vervangt nooit de gewone Eventheader, herkomst, bronbeoordeling of
+precieze Wiki-verwerkingsverwijzing. Hashgelijkheid bewijst geen inhoudelijke
+verwerking. Een pending bron blijft pending; immutable exports zijn geen nieuwe
+klinische feiten of actuele behandelbesluiten.
+
 ## Daily
 
 Daily's staan in `10-daily/notes/YYYY-MM-DD.md`. Een embedded Base selecteert
