@@ -772,6 +772,43 @@ fn check(vault: &Path, structure: bool) -> Result<Value> {
     )
 }
 fn pack(package_root: &Path, revision: &str) -> Result<Value> {
+    if revision.len() != 40 || !revision.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return fail("pack needs a full 40-character source revision before writing");
+    }
+    if package_root.join("Cargo.toml").try_exists()? {
+        let manifest = checked(package_root, "Cargo.toml")?.canonicalize()?;
+        let out = std::process::Command::new(option_env!("CARGO").unwrap_or("cargo"))
+            .args([
+                "metadata",
+                "--format-version",
+                "1",
+                "--no-deps",
+                "--offline",
+                "--locked",
+                "--manifest-path",
+            ])
+            .arg(&manifest)
+            .output()?;
+        if !out.status.success() {
+            return fail(
+                "Cargo could not read the source package version offline with its lock preserved",
+            );
+        }
+        let metadata: Value = serde_json::from_slice(&out.stdout)?;
+        let versions = rows(&metadata, "packages")?
+            .iter()
+            .filter(|package| {
+                package["manifest_path"]
+                    .as_str()
+                    .is_some_and(|p| fs::canonicalize(p).is_ok_and(|p| p == manifest))
+            })
+            .collect::<Vec<_>>();
+        if versions.len() != 1 || versions[0]["version"] != env!("CARGO_PKG_VERSION") {
+            return fail(
+                "source Cargo package.version must equal the pack CLI version; build the matching CLI before packing",
+            );
+        }
+    }
     let distribution = read_json(&checked(package_root, "distribution.json")?)?;
     let mut files = Vec::new();
     for item in rows(&distribution, "files")? {

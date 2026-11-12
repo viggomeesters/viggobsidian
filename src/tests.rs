@@ -348,6 +348,55 @@ struct Fixture {
     vault: PathBuf,
     package: PathBuf,
 }
+#[test]
+fn pack_refuses_source_version_and_bad_revision_without_mutating_manifest() {
+    let f = Fixture::new();
+    fs::create_dir_all(f.package.join("src")).unwrap();
+    fs::write(f.package.join("src/lib.rs"), "").unwrap();
+    let original = fs::read(f.package.join("package.json")).unwrap();
+    fs::write(
+        f.package.join("distribution.json"),
+        serde_json::to_vec(
+            &json!({"files":[{"source":"policy.md","target":".viggobsidian/core/policy.md"}]}),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    for declaration in [
+        "version = \"0.0.0\"".to_owned(),
+        "version.workspace = true".into(),
+        format!(
+            "\"version\" = \"0.0.0\"\ndescription = \"\"\"\n[package]\nversion = \"{}\"\n\"\"\"",
+            env!("CARGO_PKG_VERSION")
+        ),
+        format!(
+            "version = \"{}\"\nversion = \"{}\"",
+            env!("CARGO_PKG_VERSION"),
+            env!("CARGO_PKG_VERSION")
+        ),
+    ] {
+        fs::write(
+            f.package.join("Cargo.toml"),
+            format!("[package]\nname = \"fixture\"\n{declaration}\n[workspace]\n"),
+        )
+        .unwrap();
+        assert!(pack(&f.package, &"a".repeat(40)).is_err());
+        assert_eq!(fs::read(f.package.join("package.json")).unwrap(), original);
+    }
+    fs::write(
+        f.package.join("Cargo.toml"),
+        format!(
+            "[package]\nname = \"fixture\"\nversion = \"{}\"\n[workspace]\n",
+            env!("CARGO_PKG_VERSION")
+        ),
+    )
+    .unwrap();
+    assert!(pack(&f.package, "abcdef").is_err());
+    assert_eq!(fs::read(f.package.join("package.json")).unwrap(), original);
+    let manifest = pack(&f.package, &"a".repeat(40)).unwrap();
+    assert_eq!(manifest["version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(manifest["revision"], "a".repeat(40));
+}
 impl Fixture {
     fn new() -> Self {
         let home = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
