@@ -1041,6 +1041,19 @@ fn provenance_contract_is_enforced_by_strict_cli_and_legacy_stays_compatible() {
         assert_eq!(output.status.code(), Some(1));
         assert!(String::from_utf8_lossy(&output.stdout).contains("strict-activity-provenance"));
     }
+    let header = good
+        .replace(
+            "Alex\n> `00:01 · Alex · Codex-chat`",
+            "Alex <span class=\"activity-meta\">00:01 · Codex-chat</span>",
+        )
+        .replace(
+            "Codex\n> `— · Codex · draft`",
+            "Codex <span class=\"activity-meta\">— · draft</span>",
+        );
+    fixture.write(note, &header);
+    assert!(fixture.strict(scope).status.success());
+    fixture.write(note, header.replace("00:01", "24:00"));
+    assert!(!fixture.strict(scope).status.success());
     fixture.write(
         note,
         good.replace("activity_contract: provenance-v1\n", "")
@@ -1145,6 +1158,10 @@ fn local_intake_is_valid_and_idempotent_in_every_work_program() {
         let first: Value = serde_json::from_slice(&result.stdout).unwrap();
         assert_eq!(first["task-code"], "EX-00-T01");
         assert_eq!(first["reused"], false);
+        let created = fs::read_to_string(fixture.0.join(first["path"].as_str().unwrap())).unwrap();
+        assert!(created.contains("<span class=\"activity-meta\">— · Work intake</span>"));
+        assert!(created.contains("activity_contract: \"provenance-v1\""));
+        assert!(!created.contains("> `— ·"));
         let path = first["path"].as_str().unwrap();
         let content = fs::read(fixture.0.join(path)).unwrap();
         let package = Path::new(path).parent().unwrap().to_str().unwrap();

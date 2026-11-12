@@ -117,6 +117,11 @@ pub(crate) fn formatting(vault: &Path, row: &Value) -> Result<bool> {
         // author/time is never grandfathered under the same broad error code.
         for (i, line) in lines.iter().enumerate() {
             if let Some((_, author)) = crate::activity_layout::message_heading(line)
+                && crate::activity_delivery::header_stamp(line, author) == Some(false)
+            {
+                return Ok(false);
+            }
+            if let Some((_, author)) = crate::activity_layout::message_heading(line)
                 && let Some(stamp) = lines
                     .get(i + 1)
                     .and_then(|l| l.strip_prefix("> `"))

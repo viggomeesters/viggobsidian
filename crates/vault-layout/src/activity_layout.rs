@@ -41,6 +41,14 @@ fn valid_stamp(line: &str) -> bool {
 pub(crate) fn message_heading(line: &str) -> Option<(&str, &str)> {
     line.strip_prefix("> [!activity-message|")?
         .split_once("] ")
+        .map(|(role, actor)| {
+            (
+                role,
+                actor
+                    .split_once(" <span class=\"activity-meta\">")
+                    .map_or(actor, |(name, _)| name),
+            )
+        })
         .filter(|(role, actor)| {
             role.as_bytes().first().is_some_and(u8::is_ascii_lowercase)
                 && role

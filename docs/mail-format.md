@@ -3,13 +3,29 @@
 ## Herkomst en groepering afdwingen
 
 Nieuwe Event Notes en expliciet omgezette notes gebruiken frontmatter
-`activity_contract: provenance-v1`. `vault-layout --strict` weigert daarin iedere
-menselijke of agentbubble zonder direct volgend stempel
-`HH:mm · werkelijke auteur · kanaal` (inlinecode). De naam moet exact overeenkomen
-met de bubbleauteur; uur en minuut moeten geldig zijn. Bij onbekende historische
+`activity_contract: provenance-v1`. Gebruik één auteurskop met tijd en kanaal:
+
+```markdown
+> [!activity-message|assistant] Assistant <span class="activity-meta">09:42 · draft</span>
+> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->
+> Het resultaat.
+```
+
+De auteur staat eenmaal in de kop; de canonical `activity-meta`-span bevat alleen
+`HH:mm · kanaal`. Gebruik gewone tekst in de velden, geen HTML of Markdown.
+De weergave toont metadata kleiner en gedempt, zonder codechip of extra stempel.
+Gebruik geen extra auteurhandtekening. `vault-layout --strict` weigert ongeldige
+of dubbele herkomst. Uur en minuut moeten geldig zijn. Bij onbekende historische
 tijd gebruik je `—`, nooit een geschatte minuut. De Activity-dagscheiding is de
 oorspronkelijke lokale dag, oplopend; de schrijver controleert de tijdzone en het
 bronbericht. Bestandstijden en antwoordtijden zijn geen bewijs van verzendtijd.
+
+Compatibiliteit: bestaande provenance-v1-bubbles met de direct volgende inlinecode
+`HH:mm · werkelijke auteur · kanaal` blijven geldig; die naam moet exact met de
+auteurskop overeenkomen. Eén bubble gebruikt precies één vorm. Een nieuwe kop
+maakt oude bronbytes niet automatisch ongeldig en activeert geen bulkconversie.
+Expliciete omzetting bewaart bewezen tijd, kanaal, auteur, input en historie;
+wijzig uitsluitend de herkomstpresentatie en behoud preimage/herstelbewijs.
 
 Elke agentbubble krijgt precies één directe marker:
 `<!-- viggobsidian:activity:v1 kind=result goal=follow-up -->`.

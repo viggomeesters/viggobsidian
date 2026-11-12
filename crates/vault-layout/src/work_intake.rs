@@ -164,7 +164,7 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
     let id = format!("task:{}", uuid()?);
     let mut data = json!({"type":"task","category":"project-task","task-id":id,"task-code":task_code,
         "name":format!("{task_code} · {title}"),"status":"🔴 to-do","created":day,"event_date":day,
-        "wiki_status":"pending","request_sha256":digest,
+        "wiki_status":"pending","request_sha256":digest,"activity_contract":"provenance-v1",
         "cssclasses":["vault-navigation","vault-dashboard","vault-event","vault-event-v1-1"]});
     if let Some(date) = input.get("work_date") {
         data["work_date"] = date.clone();
@@ -197,7 +197,7 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
         return Err("invalid local activity_actor".into());
     }
     let mut body = format!(
-        "# {task_code} · {title}\n\n> [!navigation|shortcuts]\n> - [[{}/raw|Back]]\n> - [Finder](file://{folder_url})\n\n> [!wiki-facts|dossier]\n> - Dossier **{breadcrumb}**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> Oorspronkelijke opdracht: {title}\n\n## Activity\n\n> [!activity-day|{day}] {day}\n\n> [!activity-message|human] {actor}\n> `— · {actor} · Work intake`\n",
+        "# {task_code} · {title}\n\n> [!navigation|shortcuts]\n> - [[{}/raw|Back]]\n> - [Finder](file://{folder_url})\n\n> [!wiki-facts|dossier]\n> - Dossier **{breadcrumb}**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> Oorspronkelijke opdracht: {title}\n\n## Activity\n\n> [!activity-day|{day}] {day}\n\n> [!activity-message|human] {actor} <span class=\"activity-meta\">— · Work intake</span>\n",
         raw.display()
     );
     for line in request.split('\n') {
