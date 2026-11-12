@@ -135,6 +135,7 @@ fn allowed(target: &str) -> bool {
     }
     if [
         "layout-contract.yaml",
+        "activity-deliveries.md",
         "navigation-contract.yaml",
         "vault-raw.base",
         "vault-dossier.base",

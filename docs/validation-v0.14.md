@@ -31,3 +31,12 @@ No generic italic-content hiding rule was retained. No bulk note migration is
 part of the package. Explicit source conversion must preserve the original bytes
 in local recovery evidence and change only adjacent canonical heading/stamp
 pairs, retaining unknown time, author, channel and every content byte.
+
+## v0.14.1 installed-test correction
+
+An installed-crate test exposed that the new test-only include initially pointed
+outside the distributed crate. The fictional fixture is now a finite allowed
+release asset beside the crate's existing fixtures, and the include is relative
+to that location. A package-surface regression binds the source, target and
+include. Root tests and installed-engine tests are checked separately; normal
+checker execution did not depend on the missing test-only file.

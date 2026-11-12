@@ -1,6 +1,29 @@
 use super::*;
 
 #[test]
+fn installed_activity_tests_bind_a_distributed_crate_local_fixture() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let target = ".agents/tools/vault-layout/fixtures/activity-deliveries.md";
+    assert!(allowed(target));
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    assert!(
+        rows(&distribution, "files")
+            .unwrap()
+            .iter()
+            .any(|r| r["source"] == "fixtures/activity-deliveries.md" && r["target"] == target)
+    );
+    assert_eq!(
+        fs::read(root.join("crates/vault-layout/fixtures/activity-deliveries.md")).unwrap(),
+        fs::read(root.join("fixtures/activity-deliveries.md")).unwrap()
+    );
+    assert!(
+        fs::read_to_string(root.join("crates/vault-layout/src/activity_delivery.rs"))
+            .unwrap()
+            .contains("include_str!(\"../fixtures/activity-deliveries.md\")")
+    );
+}
+
+#[test]
 fn reviewed_skill_library_has_an_exact_surface_and_no_local_adapters() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let spec = read_json(&root.join("schemas/skill-library.json")).unwrap();

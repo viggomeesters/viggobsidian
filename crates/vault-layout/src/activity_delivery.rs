@@ -423,7 +423,7 @@ mod tests {
     }
     #[test]
     fn complete_header_deliveries_keep_input_and_version_checks() {
-        let fixture = include_str!("../../../fixtures/activity-deliveries.md");
+        let fixture = include_str!("../fixtures/activity-deliveries.md");
         assert!(provenance_findings(fixture).is_empty());
         assert!(findings(fixture).is_empty());
         assert!(crate::mail_draft::findings(fixture).is_empty());
