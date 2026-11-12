@@ -796,6 +796,34 @@
   white-space: nowrap;
 }
 
+/* Explicit provenance headers: one author, with quiet time/channel metadata.
+   Historical stamp-only bubbles retain their existing appearance. */
+:is(.markdown-preview-view, .is-live-preview) [data-callout="activity-message"] > .callout-title:has(.activity-meta) > .callout-title-inner {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2em 0.75em;
+  min-width: 0;
+  font-size: 0.85em;
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
+  margin-block-end: 0.3em;
+}
+
+:is(.markdown-preview-view, .is-live-preview) [data-callout="activity-message"] > .callout-title .activity-meta {
+  color: var(--text-muted);
+  font-family: var(--font-text);
+  font-size: 0.9em;
+  font-weight: normal;
+  overflow-wrap: anywhere;
+}
+
 :is(.activity-chat-demo, .markdown-preview-view, .is-live-preview) .callout:is([data-callout="activity-demo"], [data-callout="activity-message"]) > .callout-title > .callout-icon {
   position: absolute;
   inset-block-start: 0;

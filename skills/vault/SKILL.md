@@ -22,8 +22,11 @@ en een weigering is geen toestemming om de configuratie of writer te omzeilen.
 
 Nieuwe en expliciet omgezette Event Notes gebruiken
 `activity_contract: provenance-v1` volgens het mailcontract. Elke menselijke én agentbubble krijgt
-direct na de auteurskop het bewezen lokale tijdstip, de echte auteur en het
-invoerkanaal als inlinecode. Onbekend tijdstip is `—`, geen schatting.
+de echte auteur eenmaal in de kop, met tijd en kanaal als rustige metadata:
+`> [!activity-message|agent] Codex <span class="activity-meta">09:42 · Codex-chat</span>`.
+Onbekend tijdstip is `—`, geen schatting. Geen extra inlinecode-stempel of
+auteurhandtekening. Bestaande provenance-v1-stempels blijven ondersteund;
+zet historische notes alleen expliciet en met bronbehoud om.
 Agentresultaten hebben een stabiele activity-doelmarker; groepeer proceshistorie
 bij hetzelfde resultaat. De strikte layoutchecker moet slagen vóór afronding.
 

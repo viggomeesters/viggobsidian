@@ -12,12 +12,15 @@ cssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]
 
 > [!activity-day|2026-11-11] 11 Nov 2026
 
-> [!activity-message|human] Alex
-> `— · Alex · Codex-chat`
+> [!activity-message|human] Alexandra van Voorbeeld <span class="activity-meta">09:42 · Workshop met een lange kanaalnaam</span>
+> Een lange auteursnaam en kanaalnaam blijven leesbaar op een smal scherm.
+>
+> *Deze keuze blijft onzeker.*
+
+> [!activity-message|human] Alex <span class="activity-meta">— · Codex-chat</span>
 > Bestaande input met onbekend tijdstip.
 
-> [!activity-message|assistant] Assistant
-> `12:00 · Assistant · draft`
+> [!activity-message|assistant] Assistant <span class="activity-meta">12:00 · draft</span>
 > <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->
 >
 > <!-- viggobsidian:mail-delivery:v1 id=follow-up version=1 -->
@@ -48,15 +51,12 @@ cssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]
 > ```
 > <!-- /viggobsidian:mail-draft -->
 >
-> *Assistant*
 
-> [!activity-message|human] Alex
-> `12:01 · Alex · Codex-chat`
+> [!activity-message|human] Alex <span class="activity-meta">12:01 · Codex-chat</span>
 > <!-- viggobsidian:input:v1 author=human -->
 > Maak hier versie 2 van.
 
-> [!activity-message|assistant] Assistant
-> `12:02 · Assistant · draft`
+> [!activity-message|assistant] Assistant <span class="activity-meta">12:02 · draft</span>
 > <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->
 >
 > <!-- viggobsidian:mail-delivery:v1 id=follow-up version=2 -->
@@ -87,15 +87,12 @@ cssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]
 > ```
 > <!-- /viggobsidian:mail-draft -->
 >
-> *Assistant*
 
-> [!activity-message|human] Alex
-> `12:03 · Alex · Codex-chat`
+> [!activity-message|human] Alex <span class="activity-meta">12:03 · Codex-chat</span>
 > <!-- viggobsidian:input:v1 author=human -->
 > Maak hier versie 3 van.
 
-> [!activity-message|assistant] Assistant
-> `12:04 · Assistant · draft`
+> [!activity-message|assistant] Assistant <span class="activity-meta">12:04 · draft</span>
 > <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->
 >
 > <!-- viggobsidian:mail-delivery:v1 id=follow-up version=3 -->
@@ -126,5 +123,4 @@ cssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]
 > ```
 > <!-- /viggobsidian:mail-draft -->
 >
-> *Assistant*
 

@@ -3,6 +3,35 @@ use std::collections::BTreeMap;
 const DELIVERY: &str = "<!-- viggobsidian:mail-delivery:v1 ";
 const INPUT: &str = "<!-- viggobsidian:input:v1 author=human -->";
 
+/// Canonical, renderer-native header. No arbitrary HTML or Markdown is allowed
+/// in provenance fields; the author remains the callout's accessible title.
+pub(crate) fn header_stamp(line: &str, author: &str) -> Option<bool> {
+    let (_, title) = line
+        .strip_prefix("> [!activity-message|")?
+        .split_once("] ")?;
+    if !title.contains("activity-meta") && !title.contains('<') {
+        return None;
+    }
+    Some(
+        title
+            .strip_prefix(author)
+            .and_then(|s| s.strip_prefix(" <span class=\"activity-meta\">"))
+            .and_then(|s| s.strip_suffix("</span>"))
+            .and_then(|s| s.split_once(" · "))
+            .is_some_and(|(time, channel)| {
+                !channel.contains(" · ")
+                    && !title.chars().any(|c| matches!(c, '\n' | '\r'))
+                    && !author
+                        .chars()
+                        .any(|c| matches!(c, '<' | '>' | '&' | '`' | '*' | '[' | ']'))
+                    && !channel
+                        .chars()
+                        .any(|c| matches!(c, '<' | '>' | '&' | '`' | '*' | '[' | ']'))
+                    && valid_stamp(&format!("{time} · {author} · {channel}"), author)
+            }),
+    )
+}
+
 pub(crate) fn valid_stamp(stamp: &str, author: &str) -> bool {
     let parts: Vec<_> = stamp.split(" · ").collect();
     let [time, name, channel] = parts.as_slice() else {
@@ -86,7 +115,14 @@ pub(crate) fn provenance_findings(body: &str) -> Vec<String> {
             .get(1)
             .and_then(|l| l.strip_prefix("> `"))
             .and_then(|s| s.strip_suffix('`'));
-        if !stamp.is_some_and(|stamp| valid_stamp(stamp, author)) {
+        let header = header_stamp(line, author);
+        if header == Some(false)
+            || (header.is_some() && stamp.is_some_and(|s| s.split(" · ").count() == 3))
+        {
+            result.push(format!(
+                "{author}: invalid or duplicate Activity header provenance"
+            ));
+        } else if header.is_none() && !stamp.is_some_and(|stamp| valid_stamp(stamp, author)) {
             result.push(format!("{author}: start the bubble with `HH:mm · {author} · channel`, or use — for unknown time"));
         }
         if role == "human" {
@@ -334,6 +370,65 @@ mod tests {
         format!(
             "## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex\n> `23:59 · Alex · Codex-chat`\n> {INPUT}\n> Graag aanpassen.\n\n> [!activity-day|2026-11-12] 12 Nov 2026\n\n> [!activity-message|codex] Codex\n> `00:01 · Codex · draft`\n> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->\n> Aangepast resultaat."
         )
+    }
+    #[test]
+    fn header_provenance_retains_legacy_and_rejects_ambiguous_or_unsafe_headers() {
+        let legacy = stamped();
+        let header = legacy
+            .replace(
+                "Alex\n> `23:59 · Alex · Codex-chat`",
+                "Alex <span class=\"activity-meta\">23:59 · Codex-chat</span>",
+            )
+            .replace(
+                "Codex\n> `00:01 · Codex · draft`",
+                "Codex <span class=\"activity-meta\">00:01 · draft</span>",
+            );
+        for good in [&legacy, &header, &header.replace("23:59", "—")] {
+            assert!(provenance_findings(good).is_empty(), "{good}");
+        }
+        for broken in [
+            header.replace("23:59", "24:00"),
+            header.replace("23:59", "01:+1"),
+            header.replace("23:59", "9:01"),
+            header.replace("Codex-chat</span>", "</span>"),
+            header.replace("Codex-chat</span>", " chat </span>"),
+            header.replace("Codex-chat</span>", "chat · Alex</span>"),
+            header.replace("Codex-chat</span>", "chat</span><script>x</script>"),
+            header.replace("Codex-chat</span>", "chat</span> extra"),
+            header.replace("Codex-chat</span>", "<b>chat</b></span>"),
+            header.replace(
+                "Codex-chat</span>",
+                "chat</span><span class=\"activity-meta\">00:01 · chat</span>",
+            ),
+            header.replace(
+                "Codex-chat</span>\n",
+                "Codex-chat</span>\n> `23:59 · Alex · chat`\n",
+            ),
+        ] {
+            assert!(!provenance_findings(&broken).is_empty(), "{broken}");
+        }
+        let long = header
+            .replace("Alex", "Alexandra van Voorbeeld")
+            .replace("Codex-chat", "Workshop met een lange kanaalnaam");
+        assert!(provenance_findings(&long).is_empty());
+        let inline_input = header.replace("> Graag aanpassen.", "> `git status`");
+        assert!(provenance_findings(&inline_input).is_empty());
+        assert!(
+            !provenance_findings(&header.replace(
+                "Codex-chat</span>\n",
+                "Codex-chat</span>\n> `25:00 · Someone · chat`\n"
+            ))
+            .is_empty()
+        );
+    }
+    #[test]
+    fn complete_header_deliveries_keep_input_and_version_checks() {
+        let fixture = include_str!("../../../fixtures/activity-deliveries.md");
+        assert!(provenance_findings(fixture).is_empty());
+        assert!(findings(fixture).is_empty());
+        assert!(crate::mail_draft::findings(fixture).is_empty());
+        assert!(!findings(&fixture.replace("version=3", "version=1")).is_empty());
+        assert!(!findings(&fixture.replace("|human] Alex", "|agent] Alex")).is_empty());
     }
     #[test]
     fn provenance_requires_real_author_clock_channel_and_local_day() {
