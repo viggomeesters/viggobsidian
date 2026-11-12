@@ -84,3 +84,29 @@ require a new plan; never add missing pins to an existing sealed plan.
 This interface supplies validation, not write authority. Local adapters retain
 their existing routing, locking, source registry, preimage and rollback duties.
 The caller must seal the baseline: it is evidence, not a trusted user exemption.
+
+## Typed maintenance proofs (v0.9)
+
+A canonical migration adapter may include `proof` on a present change. This is
+validation only; it grants no write authority. `--maintenance-transform` reads
+`{path,proof}` on stdin and returns the sole permitted postimage without writing.
+
+`owner-handoff` takes the exact `before` text and a `target` Markdown Wiki or
+matching foldernote. It inserts one fixed visible knowledge-owner notice while
+retaining the entire original metadata and body. Tasks and source events are
+excluded. The destination is independently checked as a strict owner. Missing
+targets, another handoff and cycles fail.
+
+`locator-rebind` takes `before` and an exact old/new file `mapping`. It changes
+only whole wikilink targets or complete inline-code file locators; metadata,
+free prose, quotes and fenced source examples remain immutable. Raw, imported
+and provider sources are excluded; a maintained source-index is permitted.
+
+For an owner containing these deterministic transformations, the baseline seals
+every other unchanged file's hash and preserves only identical old findings on
+unchanged files or exact proofnotes. Other changed files remain fully strict,
+including new navigation companions. This does not refresh adoption
+snapshots, suppress full audits or permit clinical rewriting through a handoff.
+Adapters still own authorization, original-byte archives, registry CAS, locks,
+rollback and source-preserving moves. They must include all files in the exact
+write set and must reject source/configuration drift before installation.

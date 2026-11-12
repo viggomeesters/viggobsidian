@@ -84,9 +84,45 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         return Err("write-set needs 1..10000 exact changed files".into());
     }
     let mut paths = BTreeMap::new();
+    let mut proofs = BTreeMap::new();
     for change in changes {
-        keys(change, &["path", "expect"])?;
+        keys(change, &["path", "expect", "proof"])?;
         let path = checked_path(vault, change["path"].as_str().ok_or("missing change path")?)?;
+        if let Some(proof) = change.get("proof") {
+            let after = crate::maintenance::transform(path.to_str().ok_or("invalid path")?, proof)?;
+            let expected = if phase == "baseline" {
+                proof["before"].as_str().ok_or("missing before")?
+            } else {
+                &after
+            };
+            if fs::read_to_string(vault.join(&path))? != expected {
+                return Err("compatibility proof does not match the installed bytes".into());
+            }
+            if change["expect"] != "present" {
+                return Err("compatibility changes cannot delete notes".into());
+            }
+            let targets: Vec<_> = if proof["kind"] == "owner-handoff" {
+                vec![proof["target"].as_str().ok_or("missing target")?]
+            } else {
+                proof["mapping"]
+                    .as_object()
+                    .ok_or("missing mapping")?
+                    .values()
+                    .map(|v| v.as_str().ok_or("invalid target"))
+                    .collect::<std::result::Result<Vec<_>, _>>()?
+            };
+            for target in targets {
+                let destination = checked_path(vault, target)?;
+                if phase == "validate"
+                    && (!vault.join(&destination).is_file()
+                        || fs::read_to_string(vault.join(&destination))
+                            .is_ok_and(|s| s.contains("<!-- viggobsidian:knowledge-owner -->")))
+                {
+                    return Err("missing target or knowledge handoff cycle".into());
+                }
+            }
+            proofs.insert(path.clone(), proof.clone());
+        }
         let expect = change["expect"]
             .as_str()
             .ok_or("missing expected file state")?;
@@ -96,7 +132,10 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
     }
     let changes: Vec<_> = paths
         .iter()
-        .map(|(p, e)| json!({"path":p,"expect":e}))
+        .map(|(p, e)| match proofs.get(p) {
+            Some(proof) => json!({"path":p,"expect":e,"proof":proof}),
+            None => json!({"path":p,"expect":e}),
+        })
         .collect();
     let baseline = &request["baseline"];
     let adoption = crate::adoption::load(vault)?;
@@ -118,6 +157,7 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
                 "findings",
                 "adoption",
                 "legacy_findings",
+                "preservation",
             ],
         )?;
         if baseline["schema"] != REPORT
@@ -191,6 +231,16 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
                 .or_insert(previous);
         }
     }
+    for proof in proofs.values().filter(|p| p["kind"] == "owner-handoff") {
+        let target = Path::new(proof["target"].as_str().ok_or("handoff target absent")?);
+        let parent = target.parent().ok_or("handoff parent absent")?;
+        let dossier = if parent.ends_with("wiki") {
+            parent.parent().ok_or("handoff dossier absent")?
+        } else {
+            parent
+        };
+        owned.insert(dossier.to_path_buf(), true);
+    }
     let full: Vec<_> = owned
         .iter()
         .filter(|(_, full)| **full)
@@ -198,6 +248,32 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         .collect();
     owned.retain(|p, _| !full.iter().any(|root| p != root && p.starts_with(root)));
     boundary.retain(|p| !owned.contains_key(p) && !full.iter().any(|root| p.starts_with(root)));
+    // Only a fixed byte-preserving operation can retain old owner findings.
+    // Every other member is fingerprinted, so concurrent sibling drift cannot
+    // hide behind the existing errors. Ordinary write sets remain strict.
+    let mut preservation = BTreeMap::new();
+    for dir in owned.keys() {
+        let members: Vec<_> = paths.keys().filter(|p| p.starts_with(dir)).collect();
+        if members.iter().any(|p| proofs.contains_key(*p)) {
+            let skip = members
+                .iter()
+                .map(|p| p.strip_prefix(dir).unwrap().to_string_lossy().into_owned())
+                .collect::<Vec<_>>();
+            preservation.insert(
+                dir.clone(),
+                crate::maintenance::inventory(&vault.join(dir), &skip)?,
+            );
+        }
+    }
+    if phase == "validate"
+        && baseline
+            .get("preservation")
+            .cloned()
+            .unwrap_or_else(|| json!({}))
+            != json!(preservation)
+    {
+        return Err("preserved owner inventory drift".into());
+    }
     if !schema["validation_profiles"]["minimal"]["required"].is_array()
         || !schema["contracts"]["raw_package"]["required_fields"].is_array()
         || !schema["contracts"]["raw_package"]["wiki_status_values"].is_object()
@@ -286,7 +362,13 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         let exempt = crate::adoption::formatting(vault, row)?
             && (phase == "baseline" || old_owned.contains(&row.to_string()))
             && crate::adoption::retained(vault, &adoption, path)?;
-        if exempt {
+        let preserved = (!paths.contains_key(Path::new(path))
+            || proofs.contains_key(Path::new(path)))
+            && preservation
+                .keys()
+                .any(|scope| Path::new(path).starts_with(scope))
+            && old_owned.contains(&row.to_string());
+        if exempt || preserved {
             legacy_findings.push(row.clone());
         } else {
             errors.push(row.clone());
@@ -315,7 +397,7 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         0
     };
     Ok((
-        json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"legacy_findings":legacy_findings,"adoption":adoption,"findings":errors}),
+        json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"legacy_findings":legacy_findings,"adoption":adoption,"findings":errors,"preservation":preservation}),
         code,
     ))
 }
