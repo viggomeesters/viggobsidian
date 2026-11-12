@@ -1,12 +1,12 @@
 {
   "files": [
     {
-      "sha256": "f4679f1d2e3ff954f7504910e29e63e98b45e1b6e92e226fe83669cc32aa0062",
+      "sha256": "73aff68fcaec23db4596e736bb3cbaf07e9e51279ff1a652fe8162c7c6f44048",
       "source": "crates/vault-layout/src/activity_delivery.rs",
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "af627680cd33fed7497659dd6ee1ea697f62847b63c21829c51df84601f7976c",
+      "sha256": "de2a1c0477337f5d371d80bce34ffde162783a5eb6fcb6a0fb20aa0188ff10b7",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -56,12 +56,12 @@
       "target": ".agents/tools/vault-layout/src/navigation_contract.rs"
     },
     {
-      "sha256": "dca8d07a2a19d5cf2064a598490be505f8ea6bb1cbdb4507d7c44caf4a099672",
+      "sha256": "47b31128517ee29812c229c1f70ebf5e746e0c4cfa8a825960106257391ea77e",
       "source": "docs/mail-format.md",
       "target": ".viggobsidian/core/mail-format.md"
     },
     {
-      "sha256": "1c4bf3fc014517c42796cfcfdba25d21d750c2cfe249271b6105076a593d7435",
+      "sha256": "f071070c035d2dccb7f0685d42934210bb195e928cb6342d5250c147f5f1209c",
       "source": "templates/mail-draft.md",
       "target": ".viggobsidian/core/mail-draft.md"
     },
@@ -131,7 +131,7 @@
       "target": "99-system/vault/vault-navigation/standaard/wiki/vault-templates.base"
     },
     {
-      "sha256": "0fdfa589d45c9a45c99f22abf9301fd183a9895fc5be6407ff111b8e0a54e844",
+      "sha256": "0bffb67154e5f0886987c411d72a720ec5c039ef479a1869eaa0b9dc1d26ff31",
       "source": "skills/vault/SKILL.md",
       "target": ".agents/skills/vault/SKILL.md"
     },
@@ -262,7 +262,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "5c417d6e9404d995baba2f8fe43a4a9172ac34aeadd40ee2e040cd4598ea4aa3",
+      "sha256": "dab252db0c2ca7ec945a18814c53a6febcdf6bbde781e0cac7e508f335e72aff",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -287,7 +287,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "cd0c2b3f882e77d048a374e3dda3634ccd253a5219ea32017c3c9bf900dc66f8",
+      "sha256": "1e3c956a09aeb5f73cd055d2097ecba2124d758611fdf44af83e340b9cbb00da",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -297,7 +297,7 @@
       "target": ".viggobsidian/core/lucide-license.txt"
     }
   ],
-  "revision": "55c14646fb2b8b132bc20ac8da5264b72d73e57e",
+  "revision": "698013dc65ff3cdb13d32d7b52a0531fb5f9e762",
   "schema": "viggobsidian.package.v1",
-  "version": "0.5.0"
+  "version": "0.6.0"
 }
