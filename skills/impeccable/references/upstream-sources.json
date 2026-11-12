@@ -1,0 +1,104 @@
+{
+  "reviewed_at": "2026-10-24T19:52:49+02:00",
+  "selection": "Curated principles in managed procedures; no upstream runtime or profile installation.",
+  "upstream_impeccable_skill": "4.7.1",
+  "npm_detector": "4.7.0",
+  "detector_engine": "0.1.16",
+  "catalogs": [
+    "https://skills.sh/anthropics/skills/frontend-design",
+    "https://skills.sh/pbakaus/impeccable"
+  ],
+  "sources": [
+    {
+      "name": "impeccable",
+      "repository": "pbakaus/impeccable",
+      "commit": "936867543ac2576920d663cc9803597f6044f3ac",
+      "path": ".agents/skills/impeccable/SKILL.md",
+      "url": "https://raw.githubusercontent.com/pbakaus/impeccable/936867543ac2576920d663cc9803597f6044f3ac/.agents/skills/impeccable/SKILL.md",
+      "sha256": "c26d6963fe2278f570930ea083ec89609ba094ee93b1ae825719ff5d29b9ac3c",
+      "bytes": 11762
+    },
+    {
+      "name": "anthropic-frontend",
+      "repository": "anthropics/skills",
+      "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "path": "skills/frontend-design/SKILL.md",
+      "url": "https://raw.githubusercontent.com/anthropics/skills/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/frontend-design/SKILL.md",
+      "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+      "bytes": 9390
+    },
+    {
+      "name": "vercel-guidelines",
+      "repository": "vercel-labs/web-interface-guidelines",
+      "commit": "434b7f91364665f2f733b310ec54809bf8f37937",
+      "path": "command.md",
+      "url": "https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/434b7f91364665f2f733b310ec54809bf8f37937/command.md",
+      "sha256": "d246b026f4f29b5823a9cc857f9edf3d2507002e055e32040cadeaf3b38e0234",
+      "bytes": 8055
+    },
+    {
+      "name": "impeccable-craft-floor",
+      "repository": "pbakaus/impeccable",
+      "commit": "936867543ac2576920d663cc9803597f6044f3ac",
+      "path": ".agents/skills/impeccable/reference/craft-floor.md",
+      "url": "https://raw.githubusercontent.com/pbakaus/impeccable/936867543ac2576920d663cc9803597f6044f3ac/.agents/skills/impeccable/reference/craft-floor.md",
+      "sha256": "808a50e0e6c74617a07b0eaf7fd80f58d8e48a13f48e47c658c7534b1724e5c2",
+      "bytes": 5532
+    },
+    {
+      "name": "impeccable-critique",
+      "repository": "pbakaus/impeccable",
+      "commit": "936867543ac2576920d663cc9803597f6044f3ac",
+      "path": ".agents/skills/impeccable/reference/critique.md",
+      "url": "https://raw.githubusercontent.com/pbakaus/impeccable/936867543ac2576920d663cc9803597f6044f3ac/.agents/skills/impeccable/reference/critique.md",
+      "sha256": "c210c9506877c6c8d88880a337fddd95d4315daf70ed6bc631ee6520481f1a0c",
+      "bytes": 48958
+    },
+    {
+      "name": "impeccable-audit",
+      "repository": "pbakaus/impeccable",
+      "commit": "936867543ac2576920d663cc9803597f6044f3ac",
+      "path": ".agents/skills/impeccable/reference/audit.md",
+      "url": "https://raw.githubusercontent.com/pbakaus/impeccable/936867543ac2576920d663cc9803597f6044f3ac/.agents/skills/impeccable/reference/audit.md",
+      "sha256": "5ba9e3a090fc4c4d212c8cbfa5a48f7454ceb10fa81a284b4a7b4e8351ece2f1",
+      "bytes": 9584
+    },
+    {
+      "name": "impeccable-polish",
+      "repository": "pbakaus/impeccable",
+      "commit": "936867543ac2576920d663cc9803597f6044f3ac",
+      "path": ".agents/skills/impeccable/reference/polish.md",
+      "url": "https://raw.githubusercontent.com/pbakaus/impeccable/936867543ac2576920d663cc9803597f6044f3ac/.agents/skills/impeccable/reference/polish.md",
+      "sha256": "81666fc7f783b4e3514db6554e713dc0479bd9cdedb06e93d15f8b579aae869a",
+      "bytes": 6646
+    },
+    {
+      "name": "impeccable-operate",
+      "repository": "pbakaus/impeccable",
+      "commit": "936867543ac2576920d663cc9803597f6044f3ac",
+      "path": ".agents/skills/impeccable/reference/operate.md",
+      "url": "https://raw.githubusercontent.com/pbakaus/impeccable/936867543ac2576920d663cc9803597f6044f3ac/.agents/skills/impeccable/reference/operate.md",
+      "sha256": "a9d2203acd45ca33a13d5c68b02b23ed512425ac15f0e8438318ed124b43729d",
+      "bytes": 4145
+    },
+    {
+      "name": "impeccable-typeset",
+      "repository": "pbakaus/impeccable",
+      "commit": "936867543ac2576920d663cc9803597f6044f3ac",
+      "path": ".agents/skills/impeccable/reference/typeset.md",
+      "url": "https://raw.githubusercontent.com/pbakaus/impeccable/936867543ac2576920d663cc9803597f6044f3ac/.agents/skills/impeccable/reference/typeset.md",
+      "sha256": "c26c5b4524f3ccb650ed0680c10c25fd18083f8ebfd00a54c4d983c4747aab70",
+      "bytes": 6263
+    },
+    {
+      "name": "impeccable-layout",
+      "repository": "pbakaus/impeccable",
+      "commit": "936867543ac2576920d663cc9803597f6044f3ac",
+      "path": ".agents/skills/impeccable/reference/layout.md",
+      "url": "https://raw.githubusercontent.com/pbakaus/impeccable/936867543ac2576920d663cc9803597f6044f3ac/.agents/skills/impeccable/reference/layout.md",
+      "sha256": "0bc7d7971b3edf2acd0580e847458dc6d84129d90715b452799ace3bed815c7c",
+      "bytes": 5161
+    }
+  ],
+  "upstream_main_engine": "0.1.17"
+}

@@ -7,6 +7,7 @@ Eén profiel: `20-projects` voor losse projecten, `21-programma` tot en met `29-
 - [Beleid en Vault Navigation](docs/policy.md)
 - [Profiel](profiles/numbered-v1.yaml), [vaultschema](schemas/vault-schema.yaml) en [integratieschema](schemas/vault.schema.json)
 - [Vaultskills en lokale adapters](docs/skills.md)
+- [Algemene skillbibliotheek en werk-/privéadapters](docs/skill-library.md)
 - [Installeren, updates en rollback](docs/updates.md)
 - [Afbakening en migratie uit bestaande systemen](docs/system-boundary.md)
 
