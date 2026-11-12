@@ -41,7 +41,7 @@
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "ee996fff57a27f1cbe78352718e9dff4e0b7d8119a46e943e5c402030c779c3a",
+      "sha256": "f6ac1c5d1c85bba0224be96af8747b7ce6bbef3db19466bf126ae3cc794e2074",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -262,6 +262,11 @@
       "target": ".agents/tools/vault-layout/src/source_inventory.rs"
     },
     {
+      "sha256": "e5c25e4da63c8af7adb28a0c0eba83a5b2958b184c00a010110fe15badac4cdc",
+      "source": "crates/vault-layout/src/export_artifacts.rs",
+      "target": ".agents/tools/vault-layout/src/export_artifacts.rs"
+    },
+    {
       "sha256": "316ac00238fef194e8dc4446fb3d8fe755316f11191ada12fdb0cd990917caf7",
       "source": "crates/vault-layout/src/raw_task.rs",
       "target": ".agents/tools/vault-layout/src/raw_task.rs"
@@ -297,7 +302,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "bd54ea6d51215b2291f2cac2767e5b22279b5a44ef0973fe20b841b26b594536",
+      "sha256": "9ef7211d1c3ce3b8b562307f60b9501d7f114c3cb56dd19d7d0100abecd951c5",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -322,7 +327,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "2ab4d890bcdd63d80ace21df77608f21d39dd9f1e6e40168c214703f3db8172d",
+      "sha256": "a3ae40697ff60e1d651583a795150bf62d389347476420cf27eecc23c0fbbe22",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -1832,7 +1837,7 @@
       "target": ".viggobsidian/core/skill-library.md"
     }
   ],
-  "revision": "91a4a4465ed4e05beeb87a259bffef39d65e64d0",
+  "revision": "654b6fc900a3d14fe63f72caa23ec63e27875018",
   "schema": "viggobsidian.package.v1",
-  "version": "0.14.2"
+  "version": "0.15.0"
 }
