@@ -68,40 +68,39 @@ pub(crate) fn rebind(before: &str, mapping: &Value) -> Result<String> {
         }
         let mut rest = line;
         while !rest.is_empty() {
-            if let Some(tail) = rest.strip_prefix("[[") {
-                if let Some((inside, after)) = tail.split_once("]]") {
-                    let (target, suffix) = inside
-                        .find(['#', '|'])
-                        .map_or((inside, ""), |i| inside.split_at(i));
-                    let found = mapping.iter().find(|(old, _)| {
-                        old.trim_end_matches(".md") == target || old.as_str() == target
-                    });
-                    if let Some((old, new)) = found {
-                        output.push_str("[[");
-                        output.push_str(new.as_str().unwrap().trim_end_matches(".md"));
-                        output.push_str(suffix);
-                        output.push_str("]]");
-                        changed.insert(old.clone());
-                    } else {
-                        output.push_str("[[");
-                        output.push_str(inside);
-                        output.push_str("]]");
-                    }
-                    rest = after;
-                    continue;
+            if let Some(tail) = rest.strip_prefix("[[")
+                && let Some((inside, after)) = tail.split_once("]]")
+            {
+                let (target, suffix) = inside
+                    .find(['#', '|'])
+                    .map_or((inside, ""), |i| inside.split_at(i));
+                let found = mapping.iter().find(|(old, _)| {
+                    old.trim_end_matches(".md") == target || old.as_str() == target
+                });
+                if let Some((old, new)) = found {
+                    output.push_str("[[");
+                    output.push_str(new.as_str().unwrap().trim_end_matches(".md"));
+                    output.push_str(suffix);
+                    output.push_str("]]");
+                    changed.insert(old.clone());
+                } else {
+                    output.push_str("[[");
+                    output.push_str(inside);
+                    output.push_str("]]");
                 }
+                rest = after;
+                continue;
             }
-            if let Some(tail) = rest.strip_prefix('`') {
-                if let Some((inside, after)) = tail.split_once('`') {
-                    if let Some(new) = mapping.get(inside) {
-                        output.push('`');
-                        output.push_str(new.as_str().unwrap());
-                        output.push('`');
-                        changed.insert(inside.to_owned());
-                        rest = after;
-                        continue;
-                    }
-                }
+            if let Some(tail) = rest.strip_prefix('`')
+                && let Some((inside, after)) = tail.split_once('`')
+                && let Some(new) = mapping.get(inside)
+            {
+                output.push('`');
+                output.push_str(new.as_str().unwrap());
+                output.push('`');
+                changed.insert(inside.to_owned());
+                rest = after;
+                continue;
             }
             let c = rest.chars().next().unwrap();
             output.push(c);
@@ -156,7 +155,15 @@ pub(crate) fn transform(raw: &str, proof: &Value) -> Result<String> {
             }
             let target = proof["target"].as_str().ok_or("handoff target missing")?;
             let dest = path(target)?;
-            if !dest.components().any(|p| p.as_os_str() == "wiki")
+            let wiki = dest.parent().is_some_and(|p| p.ends_with("wiki"));
+            let folder = dest.parent().and_then(Path::file_name) == dest.file_stem();
+            if !(wiki || folder)
+                || dest.components().any(|p| {
+                    matches!(
+                        p.as_os_str().to_str(),
+                        Some("raw" | "sources" | "events" | "generated" | "imported")
+                    )
+                })
                 || dest.extension().is_none_or(|e| e != "md")
                 || dest == p
                 || before.contains(START)
@@ -166,7 +173,7 @@ pub(crate) fn transform(raw: &str, proof: &Value) -> Result<String> {
             }
             let (fm, body) = before.split_once("\n---\n").ok_or("frontmatter missing")?;
             Ok(format!(
-                "{fm}\n---\n\n{START}\n> [!info] Actuele kennis\n> [[{}|Open de onderhouden Wiki]]\n{END}\n{body}",
+                "{fm}\n---\n\n{START}\n> [!info] Actuele kennis\n> [[{}|Open actuele kennis]]\n{END}\n{body}",
                 target.trim_end_matches(".md")
             ))
         }
@@ -190,16 +197,16 @@ pub(crate) fn transform(raw: &str, proof: &Value) -> Result<String> {
 }
 /// Preserve the original bytes for audits while allowing a fixed, visible notice.
 pub(crate) fn without_notice(body: &str) -> &str {
-    if let Some(rest) = body.trim_start_matches('\n').strip_prefix(START) {
-        if let Some((notice, tail)) = rest.split_once(END) {
-            let lines: Vec<_> = notice.lines().filter(|l| !l.is_empty()).collect();
-            if lines.len() == 2
-                && lines[0] == "> [!info] Actuele kennis"
-                && lines[1].starts_with("> [[")
-                && lines[1].ends_with("|Open de onderhouden Wiki]]")
-            {
-                return tail.strip_prefix('\n').unwrap_or(tail);
-            }
+    if let Some(rest) = body.trim_start_matches('\n').strip_prefix(START)
+        && let Some((notice, tail)) = rest.split_once(END)
+    {
+        let lines: Vec<_> = notice.lines().filter(|l| !l.is_empty()).collect();
+        if lines.len() == 2
+            && lines[0] == "> [!info] Actuele kennis"
+            && lines[1].starts_with("> [[")
+            && lines[1].ends_with("|Open actuele kennis]]")
+        {
+            return tail.strip_prefix('\n').unwrap_or(tail);
         }
     }
     body
@@ -257,7 +264,7 @@ mod tests {
         assert!(
             transform("30-topics/fiction/old.md", &p)
                 .unwrap()
-            .contains("[[30-topics/b/b]]")
+                .contains("[[30-topics/b/b]]")
         );
     }
 }

@@ -233,10 +233,12 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
     }
     for proof in proofs.values().filter(|p| p["kind"] == "owner-handoff") {
         let target = Path::new(proof["target"].as_str().ok_or("handoff target absent")?);
-        let dossier = target
-            .parent()
-            .and_then(Path::parent)
-            .ok_or("handoff dossier absent")?;
+        let parent = target.parent().ok_or("handoff parent absent")?;
+        let dossier = if parent.ends_with("wiki") {
+            parent.parent().ok_or("handoff dossier absent")?
+        } else {
+            parent
+        };
         owned.insert(dossier.to_path_buf(), true);
     }
     let full: Vec<_> = owned
@@ -252,7 +254,7 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
     let mut preservation = BTreeMap::new();
     for dir in owned.keys() {
         let members: Vec<_> = paths.keys().filter(|p| p.starts_with(dir)).collect();
-        if !members.is_empty() && members.iter().all(|p| proofs.contains_key(*p)) {
+        if members.iter().any(|p| proofs.contains_key(*p)) {
             let skip = members
                 .iter()
                 .map(|p| p.strip_prefix(dir).unwrap().to_string_lossy().into_owned())
@@ -360,9 +362,11 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         let exempt = crate::adoption::formatting(vault, row)?
             && (phase == "baseline" || old_owned.contains(&row.to_string()))
             && crate::adoption::retained(vault, &adoption, path)?;
-        let preserved = preservation
-            .keys()
-            .any(|scope| Path::new(path).starts_with(scope))
+        let preserved = (!paths.contains_key(Path::new(path))
+            || proofs.contains_key(Path::new(path)))
+            && preservation
+                .keys()
+                .any(|scope| Path::new(path).starts_with(scope))
             && old_owned.contains(&row.to_string());
         if exempt || preserved {
             legacy_findings.push(row.clone());

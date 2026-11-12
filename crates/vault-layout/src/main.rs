@@ -554,6 +554,22 @@ impl Scan<'_> {
             return Ok(());
         }
         for target in targets() {
+            let target_file = self
+                .vault
+                .join(format!("{}.md", target.split('#').next().unwrap_or(target)));
+            if let Some((meta, _)) = read_metadata(&target_file)?
+                && let Some(date) = meta["navigation_date"].as_str()
+                && tiles(body, false).flatten().any(|t| t == target)
+                && !body
+                    .lines()
+                    .any(|line| line.starts_with(&format!("> - [[{target}|{date} · ")))
+            {
+                self.issue(
+                    path,
+                    "navigation-date",
+                    "show the child's declared navigation_date at the start of its tile label",
+                );
+            }
             self.tiles += 1;
             if !self
                 .tile_styles

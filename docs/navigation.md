@@ -17,6 +17,14 @@ Dit is de gedeelde navigatiestandaard van ViggObsidian. Wijzig de bron via
 Issue → PR → review → release. `.viggobsidian/installed.json` bezit de lokale
 versiepin. Providers, exacte uitzonderingen en uitrolstand blijven bij
 `.viggobsidian/local-adapter.md` en `.viggobsidian/navigation-local.md`.
+
+Vanaf v0.9 staan siblingtegels samen in één navigatiecallout, zodat ze één raster
+vormen. Kies herkenbare inhoudelijke iconen; verwante onderwerpen mogen hetzelfde
+icoon gebruiken. Alleen HOME of expliciete distinctnessclasses eisen verschillen.
+Een `navigation_date` op een child staat vooraan zijn tegellabel. Onderbouw de
+betekenis bij Raw en verzin geen ontbrekende maand. Technische broninventarissen
+met hashes, byteaantallen en leesdekking horen in een Raw-bronevent; de Wiki bevat
+leesbare inhoud en verwijst daar gericht naar.
 Oudere ingangen behouden kopankers en verwijzen naar deze standaard.
 
 ## Hiërarchie

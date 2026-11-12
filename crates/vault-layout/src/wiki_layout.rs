@@ -141,10 +141,26 @@ fn technical_inventory(body: &str) -> bool {
             .split('|')
             .map(|s| s.trim().to_lowercase())
             .collect::<Vec<_>>();
-        cells.iter().any(|s| s.contains("sha-256") || s == "sha256")
+        (cells.iter().any(|s| s.contains("sha-256") || s == "sha256")
             && cells
                 .iter()
-                .any(|s| s == "bytes" || s.contains("bronpad") || s.contains("gelezen"))
+                .any(|s| s == "bytes" || s.contains("bronpad") || s.contains("gelezen")))
+            || cells
+                .iter()
+                .filter(|s| {
+                    [
+                        "bronpad",
+                        "gelezen / beoordeeld",
+                        "leesdekking",
+                        "uitsluitreden / grens",
+                        "verwerkt in",
+                        "sha-256",
+                        "bytes",
+                    ]
+                    .contains(&s.as_str())
+                })
+                .count()
+                >= 2
     })
 }
 
