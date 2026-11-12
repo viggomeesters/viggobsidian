@@ -1018,13 +1018,15 @@ mod collector_tests {
     struct Fixture(PathBuf);
     impl Fixture {
         fn new() -> Self {
+            static SEQUENCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
             let path = std::env::temp_dir().join(format!(
-                "obsidian-preflight-{}-{}",
+                "obsidian-preflight-{}-{}-{}",
                 std::process::id(),
                 SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .unwrap()
-                    .as_nanos()
+                    .as_nanos(),
+                SEQUENCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
             ));
             fs::create_dir(&path).unwrap();
             fs::create_dir(path.join("repo")).unwrap();

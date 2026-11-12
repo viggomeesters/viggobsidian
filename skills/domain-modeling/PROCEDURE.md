@@ -118,7 +118,7 @@ explicit user request and sufficient decision evidence.
   human remains the owner of HITL judgment.
 - `tdd`, code, and specs consume canonical terms; they do not redefine them
   silently.
-- Canonical `Go` remains the public repository-work command.
+- Canonical `github-work` remains the public repository-work command.
 
 ## Final Evidence
 

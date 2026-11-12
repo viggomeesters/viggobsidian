@@ -12,6 +12,18 @@ mod css;
 mod plugin_check;
 mod procedure_surface;
 mod skill_library;
+// Historical targets remain readable/restorable; new packages cannot write them.
+const RETIRED_GO: &[&str] = &[
+    ".agents/skills/go/SKILL.md",
+    ".agents/skills/go/PROCEDURE.md",
+    ".agents/skills/go-autopilot/PROCEDURE.md",
+    ".agents/skills/go-goal/PROCEDURE.md",
+    ".agents/skills/go-loop/PROCEDURE.md",
+    ".agents/skills/go-now/PROCEDURE.md",
+    ".agents/skills/go-plan/PROCEDURE.md",
+    ".agents/skills/go-task/PROCEDURE.md",
+    ".agents/skills/go-vision/PROCEDURE.md",
+];
 const STATE: &str = ".viggobsidian/installed.json";
 const SKILLS: &[&str] = &[
     "vault",
@@ -93,6 +105,9 @@ fn root(path: &Path) -> Result<PathBuf> {
 fn allowed(target: &str) -> bool {
     if relative(target).is_err() {
         return false;
+    }
+    if RETIRED_GO.contains(&target) {
+        return true;
     }
     if procedure_surface::targets().contains(target) {
         return true;
@@ -285,7 +300,7 @@ fn package(package: &Path) -> Result<(Value, String)> {
         {
             return fail("unknown or misplaced package transform");
         }
-        if !allowed(target) || !targets.insert(target) {
+        if !allowed(target) || RETIRED_GO.contains(&target) || !targets.insert(target) {
             return fail(format!("forbidden or duplicate target: {target}"));
         }
         let source = checked(package, field(item, "source")?)?;
@@ -418,13 +433,21 @@ fn plan(vault: &Path, package_root: &Path, adoption: &Value) -> Result<Value> {
         }
         next.insert(target.to_string(), desired.clone());
     }
-    // A release cannot silently retire managed files. A later explicit migration can do so.
+    // Only this finite reviewed rename may retire managed files. Whole old-state
+    // drift was checked above; unmanaged files never enter this removal loop.
     if let Some(old) = installed["files"].as_object() {
         for target in old.keys() {
             if !next.contains_key(target) {
-                return fail(format!(
-                    "release retires a managed file; explicit migration required: {target}"
-                ));
+                if RETIRED_GO.contains(&target.as_str())
+                    && next.contains_key(".agents/skills/github-work/SKILL.md")
+                    && next.contains_key(".agents/skills/github-work/PROCEDURE.md")
+                {
+                    changes.push(json!({"target":target,"before":old[target],"after":null}));
+                } else {
+                    return fail(format!(
+                        "release retires a managed file; explicit migration required: {target}"
+                    ));
+                }
             }
         }
     }
@@ -478,6 +501,11 @@ fn apply(vault: &Path, proposal: &Value) -> Result<Value> {
         let target = field(change, "target")?;
         if digest_at(vault, target)? != change["before"] {
             return fail(format!("concurrent edit; transaction retained: {target}"));
+        }
+        if change["after"].is_null() {
+            // Recomputed plan above authenticates the finite retirement and receipt.
+            fs::remove_file(checked(vault, target)?)?;
+            continue;
         }
         let item = rows(&manifest, "files")?
             .iter()

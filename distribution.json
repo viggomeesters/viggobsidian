@@ -814,40 +814,12 @@
       "target": ".agents/skills/git/references/resolving-merge-conflicts.md"
     },
     {
-      "source": "skills/go-autopilot/PROCEDURE.md",
-      "target": ".agents/skills/go-autopilot/PROCEDURE.md"
+      "source": "skills/github-work/PROCEDURE.md",
+      "target": ".agents/skills/github-work/PROCEDURE.md"
     },
     {
-      "source": "skills/go-goal/PROCEDURE.md",
-      "target": ".agents/skills/go-goal/PROCEDURE.md"
-    },
-    {
-      "source": "skills/go-loop/PROCEDURE.md",
-      "target": ".agents/skills/go-loop/PROCEDURE.md"
-    },
-    {
-      "source": "skills/go-now/PROCEDURE.md",
-      "target": ".agents/skills/go-now/PROCEDURE.md"
-    },
-    {
-      "source": "skills/go-plan/PROCEDURE.md",
-      "target": ".agents/skills/go-plan/PROCEDURE.md"
-    },
-    {
-      "source": "skills/go-task/PROCEDURE.md",
-      "target": ".agents/skills/go-task/PROCEDURE.md"
-    },
-    {
-      "source": "skills/go-vision/PROCEDURE.md",
-      "target": ".agents/skills/go-vision/PROCEDURE.md"
-    },
-    {
-      "source": "skills/go/PROCEDURE.md",
-      "target": ".agents/skills/go/PROCEDURE.md"
-    },
-    {
-      "source": "skills/go/SKILL.md",
-      "target": ".agents/skills/go/SKILL.md"
+      "source": "skills/github-work/SKILL.md",
+      "target": ".agents/skills/github-work/SKILL.md"
     },
     {
       "source": "skills/grill-me/PROCEDURE.md",

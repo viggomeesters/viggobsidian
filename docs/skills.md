@@ -29,7 +29,7 @@ Per wijziging: lees de ingang, gedeeld beleid, doelroot en lokale adapter; zoek 
 Een ontbrekende adapter is geen permissie om een generieke writer te verzinnen. De publieke CLI beheert pakketbestanden; hij is geen capture-, taak- of registratiewriter.
 
 Obsidian-pluginwerk laadt conditioneel de interne specialist
-`skills/obsidian-plugin-development/PROCEDURE.md` vanuit Go/release. Die bundelt
+`skills/obsidian-plugin-development/PROCEDURE.md` via de GitHub-aanpak en release. Die bundelt
 architectuur, fixtures, hostbewijs, publicatiefasen en bekende fouten; lokale
 paden en bevoegdheden blijven in de doeladapter. `viggobsidian plugin-check`
 leest kandidaat, exacte release/tag/downloadbytes en optioneel de echte

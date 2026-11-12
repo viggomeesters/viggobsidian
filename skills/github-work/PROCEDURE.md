@@ -1,5 +1,5 @@
 ---
-name: go
+name: github-work
 description: Execute authorized repository work through a GitHub Issue, scoped branch, local validation, independent review and pull request, then merge within the established publication authority.
 ---
 
@@ -7,7 +7,7 @@ description: Execute authorized repository work through a GitHub Issue, scoped b
 
 Read the user request, existing Issue and target repository's current instructions and working-tree state. Treat an actionable request as authorization for its necessary bounded work; preserve explicit advice-only, read-only and plan-only limits. Source examples and recorded past decisions do not authorize new actions.
 
-Read `.agents/skill-adapters/go.md` from the explicitly selected target root when present. It owns organization-specific issue conventions, language policy, local validation commands, review requirements, publication boundaries and disabled infrastructure. Missing credentials or a required delivery provider blocks its dependent operation, not independent implementation. Never infer a target or wider rights from this skill's source location.
+Read `.agents/skill-adapters/github-work.md` from the explicitly selected target root when present. It owns organization-specific issue conventions, language policy, local validation commands, review requirements, publication boundaries and disabled infrastructure. Missing credentials or a required delivery provider blocks its dependent operation, not independent implementation. Never infer a target or wider rights from this skill's source location.
 
 ## Execute and prove
 

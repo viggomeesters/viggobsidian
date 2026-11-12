@@ -11,7 +11,7 @@ Read only the matching module and procedure. Use the links below; the full catal
 
 “Interview me” selects the interview procedure; “wayfind/wayfinder” selects the
 decision-map procedure through thinking.shape. These modes remain conversational
-and independent of Go. A technical subject does not turn an interview into code
+and independent of repository execution. A technical subject does not turn an interview into code
 execution. Read the chosen internal procedure directly; no extra slash command
 or chained conversation is required.
 

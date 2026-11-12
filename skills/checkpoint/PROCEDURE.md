@@ -14,7 +14,7 @@ metadata:
   source_commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
   hermes:
     tags: [handoff, continuity, git, context, safety]
-    related_skills: [git, git-cleanup, go, wayfinder]
+    related_skills: [git, git-cleanup, github-work, wayfinder]
 created_by: agent
 ---
 
@@ -28,7 +28,7 @@ state; it does not become a second source of truth for plans, tasks, decisions,
 or implementation.
 
 Creating or finding a checkpoint does not create a durable pause. In a later
-turn or session, follow the newest user instruction: a newer explicit `Go`,
+turn or session, follow the newest user instruction: a newer explicit `github-work`,
 `ga door`, or equivalent execution request supersedes the older checkpoint
 request. Use the checkpoint only as continuation evidence unless the newest
 message itself still asks to stop after saving it.
@@ -69,7 +69,7 @@ git worktree list --porcelain
 
 When an upstream exists, include exact ahead/behind counts. Read the existing
 GitHub Issue and PR for technical status and the next authorized step. Never
-infer task state from chat or load a retired Go runtime.
+infer task state from chat or load a retired workflow runtime.
 
 Inspect the smallest relevant subset of `README.md`, plans/specs, ADRs,
 architecture docs, and changed files. Prefer explicit paths, commit ids, task
