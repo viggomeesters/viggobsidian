@@ -49,32 +49,37 @@ pub(crate) fn check_event(
         return Err("Wiki processing needs a valid Activity day separator");
     }
     let mut lines = processing.trim_start_matches('\n').lines();
-    let (role, actor) = lines
-        .next()
-        .and_then(message_heading)
+    let heading = lines.next().ok_or("Wiki processing needs a named bubble")?;
+    let (role, actor) = message_heading(heading)
         .ok_or("Wiki processing needs a bubble with a role and named author")?;
     let message: Vec<_> = lines.take_while(|line| line.starts_with('>')).collect();
-    let footer = message
-        .last()
-        .and_then(|line| line.strip_prefix("> *"))
-        .and_then(|line| line.strip_suffix('*'))
-        .ok_or("Wiki processing needs an author in the bubble footer")?;
-    let valid_footer = footer == actor
-        || footer.split_once(" · ").is_some_and(|(time, name)| {
-            name == actor
-                && time.split_once(':').is_some_and(|(hour, minute)| {
-                    hour.len() == 2
-                        && minute.len() == 2
-                        && hour
-                            .bytes()
-                            .chain(minute.bytes())
-                            .all(|byte| byte.is_ascii_digit())
-                        && hour.parse::<u8>().is_ok_and(|value| value < 24)
-                        && minute.parse::<u8>().is_ok_and(|value| value < 60)
-                })
-        });
-    if !valid_footer {
-        return Err("use HH:MM · author, or only author when the time is unknown");
+    match crate::activity_delivery::header_stamp(heading, actor) {
+        Some(false) => return Err("Wiki processing has invalid header provenance"),
+        Some(true) => {}
+        None => {
+            let footer = message
+                .last()
+                .and_then(|line| line.strip_prefix("> *"))
+                .and_then(|line| line.strip_suffix('*'))
+                .ok_or("Wiki processing needs an author in the bubble footer")?;
+            let valid_footer = footer == actor
+                || footer.split_once(" · ").is_some_and(|(time, name)| {
+                    name == actor
+                        && time.split_once(':').is_some_and(|(hour, minute)| {
+                            hour.len() == 2
+                                && minute.len() == 2
+                                && hour
+                                    .bytes()
+                                    .chain(minute.bytes())
+                                    .all(|byte| byte.is_ascii_digit())
+                                && hour.parse::<u8>().is_ok_and(|value| value < 24)
+                                && minute.parse::<u8>().is_ok_and(|value| value < 60)
+                        })
+                });
+            if !valid_footer {
+                return Err("use HH:MM · author, or only author when the time is unknown");
+            }
+        }
     }
     check(
         &format!(
@@ -193,6 +198,39 @@ pub(crate) fn check(body: &str, note: &str, anchor: &str, wiki: &str) -> Result<
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn processed_event_accepts_validated_header_without_requiring_duplicate_footer() {
+        let note = "dossier/wiki/wiki";
+        let wiki = "## Bronnen\n";
+        let body = "# Bron\n\n## Activity\n\n> [!activity-day|2026-11-12] 12 november\n\n> [!activity-message|codex] Codex <span class=\"activity-meta\">— · Codex-chat</span>\n> **Verwerking in Wiki**\n> Broninhoud verwerkt in [[dossier/wiki/wiki#Bronnen]].\n";
+        assert_eq!(check_event(body, note, "Bronnen", wiki), Ok(()));
+        assert_eq!(
+            check_event(&body.replace("— ·", "23:59 ·"), note, "Bronnen", wiki),
+            Ok(())
+        );
+        for invalid in [
+            body.replace("— ·", "25:99 ·"),
+            body.replace("Codex-chat</span>", "</span>"),
+            body.replace("Codex-chat</span>", "<script>bad</script></span>"),
+            body.replace("Codex <span", "Codex<span"),
+            body.replace("Codex-chat</span>", "Codex-chat</span><span>extra</span>"),
+        ] {
+            assert!(
+                check_event(&invalid, note, "Bronnen", wiki).is_err(),
+                "{invalid}"
+            );
+        }
+        assert!(
+            check_event(
+                &body.replace("2026-11-12", "2026-13-12"),
+                note,
+                "Bronnen",
+                wiki
+            )
+            .is_err()
+        );
+        assert!(check_event(&body.replace("#Bronnen", "#Other"), note, "Bronnen", wiki).is_err());
+    }
     use super::*;
 
     #[test]
