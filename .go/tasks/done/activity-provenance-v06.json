@@ -1,0 +1,145 @@
+{
+  "schema": "go-workflow.repo-local.task.v1",
+  "kind": "task",
+  "execution_mode": "mechanical",
+  "shareable_delivery": "none",
+  "id": "activity-provenance-v06",
+  "project": "viggobsidian",
+  "status": "done",
+  "summary": "Enforce stamped and goal-grouped Activity contributions",
+  "description": "Issue12: Rust-only existing parser maintenance; no new dependencies. Explicit opt-in contract for new/migrated notes requires author-bound local clock or unknown marker plus channel on every human and agent bubble; process goal binding and grouped lifecycle with negative fixtures. Release and safe both-vault updates; apply to requested mailnote, preserving source and full latest mail.",
+  "scope": {
+    "read": [
+      "**"
+    ],
+    "modify": [
+      "crates/vault-layout/**",
+      "docs/**",
+      "templates/**",
+      "skills/**",
+      "schemas/**",
+      "fixtures/**",
+      "package.json",
+      "Cargo.toml",
+      "Cargo.lock"
+    ]
+  },
+  "acceptance": [
+    "Strict checker rejects missing or invalid or wrong-author timestamps and unbound or duplicate process goals; unknown time and local day explicit; retain legacy compatibility.",
+    "Fictional positive negative fixtures plus actual requested note and missing-human-stamp mutation verified; full mail and human texts preserved.",
+    "Independent review, local tests, release PR merge, guarded both-vault update and source writeback."
+  ],
+  "verification": [
+    "cargo test --workspace --locked",
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --locked -- -D warnings"
+  ],
+  "claim": {
+    "agent": "codex",
+    "claimed_at": "2026-11-12T05:25:30+01:00",
+    "base_commit": "8a9ae5e13efca2090c6ff173bdd8a66765e2040a"
+  },
+  "work_status": "completed",
+  "review_status": "approved",
+  "review_history": [
+    {
+      "created_at": "2026-11-12T05:40:40+01:00",
+      "agent": "review_issue12",
+      "status": "approved",
+      "evidence": "Independent read-only review approved, both parser findings regression-tested and final H3 compatibility reviewed; 93 locked tests fmt Clippy cargo-audit green.",
+      "transaction_id": "cc286957097e481a8b592e4de42ce4e7"
+    }
+  ],
+  "evidence": [
+    {
+      "schema": "go-workflow.finish-evidence.v1",
+      "created_at": "2026-11-12T05:40:40+01:00",
+      "task_id": "activity-provenance-v06",
+      "agent": "codex",
+      "summary": "verification=93 locked workspace tests fmt Clippy cargo-audit plus both installed engines and actual-note positive and missing-human-stamp negative checks; critic=independent review_issue12 approved after quote-fence swallowing and raw stamp-position regression repairs; runtime=codex; summary=Issue12 PR13 merged release0.6.0 both guarded vault updates and doctors green full checks before after byte-identical. Actual mail explicitly adopted with all fields preserved, 8 human stamps 4 result goals newest v3 bottom. self-reflect=parser bypasses repaired with positive negative regressions; no further generic policy expansion.",
+      "changed_files": [],
+      "no_diff": true,
+      "git": {
+        "claim_base_commit": "8a9ae5e13efca2090c6ff173bdd8a66765e2040a",
+        "observed_head_commit": "917396ca498105248b07c92d8f2703266fe228d3"
+      },
+      "verification": {
+        "command": "93 locked workspace tests fmt Clippy cargo-audit plus both installed engines and actual-note positive and missing-human-stamp negative checks",
+        "result": "93 locked workspace tests fmt Clippy cargo-audit plus both installed engines and actual-note positive and missing-human-stamp negative checks"
+      },
+      "runtime": {
+        "agent": "codex",
+        "runtime": "codex",
+        "model": null,
+        "billing_mode": "unknown"
+      },
+      "usage": {
+        "schema": "go-workflow.usage-attribution.v1",
+        "runtime_kind": "codex",
+        "billing_mode": "unknown",
+        "owner": "codex",
+        "model": null,
+        "token_estimate": null,
+        "api_equivalent_cost_usd": null,
+        "provider_invoice_cost_usd": null,
+        "cost_label": "api_equivalent_not_invoice_cost",
+        "observed_phases": [],
+        "observed_overhead": {
+          "schema": "go-workflow.overhead-report.v1",
+          "workload_contract_sha256": "44a971afdbcae61a802ff989499260565985a0c0e2ee1ad9430555f1756fe9b2",
+          "phases": [
+            {
+              "phase": "command",
+              "invocations": 5,
+              "commands": {
+                "03d1303ef14d3f4bc93b63dec6c08de0972c017248f84f745c8edd61d766804d": 4,
+                "0fa90354d49cbefe1a5ad91394b023066967104746215e3d5248e80470b8961f": 1
+              },
+              "observed": {
+                "snapshot_compact_json_bytes": null,
+                "packet_json_bytes": null,
+                "context_environment_utf8_bytes": null,
+                "decoded_stdout_utf8_bytes": null,
+                "decoded_stderr_utf8_bytes": null,
+                "elapsed_milliseconds": 17929,
+                "raw_stdout_bytes": 36896,
+                "raw_stderr_bytes": 4852
+              },
+              "coverage": {
+                "snapshot_compact_json_bytes": 0,
+                "packet_json_bytes": 0,
+                "context_environment_utf8_bytes": 0,
+                "decoded_stdout_utf8_bytes": 0,
+                "decoded_stderr_utf8_bytes": 0,
+                "elapsed_milliseconds": 5,
+                "raw_stdout_bytes": 5,
+                "raw_stderr_bytes": 5
+              }
+            }
+          ],
+          "stale_contract_records": 0,
+          "runtime_models": {},
+          "desktop_poll_rounds": null,
+          "provider_model_requests": null,
+          "coverage": "Go runner observations only. Explicit zeros are measured; missing values are unknown. Byte fields overlap and must not be added as token cost."
+        }
+      },
+      "review": {
+        "outcome": "independent review_issue12 approved after quote-fence swallowing and raw stamp-position regression repairs",
+        "skip_reason": null
+      }
+    }
+  ],
+  "github": {
+    "repository": "viggomeesters/viggobsidian",
+    "issue": 12,
+    "pull_request": 13
+  },
+  "completion_evidence": {
+    "schema": "go-workflow.completion-evidence.v1",
+    "verification": {
+      "path": ".go/runs/activity-provenance-v06/completion/verification-fa9ec2bb50fc4a4d9851fd70f50883c8.json",
+      "sha256": "c294bb13045a3fa76fe331c8366a619d67a13657cb20b0aca62190ee55c38597"
+    }
+  }
+}
