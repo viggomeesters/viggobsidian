@@ -18,6 +18,7 @@ mod link_style;
 mod mail_draft;
 mod mail_manifest;
 mod maintenance;
+mod native_source_archives;
 mod navigation_contract;
 mod project_codes;
 mod raw_processing;
@@ -770,9 +771,15 @@ impl Scan<'_> {
             );
         }
 
+        let mut source_archives = BTreeSet::new();
         let export_payloads = if package && under_raw && self.strict {
             match read_metadata(&entrance)? {
                 Some((data, _)) => {
+                    let (archives, errors) = native_source_archives::check(folder, &data)?;
+                    for error in errors {
+                        self.issue(&entrance, "strict-native-source-archives", error);
+                    }
+                    source_archives = archives;
                     let (payloads, errors) = export_artifacts::check(folder, &data)?;
                     for error in errors {
                         self.issue(&entrance, "strict-export-artifacts", error);
@@ -917,7 +924,7 @@ impl Scan<'_> {
         }
         if package && under_raw {
             for child in children {
-                self.raw_package_child(&child)?;
+                self.raw_package_child(&child, &source_archives)?;
             }
         } else if !package && recurse {
             for child in children {
@@ -1028,7 +1035,14 @@ impl Scan<'_> {
         Ok(())
     }
 
-    fn raw_package_child(&mut self, folder: &Path) -> io::Result<()> {
+    fn raw_package_child(
+        &mut self,
+        folder: &Path,
+        source_archives: &BTreeSet<PathBuf>,
+    ) -> io::Result<()> {
+        if source_archives.contains(folder) {
+            return Ok(());
+        }
         if let Some(name) = folder.file_name().and_then(|name| name.to_str()) {
             let note = folder.join(format!("{name}.md"));
             if fs::symlink_metadata(&note).is_ok_and(|metadata| metadata.is_file()) {
@@ -1063,7 +1077,7 @@ impl Scan<'_> {
                     "symbolic links are outside the layout contract",
                 );
             } else if kind.is_dir() {
-                self.raw_package_child(&entry.path())?;
+                self.raw_package_child(&entry.path(), source_archives)?;
             } else if kind.is_file() {
                 self.raw_source_note(&entry.path())?;
             }

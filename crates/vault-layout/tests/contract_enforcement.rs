@@ -1,6 +1,7 @@
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
+    collections::BTreeMap,
     fs,
     io::Write,
     os::unix::fs::symlink,
@@ -1578,5 +1579,86 @@ fn immutable_export_payloads_require_typed_bytes_and_never_exempt_the_event() {
             .unwrap()
             .iter()
             .any(|x| x["code"] == "strict-raw-markdown")
+    );
+}
+
+#[test]
+fn frozen_reading_capture_is_payload_only_after_complete_native_validation() {
+    let fixture = Fixture::new("native-source-archive");
+    let package = "topics/dossier/raw/20261111-source";
+    let archive = format!("{package}/_source-assets/original-package");
+    let head = format!(
+        "---\ntype: reference\ncategory: source\nwiki_status: pending\nsource_archives: source-archives.json\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\n---\n\n# Historical source review\n\n> [!navigation|shortcuts]\n> - [[topics/dossier/raw/raw|Back]]\n> - [Finder](file://{}/{package})\n\n> [!wiki-facts|dossier]\n> - Dossier **[[topics/dossier/dossier|Dossier]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> Frozen source capture; no clinical claim.\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 november 2026\n\n> [!activity-message|codex] Codex\n> Source reviewed.\n>\n> > [!info]- Meer\n> > Original producer bytes remain immutable evidence.\n>\n> *Codex*\n",
+        fixture.0.display()
+    );
+    fixture.write(&format!("{package}/20261111-source.md"), &head);
+    let original = "---\ntype: bookmark\ncapture: safari-reading-list\nurl: https://example.invalid/page\ncaptured: 2020-01-01T12:00:00Z\n---\n# Original page capture\n";
+    let mut contents = BTreeMap::from([
+        ("capture.md", original.to_string()),
+        ("entry.plist", "Fictional original plist entry".into()),
+        (
+            "source.json",
+            r#"{"url":"https://example.invalid/page"}"#.into(),
+        ),
+        (
+            "extracted.md",
+            "# Original page text\n\nFictional article.\n".into(),
+        ),
+    ]);
+    let pinned = contents
+        .iter()
+        .filter(|(n, _)| **n != "capture.md")
+        .map(|(n, s)| (*n, format!("{:x}", Sha256::digest(s.as_bytes()))))
+        .collect::<BTreeMap<_, _>>();
+    contents.insert(".reading-list-source.json",json!({"schema":1,"identity":"a".repeat(64),"url":"https://example.invalid/page","files":pinned}).to_string());
+    let mut files = BTreeMap::new();
+    for (n, s) in &contents {
+        fixture.write(&format!("{archive}/{n}"), s);
+        files.insert(
+            *n,
+            json!({"sha256":format!("{:x}",Sha256::digest(s.as_bytes())),"bytes":s.len()}),
+        );
+    }
+    fixture.write(&format!("{package}/source-archives.json"),json!({"schema":"viggobsidian.native-source-archives.v1","package_note":"20261111-source.md","archives":[{"directory":"_source-assets/original-package","producer":"safari-reading-list","capture_note":"capture.md","files":files,"directories":[]}]}).to_string());
+    let good = fixture.strict(package);
+    assert!(
+        good.status.success(),
+        "{}",
+        String::from_utf8_lossy(&good.stdout)
+    );
+    fixture.write(
+        &format!("{package}/ordinary.md"),
+        "# A separate ordinary note\n",
+    );
+    assert_eq!(fixture.strict(package).status.code(), Some(1));
+    fs::remove_file(fixture.0.join(format!("{package}/ordinary.md"))).unwrap();
+    fixture.write(
+        &format!("{package}/20261111-source.md"),
+        head.replace("## Activity", "## Missing activity"),
+    );
+    let bad: Value = serde_json::from_slice(&fixture.strict(package).stdout).unwrap();
+    assert!(
+        bad["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|f| f["code"] == "strict-event-header")
+    );
+    fixture.write(&format!("{package}/20261111-source.md"), &head);
+    fixture.write(&format!("{archive}/extracted.md"), "Changed bytes");
+    let bad: Value = serde_json::from_slice(&fixture.strict(package).stdout).unwrap();
+    assert!(
+        bad["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|f| f["code"] == "strict-native-source-archives")
+    );
+    assert!(
+        bad["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|f| f["code"] == "strict-raw-markdown")
     );
 }
