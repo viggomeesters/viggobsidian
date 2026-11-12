@@ -11,7 +11,7 @@
       "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
     },
     {
-      "sha256": "641e7fad9f02bd48ae57508a56c474b8f0c10a9e5ccba82c32605078c22fcdcf",
+      "sha256": "99fe770cd73144a48c5026576044898aaadcd1a3a1869a2c4bb4c872878b6c9f",
       "source": "crates/vault-layout/src/maintenance.rs",
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
@@ -31,7 +31,7 @@
       "target": ".agents/tools/vault-layout/src/write_set.rs"
     },
     {
-      "sha256": "e8fd51fbdac4430d8c40272a458bba24cb3b4d61b8f81ae1302641354f8d2ab3",
+      "sha256": "76e7e7c47a3ebb55458004e085f8ec96d5822d8075e6ead8fb9921b52b29b1b5",
       "source": "docs/write-validation.md",
       "target": ".viggobsidian/core/write-validation.md"
     },
@@ -41,7 +41,7 @@
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "ffec1dec805d7a48d712ed0841a559a91a813afd400ec4be2225353ef3b7fa0e",
+      "sha256": "9b9dfa7550bd714de81ad43226128444b17fbf416f1f78057be53fe1476b9170",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -1867,7 +1867,7 @@
       "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ],
-  "revision": "897f8e914cda88a8a4de4f204b290f0095a341d8",
+  "revision": "fb9bd50698883a036934d09b2dea9b9557e8f300",
   "schema": "viggobsidian.package.v1",
   "version": "0.17.0"
 }
