@@ -17,6 +17,32 @@ onderdeel-Raw; centrale legacycollecties zijn geen default voor nieuwe dossiers.
 Geen whole-vaultwrite, dailywijziging, migratiestatus of runtimecutover als bijeffect.
 Rapporteer bijgewerkt tot de werkelijk gelezen bronstand, niet absoluut up-to-date.
 
+## Lokale onderhoudsblokkades herstellen
+
+Een bestaande legacygids kan naastliggende, door de canonieke writer gemaakte
+wijzigingshistorie nodig hebben. Beoordeel eigenaar, exact doelpad en bestaand
+writercontract vóór opname in de lokale `strict_layout_exceptions.writer_files`.
+Registreer alleen dat concrete writerbestand met reden; geen directorydelegatie,
+glob of algemene loose-filevrijstelling. Dit verleent geen nieuwe writebevoegdheid.
+Herstel dode bronlinks met een geverifieerde actuele locator of een exact
+historisch pad/revisie; verzin geen vervangende bron. Maak daarna een nieuw
+brongebonden plan en controleer eigenaar én behouden historie via dezelfde writer.
+Als de lokale paragraafprovider `updates` ondersteunt, blijft de set begrensd tot
+tien disjuncte paragrafen onder één oorspronkelijke preimage. Iedere wijziging
+houdt haar eigen bronquote en historie; ingevoegde tekst wordt nooit een volgende
+vervangingstarget. Een gedeeltelijke of ongeldige set wordt niet gepubliceerd.
+Oude locators en geciteerde broncode blijven letterlijke historie, bijvoorbeeld
+binnen een voldoende lange fenced tekstweergave. Maak ze niet opnieuw tot actieve
+navigatie; de echte bewijslink buiten die weergave blijft wel gecontroleerd.
+
+Geïsoleerde providertests installeren de echte lokale readerafhankelijkheden
+binnen hun fictieve doelroot. Houd productieconfiguratie, catalogi, credentials en
+remote state erbuiten; een bewust ongeconfigureerde SourceStore heeft een lege
+broninventaris. Simuleer geen succes door de reader of integriteitscontroles te
+omzeilen. Skillbronafwijkingen vragen inhoudelijke vergelijking met de gepinde
+oude bron en provenancereview vóór een gerichte lockactualisatie; een nieuwe hash
+alleen bewijst geen aanvaardbare wijziging.
+
 ## Afgeleide kennis compileren
 
 Selecteer een kleine volledige relevante primaire bronset voor één eigenaar.
