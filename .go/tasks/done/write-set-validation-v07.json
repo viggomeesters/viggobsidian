@@ -1,0 +1,145 @@
+{
+  "schema": "go-workflow.repo-local.task.v1",
+  "kind": "task",
+  "execution_mode": "mechanical",
+  "shareable_delivery": "none",
+  "id": "write-set-validation-v07",
+  "project": "viggobsidian",
+  "status": "done",
+  "summary": "Validate exact write set without unrelated sibling blockers",
+  "description": "Rust shared write-set impact/boundary validation, preserve all owned errors; independent review and both-vault release. Existing Python bridge thin local maintenance integration only, native transaction/hash/rollback semantics preserved; no new dependencies. User explicitly authorizes messaging content chat; it owns registry and Health notes.",
+  "scope": {
+    "read": [
+      "**"
+    ],
+    "modify": [
+      "crates/vault-layout/**",
+      "src/**",
+      "docs/**",
+      "distribution.json",
+      "Cargo.toml",
+      "Cargo.lock",
+      "package.json"
+    ]
+  },
+  "acceptance": [
+    "Valid changed Health passes despite untouched invalid Finance; malformed changed content and introduced navigation boundary errors fail and rollback.",
+    "Path/symlink/baseline/binary/source drift guards remain; generic mode installed both vaults with real adapter transaction proof and full scans retained."
+  ],
+  "verification": [
+    "cargo test --workspace --locked",
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets --locked -- -D warnings"
+  ],
+  "claim": {
+    "agent": "codex",
+    "claimed_at": "2026-11-12T06:01:55+01:00",
+    "base_commit": "fe3c8b64feaeb971e32adbfe5e2024d004f40cf5"
+  },
+  "work_status": "completed",
+  "review_status": "approved",
+  "review_history": [
+    {
+      "created_at": "2026-11-12T06:20:48+01:00",
+      "agent": "codex",
+      "status": "approved",
+      "evidence": "Independent reviewer /root/review_scope_design accepted final code; completion critic and verification bound; deployment acceptance 20 native tests and 77 tests per vault; full scans byte-identical; issue14 closed after release v0.7.0.",
+      "transaction_id": "c4b0c7eab1c348a9b200dd9974bb1e83"
+    }
+  ],
+  "evidence": [
+    {
+      "schema": "go-workflow.finish-evidence.v1",
+      "created_at": "2026-11-12T06:20:32+01:00",
+      "task_id": "write-set-validation-v07",
+      "agent": "codex",
+      "summary": "verification=.go/runs/write-set-validation-v07/completion/verification-2ed9ed84fa8f4fd99edcd9852ea1a719.json; critic=.go/runs/write-set-validation-v07/completion/critic-bf1c7390fd10439a958828c64f7096fa.json; runtime=codex; summary=PR15 merged and v0.7.0 released; both vaults installed with zero integrity errors; 20 native transaction tests and 77 installed tests per vault pass; full audits byte-identical; private deployment evidence commit d889b5c88e; original intake preserved, final note append blocked by 7 existing owned-dossier errors recorded in private evidence; self-reflect=scope depends on filesystem change set and dependency closure rather than metadata validity; no checker weakening or pin bypass",
+      "changed_files": [],
+      "no_diff": true,
+      "git": {
+        "claim_base_commit": "fe3c8b64feaeb971e32adbfe5e2024d004f40cf5",
+        "observed_head_commit": "77a1cd5f54d0077c644d917806dc1d2a12ced917"
+      },
+      "verification": {
+        "command": ".go/runs/write-set-validation-v07/completion/verification-2ed9ed84fa8f4fd99edcd9852ea1a719.json",
+        "result": ".go/runs/write-set-validation-v07/completion/verification-2ed9ed84fa8f4fd99edcd9852ea1a719.json"
+      },
+      "runtime": {
+        "agent": "codex",
+        "runtime": "codex",
+        "model": null,
+        "billing_mode": "unknown"
+      },
+      "usage": {
+        "schema": "go-workflow.usage-attribution.v1",
+        "runtime_kind": "codex",
+        "billing_mode": "unknown",
+        "owner": "codex",
+        "model": null,
+        "token_estimate": null,
+        "api_equivalent_cost_usd": null,
+        "provider_invoice_cost_usd": null,
+        "cost_label": "api_equivalent_not_invoice_cost",
+        "observed_phases": [],
+        "observed_overhead": {
+          "schema": "go-workflow.overhead-report.v1",
+          "workload_contract_sha256": "0674066d6add361aebae23c9e4343a826d78af5353e4d86f86491d268ce6872e",
+          "phases": [
+            {
+              "phase": "command",
+              "invocations": 1,
+              "commands": {
+                "aec36394ab06441fb886a2306a60f116df8e1982fb221d692bccb7240466c74d": 1
+              },
+              "observed": {
+                "snapshot_compact_json_bytes": null,
+                "packet_json_bytes": null,
+                "context_environment_utf8_bytes": null,
+                "decoded_stdout_utf8_bytes": null,
+                "decoded_stderr_utf8_bytes": null,
+                "elapsed_milliseconds": 7426,
+                "raw_stdout_bytes": 7976,
+                "raw_stderr_bytes": 1053
+              },
+              "coverage": {
+                "snapshot_compact_json_bytes": 0,
+                "packet_json_bytes": 0,
+                "context_environment_utf8_bytes": 0,
+                "decoded_stdout_utf8_bytes": 0,
+                "decoded_stderr_utf8_bytes": 0,
+                "elapsed_milliseconds": 1,
+                "raw_stdout_bytes": 1,
+                "raw_stderr_bytes": 1
+              }
+            }
+          ],
+          "stale_contract_records": 0,
+          "runtime_models": {},
+          "desktop_poll_rounds": null,
+          "provider_model_requests": null,
+          "coverage": "Go runner observations only. Explicit zeros are measured; missing values are unknown. Byte fields overlap and must not be added as token cost."
+        }
+      },
+      "review": {
+        "outcome": ".go/runs/write-set-validation-v07/completion/critic-bf1c7390fd10439a958828c64f7096fa.json",
+        "skip_reason": null
+      }
+    }
+  ],
+  "github": {
+    "repository": "viggomeesters/viggobsidian",
+    "issue": 14,
+    "pull_request": 15
+  },
+  "completion_evidence": {
+    "schema": "go-workflow.completion-evidence.v1",
+    "verification": {
+      "path": ".go/runs/write-set-validation-v07/completion/verification-2ed9ed84fa8f4fd99edcd9852ea1a719.json",
+      "sha256": "59fe22db5aed564ddb268cb032250fc55a8a0366085090338de7b9a4361a0ba9"
+    },
+    "critic": {
+      "path": ".go/runs/write-set-validation-v07/completion/critic-bf1c7390fd10439a958828c64f7096fa.json",
+      "sha256": "fbb29af7e430aea7d49b5548e4d3f9e93119e3d67dca3a567b75d181d63617f0"
+    }
+  }
+}
