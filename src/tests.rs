@@ -708,3 +708,158 @@ fn duplicate_package_targets_and_retirement_are_refused() {
     .unwrap();
     assert!(plan(&f.vault, &f.package, &json!({})).is_err());
 }
+
+fn github_rename_fixture() -> Fixture {
+    let f = Fixture::new();
+    // Model a genuine old installation; never bypass the new package gate in production.
+    let mut old = read_json(&f.package.join("package.json")).unwrap();
+    let mut files = serde_json::Map::new();
+    atomic(&f.vault, ".viggobsidian/core/policy.md", b"one").unwrap();
+    files.insert(".viggobsidian/core/policy.md".into(), json!(hash(b"one")));
+    for target in RETIRED_GO {
+        atomic(&f.vault, target, b"old owned instruction").unwrap();
+        old["files"].as_array_mut().unwrap().push(
+            json!({"source":"old.md","target":target,"sha256":hash(b"old owned instruction")}),
+        );
+        files.insert((*target).into(), json!(hash(b"old owned instruction")));
+    }
+    let bytes = serde_json::to_string(&old).unwrap();
+    atomic(&f.vault, STATE, &serde_json::to_vec(&json!({"schema":"viggobsidian.installed.v1","version":old["version"],"revision":old["revision"],"manifest_sha256":hash(bytes.as_bytes()),"manifest_bytes":bytes,"files":files,"derived":{}})).unwrap()).unwrap();
+    let mut next = read_json(&f.package.join("package.json")).unwrap();
+    for target in [
+        ".agents/skills/github-work/SKILL.md",
+        ".agents/skills/github-work/PROCEDURE.md",
+    ] {
+        next["files"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"source":"policy.md","target":target,"sha256":hash(b"one")}));
+    }
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&next).unwrap(),
+    )
+    .unwrap();
+    f
+}
+#[test]
+fn finite_github_rename_restores_all_nine_old_assets_and_state() {
+    let f = github_rename_fixture();
+    let before = fs::read(f.vault.join(STATE)).unwrap();
+    let p = f.plan();
+    assert_eq!(
+        rows(&p, "changes")
+            .unwrap()
+            .iter()
+            .filter(|c| c["after"].is_null())
+            .count(),
+        9
+    );
+    let result = apply(&f.vault, &p).unwrap();
+    assert!(RETIRED_GO.iter().all(|p| !f.vault.join(p).exists()));
+    assert!(state(&f.vault).unwrap()["files"][RETIRED_GO[0]].is_null());
+    assert!(rows(&f.plan(), "changes").unwrap().is_empty());
+    let receipt = read_json(&f.vault.join(field(&result, "receipt").unwrap())).unwrap();
+    rollback(&f.vault, &receipt).unwrap();
+    assert_eq!(fs::read(f.vault.join(STATE)).unwrap(), before);
+    for p in RETIRED_GO {
+        assert_eq!(fs::read(f.vault.join(p)).unwrap(), b"old owned instruction");
+    }
+    assert!(!f.vault.join(".agents/skills/github-work/SKILL.md").exists());
+}
+#[test]
+fn retirement_refuses_missing_successor_drift_symlink_and_old_package_reintroduction() {
+    let f = github_rename_fixture();
+    let p = f.plan();
+    atomic(&f.vault, RETIRED_GO[0], b"human edit").unwrap();
+    assert!(apply(&f.vault, &p).is_err());
+    atomic(&f.vault, RETIRED_GO[0], b"old owned instruction").unwrap();
+    fs::remove_file(f.vault.join(RETIRED_GO[0])).unwrap();
+    std::os::unix::fs::symlink(f.vault.join("AGENTS.md"), f.vault.join(RETIRED_GO[0])).unwrap();
+    assert!(plan(&f.vault, &f.package, &json!({})).is_err());
+    fs::remove_file(f.vault.join(RETIRED_GO[0])).unwrap();
+    atomic(&f.vault, RETIRED_GO[0], b"old owned instruction").unwrap();
+    let mut m = read_json(&f.package.join("package.json")).unwrap();
+    m["files"].as_array_mut().unwrap().pop();
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&m).unwrap(),
+    )
+    .unwrap();
+    assert!(plan(&f.vault, &f.package, &json!({})).is_err());
+    m["files"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"source":"policy.md","target":RETIRED_GO[0],"sha256":hash(b"one")}));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&m).unwrap(),
+    )
+    .unwrap();
+    assert!(package(&f.package).is_err());
+    assert!(!RETIRED_GO.contains(&".agents/skills/go-extra/PROCEDURE.md"));
+    assert!(!allowed(".agents/skills/go-extra/PROCEDURE.md"));
+}
+#[test]
+fn interrupted_retirement_rolls_back_and_recreated_file_blocks_undo() {
+    let f = github_rename_fixture();
+    let before = fs::read(f.vault.join(STATE)).unwrap();
+    let result = apply(&f.vault, &f.plan()).unwrap();
+    let receipt = read_json(&f.vault.join(field(&result, "receipt").unwrap())).unwrap();
+    atomic(&f.vault, RETIRED_GO[0], b"new user file").unwrap();
+    assert!(rollback(&f.vault, &receipt).is_err());
+    fs::remove_file(f.vault.join(RETIRED_GO[0])).unwrap();
+    rollback(&f.vault, &receipt).unwrap();
+    // Reconstruct the interruption immediately after deleting the first old file.
+    let pending = receipt;
+    atomic(
+        &f.vault,
+        ".viggobsidian/pending.json",
+        &serde_json::to_vec(&pending).unwrap(),
+    )
+    .unwrap();
+    for target in [
+        ".agents/skills/github-work/SKILL.md",
+        ".agents/skills/github-work/PROCEDURE.md",
+    ] {
+        atomic(&f.vault, target, b"one").unwrap();
+    }
+    fs::remove_file(f.vault.join(RETIRED_GO[0])).unwrap();
+    rollback(&f.vault, &pending).unwrap();
+    for p in RETIRED_GO {
+        assert_eq!(fs::read(f.vault.join(p)).unwrap(), b"old owned instruction");
+    }
+    assert_eq!(fs::read(f.vault.join(STATE)).unwrap(), before);
+    assert!(!f.vault.join(".agents/skills/github-work/SKILL.md").exists());
+}
+
+#[test]
+fn finite_rename_does_not_remove_unmanaged_old_paths() {
+    let f = github_rename_fixture();
+    rollback(
+        &f.vault,
+        &read_json(
+            &f.vault
+                .join(field(&apply(&f.vault, &f.plan()).unwrap(), "receipt").unwrap()),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    fs::remove_file(f.vault.join(STATE)).unwrap();
+    let mut adoption = serde_json::Map::new();
+    adoption.insert(".viggobsidian/core/policy.md".into(), json!(hash(b"one")));
+    let p = plan(&f.vault, &f.package, &Value::Object(adoption)).unwrap();
+    assert!(
+        rows(&p, "changes")
+            .unwrap()
+            .iter()
+            .all(|c| !c["after"].is_null())
+    );
+    apply(&f.vault, &p).unwrap();
+    for target in RETIRED_GO {
+        assert_eq!(
+            fs::read(f.vault.join(target)).unwrap(),
+            b"old owned instruction"
+        );
+    }
+}

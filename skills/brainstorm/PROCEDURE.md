@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Use when the user wants to shape an idea, plan, architecture, workflow, or implementation approach before building. Inspect available context, use grill-style pressure testing, and only escalate to go-plan/spike when a real execution boundary is needed.
+description: Use when the user wants to shape an idea, plan, architecture, workflow, or implementation approach before building. Inspect available context, use grill-style pressure testing, and only escalate to repository planning/spike when a real execution boundary is needed.
 version: 1.0.0
 author: Hermes Agent
 license: MIT
@@ -15,7 +15,7 @@ triggers:
 metadata:
   hermes:
     tags: [lane, planning, before-build, brainstorm, decision-quality]
-    related_skills: [grill-me, grill-with-docs, go-vision, go-plan, go-loop, spike, writing-plans]
+    related_skills: [grill-me, grill-with-docs, github-work, spike, writing-plans]
 ---
 
 # Brainstorm
@@ -38,8 +38,8 @@ Choose only what the request needs. These are techniques in one conversation, no
 
 Read [work-handoff](../_bundle/contracts/work-handoff.md) when durable direction, a task or execution is requested. Use the actual owner: GitHub Issue and PR for repository work when applicable, managed vault work for a vault task, or a plain bounded contract. Conversation alone creates no taskstate.
 
-For repository work, [Go](../go/SKILL.md) selects the appropriate internal mode from the requested outcome and stop boundary. A risky technical assumption may justify [prototype](../prototype/PROCEDURE.md), only within an authorized experiment boundary.
+For repository work, [GitHub work](../github-work/SKILL.md) selects the appropriate internal mode from the requested outcome and stop boundary. A risky technical assumption may justify [prototype](../prototype/PROCEDURE.md), only within an authorized experiment boundary.
 
 ## Result
 
-Give the target, main risk, meaningful alternatives, recommended shape and next action. Use only fields that help this decision. Expose material unresolved assumptions; ask only the decision that blocks a real branch. Show one useful public next command when needed, not the complete internal Go menu. Planning does not implicitly authorize building, publishing, sending or buying.
+Give the target, main risk, meaningful alternatives, recommended shape and next action. Use only fields that help this decision. Expose material unresolved assumptions; ask only the decision that blocks a real branch. Show one useful public next command when needed, not the complete repository menu. Planning does not implicitly authorize building, publishing, sending or buying.

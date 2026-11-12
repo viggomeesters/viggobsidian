@@ -1,6 +1,6 @@
 ---
 name: error-learning
-description: "Use when the user says error fix, fix error, go fix error, or when a Hermes automation, provider, gateway, tool, delivery, operation card, or generated artifact fails or regresses. Search the persistent incident database first, debug from evidence, and record verified root cause, fix, proof, and prevention so future runs reuse the solution."
+description: "Use when the user requests an error fix or a Hermes automation, provider, gateway, tool, delivery, operation card, or generated artifact fails or regresses. Search persistent incident evidence, debug from evidence and record the verified fix within the selected provider's scope."
 version: 2.0.0
 author: Hermes Agent
 license: MIT
@@ -55,9 +55,8 @@ Laad deze skill bij:
 Niet gebruiken voor normale userfouten, inhoudelijke meningsverschillen of één
 verwachte validation rejection die het systeem correct afvangt.
 
-Wanneer de opdracht begint met `go fix`, `go fix error`, `go fix de error` of
-een vergelijkbare `go ... fix`-variant, blijft `go` de publieke repo-router.
-`go` moet deze skill dan **verplicht stapelen**: eerst eerdere incidentkennis
+Bij een geautoriseerde repositoryreparatie blijft `github-work` de publieke repository-ingang.
+`github-work` moet deze skill dan **verplicht stapelen**: eerst eerdere incidentkennis
 zoeken, daarna de repo-fix uitvoeren, en pas afsluiten nadat de waarneming en de
 geverifieerde oplossing in deze centrale database staan wanneer de interface
 beschikbaar is; bij uitval volstaat de expliciete unavailable-vermelding in
@@ -224,8 +223,8 @@ fingerprint alleen wanneer die nodig is voor vervolgwerk.
    - Geen incident registreren als de reject het bedoelde fail-closed contract is.
    - Voorkomt: veiligheids-/groundingguards als bugs repareren.
 
-5. **“go fix error: Telegram-bijlage komt niet aan.”**
-   - `go` routeert de repositorywijziging en stapelt `error-learning` voor
+5. **“Fix de fout: Telegram-bijlage komt niet aan.”**
+   - `github-work` routeert de repositorywijziging en stapelt `error-learning` voor
      search → record → rootcause → fix → proof → resolve.
    - Voorkomt: wel code repareren maar de herbruikbare les niet centraal opslaan.
 

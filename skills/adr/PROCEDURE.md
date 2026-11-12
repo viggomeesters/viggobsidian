@@ -13,7 +13,7 @@ triggers:
 metadata:
   hermes:
     tags: [architecture, decisions, adr, documentation]
-    related_skills: [domain-modeling, grill-with-docs, go, wayfinder]
+    related_skills: [domain-modeling, grill-with-docs, github-work, wayfinder]
 created_by: agent
 ---
 

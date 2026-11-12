@@ -2,7 +2,7 @@
 name: wayfinder
 description: 'Find a route through a large uncertain effort: clarify the destination,
   maintain a durable decision map with its existing owner, and resolve the next ready
-  decision. Works independently of Go, repositories and issue trackers. Use for wayfinder,
+  decision. Works independently of repository execution, repositories and issue trackers. Use for wayfinder,
   wayfind or multi-session planning.'
 license: MIT
 metadata:
@@ -41,9 +41,9 @@ inventing a decision map merely for ceremony.
 
 ## Independent ownership
 
-Wayfinder is selected through brainstorm, including explicit “wayfinder”/“wayfind” requests. It does not require Go, `.go`, a repository,
+Wayfinder is selected through brainstorm, including explicit “wayfinder”/“wayfind” requests. It does not require repository execution, `.go`, a repository,
 an issue tracker or a workflow installation. Never adopt/bootstrap a workflow,
-create `.go`, or call a Go router simply to make wayfinding possible.
+create `.go`, or call a repository router simply to make wayfinding possible.
 
 Read the actual owner's instructions and current decisions. Select storage from
 that authority, not from the presence of an old directory or obsolete instructions:
@@ -131,7 +131,7 @@ The route is clear when the destination and non-goals are accurate, no consequen
 in-scope decision/fog remains, and another agent can plan without inventing product
 or architecture choices. Hand off a compact destination, chosen approach, bounded
 work units, acceptance, verification and source pointers to the owner's normal
-planning/execution route. Go is optional where explicitly applicable; vault-task
+planning/execution route. GitHub work applies only to authorized repository work; vault-task
 or a plain bounded task contract are equally valid. No forced recommendation CLI,
 workflow gate, release or implementation follows from completing the map.
 
@@ -139,7 +139,7 @@ workflow gate, release or implementation follows from completing the map.
 
 Adapted from Matt Pocock's MIT-licensed
 [wayfinder](https://github.com/mattpocock/skills/blob/f3fc5632f401156837ee3872f14fe33ccf1024ea/skills/engineering/wayfinder/SKILL.md).
-Tracker setup, automatic research agents/branches/pushes and Go-only storage are
+Tracker setup, automatic research agents/branches/pushes and workflow-only storage are
 not imported. License: `../../licenses/matt-pocock-skills.txt` from this directory.
 
 ## Optional local adapter

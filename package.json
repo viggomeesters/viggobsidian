@@ -1,7 +1,7 @@
 {
   "files": [
     {
-      "sha256": "7062e83950a1ee9ce10af98d44a5e39193262aa837e90105cf4568b08799835d",
+      "sha256": "26c72e80cd0c7bdf11931c9ff7cb7e2503dbca0883883223058a4ceffd498c5c",
       "source": "crates/vault-layout/fixtures/procedure-assets.json",
       "target": ".agents/tools/vault-layout/fixtures/procedure-assets.json"
     },
@@ -111,12 +111,12 @@
       "target": ".viggobsidian/core/policy.md"
     },
     {
-      "sha256": "552010ecd43fa5c558cb133db21b71cc9a53d38535a2a7205c3123bf6e2b4d00",
+      "sha256": "32855472081d1083b0cc6b054fc9f784bbd3ea05756bb530341c6017d50d02eb",
       "source": "docs/skills.md",
       "target": ".viggobsidian/core/skills.md"
     },
     {
-      "sha256": "7280a913a767686e4235f01f3ffa79b7b734facbcb00537542fcae524b898cc0",
+      "sha256": "76eb2b6fc768c8eaefe03cde83083bcbefc3d126c95d2ede274c7ddf6dedc803",
       "source": "docs/updates.md",
       "target": ".viggobsidian/core/updates.md"
     },
@@ -181,7 +181,7 @@
       "target": ".agents/skills/vault-process/SKILL.md"
     },
     {
-      "sha256": "2a82603332dacd97d1919512019ff015081bebd2e6ce1b0d57ca0f966359db1b",
+      "sha256": "a63ab03b06d5089ac03150046e22493ef5d3dd484012e078b153d47f2427929d",
       "source": "skills/vault-task/SKILL.md",
       "target": ".agents/skills/vault-task/SKILL.md"
     },
@@ -767,12 +767,12 @@
       "target": ".agents/skills/_bundle/contracts/quality-evidence.md"
     },
     {
-      "sha256": "05b19c969d0099fdf1aa125ad1c8d03083affb4c80f249a1ec7cd558a397e2c2",
+      "sha256": "b98883ddab2a5e9e1e27a45848b956f7a515a61715369caf6f13e862778f49a8",
       "source": "skills/_bundle/contracts/routing.md",
       "target": ".agents/skills/_bundle/contracts/routing.md"
     },
     {
-      "sha256": "d20d9c406e5361141f6976a487cfb0b4842fe2c687230b059d910d626b18251a",
+      "sha256": "a7057ac052d9159a4bd9750ce517bff47992f8973ee8ba9c48fd64b46b40cf04",
       "source": "skills/_bundle/contracts/work-handoff.md",
       "target": ".agents/skills/_bundle/contracts/work-handoff.md"
     },
@@ -802,7 +802,7 @@
       "target": ".agents/skills/_bundle/modules/thinking.shape.md"
     },
     {
-      "sha256": "c529d3edc37d24c594e75212552d1d96fc4009e99ffaeea95df8a89da9a383be",
+      "sha256": "938d7429f12950fa46f7ac44140b8cc90aa7dbf88452c565f097abddf0eeba6c",
       "source": "skills/adr/PROCEDURE.md",
       "target": ".agents/skills/adr/PROCEDURE.md"
     },
@@ -812,7 +812,7 @@
       "target": ".agents/skills/agent-project-lifecycle/PROCEDURE.md"
     },
     {
-      "sha256": "3c823d4a86dbc3651069527e6be8542528e94c41f7f73d7e34b7d7c3d94b6441",
+      "sha256": "4e2ed46aadd2cc098273a866e8909409f3329596f36258772707ecce694a30c2",
       "source": "skills/agent-workflow-lite/PROCEDURE.md",
       "target": ".agents/skills/agent-workflow-lite/PROCEDURE.md"
     },
@@ -837,12 +837,12 @@
       "target": ".agents/skills/better/PROCEDURE.md"
     },
     {
-      "sha256": "dda0041204b5cff04a2965621efaba2047e1fafee33a7027a14886ba331ad57e",
+      "sha256": "59d1d5d298762095f5564f5b306eef4abfed3e8dcbff7d7560aef6f146697768",
       "source": "skills/brainstorm/PROCEDURE.md",
       "target": ".agents/skills/brainstorm/PROCEDURE.md"
     },
     {
-      "sha256": "b5aa4317fb399a925911f39f6fde53f552cc09d9ebc033fe1586a65a476299db",
+      "sha256": "18493a6e3a92d35dfe66729f33d9110342fa5412922b691087b0962268a634d3",
       "source": "skills/brainstorm/SKILL.md",
       "target": ".agents/skills/brainstorm/SKILL.md"
     },
@@ -882,7 +882,7 @@
       "target": ".agents/skills/check-in/SKILL.md"
     },
     {
-      "sha256": "26422a85e7a06bea9d68db4bfa9c403e728af04a0f07d752da2e0ccb5e189122",
+      "sha256": "b0f0b8e5c6a9af4c2c9ccd0daa12cb0ae929c55f14726e8a899c039de5e8383e",
       "source": "skills/checkpoint/PROCEDURE.md",
       "target": ".agents/skills/checkpoint/PROCEDURE.md"
     },
@@ -892,7 +892,7 @@
       "target": ".agents/skills/coach/SKILL.md"
     },
     {
-      "sha256": "8843160c983d5e7c0505ad75c5cb9c1a9f81703874fddb012c45036be5b632c4",
+      "sha256": "d25ed59846ab773dd86ffa986e56b841148b477e78e43361ab806efdab7b0f99",
       "source": "skills/create-work/PROCEDURE.md",
       "target": ".agents/skills/create-work/PROCEDURE.md"
     },
@@ -932,7 +932,7 @@
       "target": ".agents/skills/discover/PROCEDURE.md"
     },
     {
-      "sha256": "b9ee41c2f5ea28cb70d334b125d01d370ff1d855c23e8e249076fc38bc9684cc",
+      "sha256": "8dd916e1ea623c872746fa38e6eca9aaeda085dd4ac3c28182e6e2e57dba95f9",
       "source": "skills/domain-modeling/PROCEDURE.md",
       "target": ".agents/skills/domain-modeling/PROCEDURE.md"
     },
@@ -947,12 +947,12 @@
       "target": ".agents/skills/draft/SKILL.md"
     },
     {
-      "sha256": "65e207833a352e8ae9ce14ff08e5fca60ccda796b05dd2250a1a96343416bbd6",
+      "sha256": "469b3739ea46c3fd3d6af280f2697516e2125e1a7298ce6412219d8cf368a6ed",
       "source": "skills/error-learning/PROCEDURE.md",
       "target": ".agents/skills/error-learning/PROCEDURE.md"
     },
     {
-      "sha256": "8cf8e3f00395adb0317cc1a5c01a5402877d4fbd094ffbfb887ee2b0a4f9f7d2",
+      "sha256": "75b697dd1e252a74f96492c708f55fd63001b4dd5580cbd1964eafa55e83f3be",
       "source": "skills/f1/SKILL.md",
       "target": ".agents/skills/f1/SKILL.md"
     },
@@ -1007,7 +1007,7 @@
       "target": ".agents/skills/git-cleanup/PROCEDURE.md"
     },
     {
-      "sha256": "dab823af10e369d2ba97440285eaeba4ec072791dce1f8b09f96d126914cdcb3",
+      "sha256": "8fe6e7403d01b2a9d9dd4a61a553a2431cc8e4efac8e9a5c22da715366de6a07",
       "source": "skills/git/PROCEDURE.md",
       "target": ".agents/skills/git/PROCEDURE.md"
     },
@@ -1017,52 +1017,17 @@
       "target": ".agents/skills/git/references/resolving-merge-conflicts.md"
     },
     {
-      "sha256": "3061f0f08015494a6313f2001b46a0b01df613428a7c763602209ba1338911fe",
-      "source": "skills/go-autopilot/PROCEDURE.md",
-      "target": ".agents/skills/go-autopilot/PROCEDURE.md"
+      "sha256": "dd7dae0d2392cd195a00e62615c0d6df31b0cca53e08cf408a3b52bbcfa001a2",
+      "source": "skills/github-work/PROCEDURE.md",
+      "target": ".agents/skills/github-work/PROCEDURE.md"
     },
     {
-      "sha256": "d4f8da16a768cf625a968b04711fe597659b5b91e95fbea79dea53c83687accf",
-      "source": "skills/go-goal/PROCEDURE.md",
-      "target": ".agents/skills/go-goal/PROCEDURE.md"
+      "sha256": "fede07a547797f48e64d0a84b649b5eb7eca57bac09358022a17836d6073fcb8",
+      "source": "skills/github-work/SKILL.md",
+      "target": ".agents/skills/github-work/SKILL.md"
     },
     {
-      "sha256": "00ebeed361969ac26a982838aecd37e7d0ff399a24b71ff7d9f20bb2af33640d",
-      "source": "skills/go-loop/PROCEDURE.md",
-      "target": ".agents/skills/go-loop/PROCEDURE.md"
-    },
-    {
-      "sha256": "20683fcca53e17611a510f5f32ee428c8ae7dd48a7012056ca65bbd86d281eb7",
-      "source": "skills/go-now/PROCEDURE.md",
-      "target": ".agents/skills/go-now/PROCEDURE.md"
-    },
-    {
-      "sha256": "06b0acaf9db41b46b5025491f75e096e0d76a74958707708d10d85db09426726",
-      "source": "skills/go-plan/PROCEDURE.md",
-      "target": ".agents/skills/go-plan/PROCEDURE.md"
-    },
-    {
-      "sha256": "ad7fe485f8966983cda2b054a68a3c4c8597c70c35a80ded70ec45685dd1cb49",
-      "source": "skills/go-task/PROCEDURE.md",
-      "target": ".agents/skills/go-task/PROCEDURE.md"
-    },
-    {
-      "sha256": "5e39e314eed4103aec980a4fd447411ef2259d2dffa7dd6dc35b0e2f3e6409c4",
-      "source": "skills/go-vision/PROCEDURE.md",
-      "target": ".agents/skills/go-vision/PROCEDURE.md"
-    },
-    {
-      "sha256": "29e1978e2ca3f34bc8a6f6a1e7e3b2ae2751e709406cab17247a22ac5a502e63",
-      "source": "skills/go/PROCEDURE.md",
-      "target": ".agents/skills/go/PROCEDURE.md"
-    },
-    {
-      "sha256": "5574a348a4ea3b524b0532a541c339e57bbf0d504375b05c202bbc242cb24757",
-      "source": "skills/go/SKILL.md",
-      "target": ".agents/skills/go/SKILL.md"
-    },
-    {
-      "sha256": "a98bde7432a97bc945722e5601eb5776f668d9eb17d5d1a5a268cf05c06e8478",
+      "sha256": "12bca3b88799e35165f7d19525207b8921d96ec62b45fea95ae315a4fe173a92",
       "source": "skills/grill-me/PROCEDURE.md",
       "target": ".agents/skills/grill-me/PROCEDURE.md"
     },
@@ -1117,7 +1082,7 @@
       "target": ".agents/skills/improve/PROCEDURE.md"
     },
     {
-      "sha256": "ab0f468c450d85c58af2b0187da97b01ab5812e4446a4539ab9bf46c4d19063f",
+      "sha256": "3fbd001001c9a3f9afe3640c47ea07bff5c8d410d1ef7b515d2c9b980c9cba33",
       "source": "skills/interview/PROCEDURE.md",
       "target": ".agents/skills/interview/PROCEDURE.md"
     },
@@ -1132,7 +1097,7 @@
       "target": ".agents/skills/life-os-memory-pipeline/PROCEDURE.md"
     },
     {
-      "sha256": "57c200ca566c8564ffd6eadbb7eb70253a6b02e732560a2c62c3388e12eb2995",
+      "sha256": "05491bb85e0b98076e9fc4eedd327af2fd99b03aa1797fefea702d5ddc5e4b54",
       "source": "skills/loop/PROCEDURE.md",
       "target": ".agents/skills/loop/PROCEDURE.md"
     },
@@ -1727,7 +1692,7 @@
       "target": ".agents/skills/swiftui-pro/references/windows.md"
     },
     {
-      "sha256": "8c1e77803a89d6e9196fb773dadb3a29e0fe3f7d9fcbfb5096cb2a5f4aed2f87",
+      "sha256": "44d3fa34f2e2f658886e234cf8311fdadadda048bbb5305723694a8686a74726",
       "source": "skills/task/PROCEDURE.md",
       "target": ".agents/skills/task/PROCEDURE.md"
     },
@@ -1802,7 +1767,7 @@
       "target": ".agents/skills/visual-roadmap/PROCEDURE.md"
     },
     {
-      "sha256": "0db5857c179a4a8df94b17ae5599a78db75cfced1774caeee9661e0ac818aff2",
+      "sha256": "e95135e92e2af3d28ae33f7028c732c002083cb6ec95246ac1f8af942e03372c",
       "source": "skills/wayfinder/PROCEDURE.md",
       "target": ".agents/skills/wayfinder/PROCEDURE.md"
     },
@@ -1832,7 +1797,7 @@
       "target": ".agents/skills/youtube/PROCEDURE.md"
     },
     {
-      "sha256": "9ad8d2d774d41a40d61c00a15d389ba9daa76d9ffbd8c8006a0139a740c70003",
+      "sha256": "40bbb631b7ce131bf9cc0ac1c9c2d70e2f471002f76d21a9cd2c76f6ad72630d",
       "source": "schemas/skill-library.json",
       "target": ".viggobsidian/core/skill-library.json"
     },
@@ -1842,7 +1807,7 @@
       "target": ".viggobsidian/core/skill-library.md"
     },
     {
-      "sha256": "5d0a79c288d273dbdb4becf9982b66987bfe2477d3cfe186b5aebd404e88c7c0",
+      "sha256": "933b26ff492bf449b8bf3e73267622dbff70940d0240bc4fa6ca5d69a3541d6f",
       "source": "skills/obsidian-plugin-development/PROCEDURE.md",
       "target": ".agents/skills/obsidian-plugin-development/PROCEDURE.md"
     },
@@ -1867,7 +1832,7 @@
       "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ],
-  "revision": "510d20ad0052393cf3757fff67dd905c90dde269",
+  "revision": "09adf653b74729dbc3e13aa84d8bd69596245d50",
   "schema": "viggobsidian.package.v1",
-  "version": "0.18.1"
+  "version": "0.19.0"
 }
