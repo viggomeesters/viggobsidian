@@ -1,6 +1,11 @@
 {
   "files": [
     {
+      "sha256": "f71cd011ba8899814e3822211d261be029b7fe998dcb03875c8c1f7b1136750b",
+      "source": "fixtures/activity-deliveries.md",
+      "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
+    },
+    {
       "sha256": "641e7fad9f02bd48ae57508a56c474b8f0c10a9e5ccba82c32605078c22fcdcf",
       "source": "crates/vault-layout/src/maintenance.rs",
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
@@ -26,7 +31,7 @@
       "target": ".viggobsidian/core/write-validation.md"
     },
     {
-      "sha256": "e8450112c0e9866cd1bb0860ffc1e450884d412922f1dfead9ba8804f7d2fe97",
+      "sha256": "5c634e1a3ea7bac3ac4938c2379467395cc68a764b2f5a57591caa52dec2d5be",
       "source": "crates/vault-layout/src/activity_delivery.rs",
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
@@ -1822,7 +1827,7 @@
       "target": ".viggobsidian/core/skill-library.md"
     }
   ],
-  "revision": "76a818eed752f65ce4002e96233b7eacf1e88409",
+  "revision": "ed55982a8f9d2d254bb5c85b7ed819d01b3ce675",
   "schema": "viggobsidian.package.v1",
-  "version": "0.14.0"
+  "version": "0.14.1"
 }
