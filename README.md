@@ -28,6 +28,6 @@ De volledige actieve CSS heeft één bron. `folder-note.css` wordt samengesteld 
 
 ## Bijdragen
 
-Leg een wijziging vast in een Issue, maak een PR met lokale controles en onafhankelijke review, merge de beoordeelde delta en lever een release. Gebruik geen GitHub Actions. Meld bij een fout de pakketversie, checkeruitkomst en een geanonimiseerde reproductie; upload geen authentieke Raw-bronnen of herstelreceipts. De repository beheert uitvoering via haar lokale `.go/`-contract.
+Leg een wijziging vast in een GitHub Issue, werk op een branch, maak een PR met lokale controles en onafhankelijke review, merge de beoordeelde delta en lever waar nodig een release. Gebruik geen GitHub Actions. Meld bij een fout de pakketversie, checkeruitkomst en een geanonimiseerde reproductie; upload geen authentieke Raw-bronnen of herstelreceipts. Gebruik geen `.go`-contract, stackbootstrap of lokale workflowqueue.
 
-MIT. Bestaande Bases en het Go-bootstrapmechanisme zijn overgenomen uit eigen beheer; zie [herkomst](docs/provenance.md).
+MIT. Bestaande Bases zijn overgenomen uit eigen beheer; zie [herkomst](docs/provenance.md).
