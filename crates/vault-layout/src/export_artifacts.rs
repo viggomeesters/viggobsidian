@@ -288,7 +288,7 @@ fn summary(data: &Value, body: &str) -> Result<(), String> {
     }
     Ok(())
 }
-fn timestamp(s: &str) -> bool {
+pub(crate) fn timestamp(s: &str) -> bool {
     let Some(date) = s.get(..10) else {
         return false;
     };

@@ -191,6 +191,29 @@ precieze Wiki-verwerkingsverwijzing. Hashgelijkheid bewijst geen inhoudelijke
 verwerking. Een pending bron blijft pending; immutable exports zijn geen nieuwe
 klinische feiten of actuele behandelbesluiten.
 
+### Volledige oorspronkelijke capturepakketten
+
+Een canonical Raw Eventnote kan `source_archives: source-archives.json` declareren
+om een volledige oorspronkelijke mail- of Safari-capture als bevroren bronbewijs
+te bewaren. De index gebruikt `schema: viggobsidian.native-source-archives.v1`,
+de exacte `package_note` en `archives`. Iedere archive-row noemt `directory`
+onder `_source-assets/`, `producer` (`mail-ingestion` of `safari-reading-list`),
+`capture_note`, alle `files` met `sha256`/`bytes` en alle `directories`.
+Een optioneel `origin_path` bewaart de oude locator en selecteert geen doelroot.
+
+De engine controleert de volledige inhoud, paden, directoryset, originele
+captureheader en echte producentmanifesten. Alleen geverifieerde onveranderde
+capturepayloads krijgen deze bronrol. Ontbrekende, extra of gewijzigde bestanden,
+symlinks, onbekende declaratievelden en dubbele directoryleden worden geweigerd.
+Een primaire taak of Wiki kan niet opaque worden gemaakt. Secundaire Markdown
+moet tot de leeslijstextractie of echte gedeclareerde mailbijlagen behoren;
+losse notities blijven onder de normale Raw-regels vallen.
+
+De buitenste Eventnote blijft de leesbare bronbeoordeling en houdt haar normale
+header-, herkomst- en Wiki-verwerkingseisen. Integriteit van een bronpakket bewijst
+geen volledige lezing, klinische waarheid of uitgevoerde taak. Verwerk alle
+beschikbare inhoud en leg leesgrenzen en onbewezen bronbindingen afzonderlijk vast.
+
 ## Daily
 
 Daily's staan in `10-daily/notes/YYYY-MM-DD.md`. Een embedded Base selecteert

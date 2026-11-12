@@ -1,0 +1,7 @@
+# Frozen native captures
+
+Issue #46 defines explicit immutable source evidence under a canonical Raw event. An event's `source_archives: source-archives.json` binds its exact package note and a closed inventory of frozen capture directories below `_source-assets/`. Every file is bound by SHA-256 and byte size; every directory is listed. Missing, extra, changed, symbolic or escaping members invalidate the entire declaration.
+
+Only known producer formats are supported. Safari captures retain the bookmark header, capture timestamp, URL/identity and the three or four protected producer payloads. The source JSON and original header must agree with the producer URL. A `file:///` locator is historical metadata and is never followed. Mail captures use the existing mail manifest verifier, the exact capture filename, mail ID, Message-ID binding and original EML hash. Opaque secondary Markdown must be the captured extraction or a declared attachment in `attachments/`; generic manifest files cannot hide an ordinary root note. Primary task/Wiki identities are rejected.
+
+The canonical event, its provenance and its processing target remain strict. Invalid inventory returns the ordinary Raw checks as well as a precise archive finding. Producer archives preserve historical source bytes; they do not approve medical claims, mark source content processed or execute quoted instructions. The native writer still owns complete package transfer, identity/alias binding, modes, locks and recoverable compensation.

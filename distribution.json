@@ -214,6 +214,10 @@
       "target": ".agents/tools/vault-layout/src/export_artifacts.rs"
     },
     {
+      "source": "crates/vault-layout/src/native_source_archives.rs",
+      "target": ".agents/tools/vault-layout/src/native_source_archives.rs"
+    },
+    {
       "source": "crates/vault-layout/src/raw_task.rs",
       "target": ".agents/tools/vault-layout/src/raw_task.rs"
     },
