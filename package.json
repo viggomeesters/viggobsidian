@@ -1,7 +1,7 @@
 {
   "files": [
     {
-      "sha256": "3fffb7afbf37d5a191a5bd08a139cb387dba3ff456994ab8aac0616bdf503df3",
+      "sha256": "7062e83950a1ee9ce10af98d44a5e39193262aa837e90105cf4568b08799835d",
       "source": "crates/vault-layout/fixtures/procedure-assets.json",
       "target": ".agents/tools/vault-layout/fixtures/procedure-assets.json"
     },
@@ -26,12 +26,12 @@
       "target": ".agents/tools/vault-layout/src/adoption.rs"
     },
     {
-      "sha256": "c1cb9384936796e5530ff6c02f1e82304eb331d83f154f790e842d71d4374e24",
+      "sha256": "3881ec4f6cdacec5b2b1a3bfb1ddd0c1f2063484df6e9d2f201eb7c0a0308730",
       "source": "crates/vault-layout/src/write_set.rs",
       "target": ".agents/tools/vault-layout/src/write_set.rs"
     },
     {
-      "sha256": "adf2251caaedb7889d9e7413529cd96ea19a36bff5c49db414944abcd7c1ce83",
+      "sha256": "e8fd51fbdac4430d8c40272a458bba24cb3b4d61b8f81ae1302641354f8d2ab3",
       "source": "docs/write-validation.md",
       "target": ".viggobsidian/core/write-validation.md"
     },
@@ -372,7 +372,7 @@
       "target": ".viggobsidian/core/procedures/batches-imports.md"
     },
     {
-      "sha256": "8bac6faa54e62eca7562232faf2ed5b36fb8c891af3c1073f84d462fe2f4bfed",
+      "sha256": "365ae070f6b91e26dfd0c77e95f756b312d8e9d8905322f98cedea829b72c449",
       "source": "procedures/maintenance-context.md",
       "target": ".viggobsidian/core/procedures/maintenance-context.md"
     },
@@ -1862,7 +1862,7 @@
       "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ],
-  "revision": "958264fccac034307f23fda56f85ed66f9a205c6",
+  "revision": "a06af9d868b553700d4662f9c82fbb7460674e8f",
   "schema": "viggobsidian.package.v1",
-  "version": "0.16.0"
+  "version": "0.16.2"
 }
