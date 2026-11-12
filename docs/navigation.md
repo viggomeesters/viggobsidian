@@ -153,14 +153,16 @@ kopieerblokken mogen direct zichtbaar blijven boven de gewone lengtegrens;
 lange uitleg buiten die mailvelden blijft onder Details. Zie het mailcontract.
 
 Een bubble begint bijvoorbeeld met
-`> [!activity-message|assistant] Assistant <span class="activity-meta">09:42 · draft</span>`
-onder een `> [!activity-day|YYYY-MM-DD]`-scheiding. De auteur staat eenmaal in de
-kop; tijd en kanaal zijn kleinere, gedempte metadata, geen inlinecode in de body.
+`> [!activity-message|assistant] Assistant`
+onder een `> [!activity-day|YYYY-MM-DD]`-scheiding. De auteurskop blijft toegankelijk
+en is visueel verborgen. Sluit de bubble af met een aparte laatste alinea
+`> *09:42 · Assistant · draft*`, na een lege `>`-regel en buiten eventuele Details.
+Deze footer is kleiner, gedempt en rechts uitgelijnd; herkomst verschijnt eenmaal.
 Nieuwe of expliciet omgezette notes gebruiken `activity_contract: provenance-v1`:
 de strikte checker verplicht herkomst voor alle auteurs en doelgebonden,
 gegroepeerde agentresultaten. Het volledige machinecontract staat in het
 mailcontract; bronwaarheid en tijdzone blijven inhoudelijke controle.
-De oude direct volgende inlinecode-stempel blijft compatibel; gebruik per bubble
+De oude direct volgende inlinecode-stempel en #32-header blijven compatibel; gebruik per bubble
 één herkomstvorm en geen extra auteurhandtekening. Alleen expliciete omzetting
 verandert historische presentatie. Gebruik het bewezen kanaal en schrijf geen
 historische minuten bij benadering. `Context`

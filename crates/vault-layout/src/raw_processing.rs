@@ -62,7 +62,8 @@ pub(crate) fn check_event(
                 .and_then(|line| line.strip_prefix("> *"))
                 .and_then(|line| line.strip_suffix('*'))
                 .ok_or("Wiki processing needs an author in the bubble footer")?;
-            let valid_footer = footer == actor
+            let valid_footer = crate::activity_delivery::valid_stamp(footer, actor)
+                || footer == actor
                 || footer.split_once(" · ").is_some_and(|(time, name)| {
                     name == actor
                         && time.split_once(':').is_some_and(|(hour, minute)| {
@@ -77,7 +78,9 @@ pub(crate) fn check_event(
                         })
                 });
             if !valid_footer {
-                return Err("use HH:MM · author, or only author when the time is unknown");
+                return Err(
+                    "use HH:MM · author · channel (— for unknown time), or a supported legacy author footer",
+                );
             }
         }
     }
@@ -204,6 +207,22 @@ mod tests {
         let wiki = "## Bronnen\n";
         let body = "# Bron\n\n## Activity\n\n> [!activity-day|2026-11-12] 12 november\n\n> [!activity-message|codex] Codex <span class=\"activity-meta\">— · Codex-chat</span>\n> **Verwerking in Wiki**\n> Broninhoud verwerkt in [[dossier/wiki/wiki#Bronnen]].\n";
         assert_eq!(check_event(body, note, "Bronnen", wiki), Ok(()));
+        let footer = body.replace(" <span class=\"activity-meta\">— · Codex-chat</span>", "")
+            + ">\n> *— · Codex · Codex-chat*\n";
+        assert_eq!(check_event(&footer, note, "Bronnen", wiki), Ok(()));
+        assert_eq!(
+            check_event(&footer.replace("*— ·", "*09:42 ·"), note, "Bronnen", wiki),
+            Ok(())
+        );
+        assert!(
+            check_event(
+                &footer.replace("· Codex ·", "· Other ·"),
+                note,
+                "Bronnen",
+                wiki
+            )
+            .is_err()
+        );
         assert_eq!(
             check_event(&body.replace("— ·", "23:59 ·"), note, "Bronnen", wiki),
             Ok(())

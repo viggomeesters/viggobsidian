@@ -9,7 +9,7 @@ activity_contract: provenance-v1
 
 > [!activity-day|2026-11-11] 11 Nov 2026
 
-> [!activity-message|assistant] Assistant <span class="activity-meta">12:00 · draft</span>
+> [!activity-message|assistant] Assistant
 >
 > <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->
 > <!-- viggobsidian:mail-delivery:v1 id=follow-up version=1 -->
@@ -40,3 +40,4 @@ activity_contract: provenance-v1
 > ```
 > <!-- /viggobsidian:mail-draft -->
 >
+> *12:00 · Assistant · draft*

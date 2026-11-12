@@ -3,17 +3,23 @@
 ## Herkomst en groepering afdwingen
 
 Nieuwe Event Notes en expliciet omgezette notes gebruiken frontmatter
-`activity_contract: provenance-v1`. Gebruik één auteurskop met tijd en kanaal:
+`activity_contract: provenance-v1`. Behoud de auteurskop voor identiteit en
+toegankelijkheid; de weergave verbergt haar visueel. Zet herkomst eenmaal onderaan:
 
 ```markdown
-> [!activity-message|assistant] Assistant <span class="activity-meta">09:42 · draft</span>
+> [!activity-message|assistant] Assistant
 > <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->
 > Het resultaat.
+>
+> *09:42 · Assistant · draft*
 ```
 
-De auteur staat eenmaal in de kop; de canonical `activity-meta`-span bevat alleen
-`HH:mm · kanaal`. Gebruik gewone tekst in de velden, geen HTML of Markdown.
-De weergave toont metadata kleiner en gedempt, zonder codechip of extra stempel.
+De canonical footer is een aparte laatste cursieve alinea van de buitenste
+bubble: `HH:mm · werkelijke auteur · kanaal`, met een lege geciteerde regel ervoor.
+Zet haar na en buiten geneste Details, zodat open- en dichtklappen haar niet
+verplaatst. Gebruik gewone tekst in de velden, geen HTML of Markdown.
+De weergave toont haar kleiner, gedempt en rechts uitgelijnd, zonder cursief,
+codechip of zichtbare auteurskop. Gewone cursieve brontekst blijft behouden.
 Gebruik geen extra auteurhandtekening. `vault-layout --strict` weigert ongeldige
 of dubbele herkomst. Uur en minuut moeten geldig zijn. Bij onbekende historische
 tijd gebruik je `—`, nooit een geschatte minuut. De Activity-dagscheiding is de
@@ -21,11 +27,32 @@ oorspronkelijke lokale dag, oplopend; de schrijver controleert de tijdzone en he
 bronbericht. Bestandstijden en antwoordtijden zijn geen bewijs van verzendtijd.
 
 Compatibiliteit: bestaande provenance-v1-bubbles met de direct volgende inlinecode
-`HH:mm · werkelijke auteur · kanaal` blijven geldig; die naam moet exact met de
-auteurskop overeenkomen. Eén bubble gebruikt precies één vorm. Een nieuwe kop
-maakt oude bronbytes niet automatisch ongeldig en activeert geen bulkconversie.
+`HH:mm · werkelijke auteur · kanaal` blijven geldig, evenals de #32-auteurskop
+`Auteur <span class="activity-meta">HH:mm · kanaal</span>`; de auteur moet exact
+met de auteurskop overeenkomen. Eén bubble gebruikt precies één vorm. Het nieuwe
+footerdoel maakt oude bronbytes niet automatisch ongeldig en activeert geen bulkconversie.
 Expliciete omzetting bewaart bewezen tijd, kanaal, auteur, input en historie;
 wijzig uitsluitend de herkomstpresentatie en behoud preimage/herstelbewijs.
+Een gerichte omzetting leest de actuele volledige note opnieuw, bindt de exacte
+preimage en wijzigt alleen expliciet gekozen bubbles. Verwijder uitsluitend de
+bewezen topstempel of de exacte #32-span; behoud de auteurskop. Voeg dezelfde
+drie velden als afzonderlijke laatste cursieve alinea toe buiten Details.
+Vergelijk na afloop oorspronkelijke inhoud, bronlinks, markers, taak-/bron-ID's,
+mailvelden en alle versies bytegewijs buiten deze herkomstwijziging. Weiger drift,
+dubbele of ambigue herkomst; verzin geen tijd/kanaal en verander geen importtijd
+in berichttijd. Reeds bestaande oude eindfooters kunnen historische kanaal-/
+handtekeningvormen bevatten: behoud ze tot expliciete brongebonden adoptie;
+zonder `activity_contract` ontstaat geen nieuwe verplichte herkomstmigratie.
+
+De broncheckout heeft hiervoor een begrensde read-only previewtool:
+`cargo run --locked --bin activity-footer-preview -- SOURCE EXPECTED_SHA256 HEADING_LINE[,HEADING_LINE...]`.
+De geselecteerde oorspronkelijke, 1-gebaseerde regel(s) moeten levende buitenste
+Activity-koppen zijn. Alleen LF/UTF-8 en exact ondersteunde herkomstvormen worden
+omgezet. De tool weigert drift, ongeldige velden en extra herkomstachtige tekst;
+zij schrijft uitsluitend de volledige kandidaat naar stdout. Controleer de diff
+en gebruik daarna de gekozen vaults geautoriseerde writer met dezelfde preimage;
+redirect nooit stdout over het bronbestand. Geen automatische adoptie, bulkmutatie
+of wijziging van taakstatus. Bewaar de originele bytes voor herstel.
 
 Elke agentbubble krijgt precies één directe marker:
 `<!-- viggobsidian:activity:v1 kind=result goal=follow-up -->`.

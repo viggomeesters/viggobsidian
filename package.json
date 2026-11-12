@@ -1,12 +1,12 @@
 {
   "files": [
     {
-      "sha256": "26c72e80cd0c7bdf11931c9ff7cb7e2503dbca0883883223058a4ceffd498c5c",
+      "sha256": "cacdaf9b99dc4187f9ee77bc96898b131c6e938ce4a45c4ff0a5cc1aa801f2f7",
       "source": "crates/vault-layout/fixtures/procedure-assets.json",
       "target": ".agents/tools/vault-layout/fixtures/procedure-assets.json"
     },
     {
-      "sha256": "f71cd011ba8899814e3822211d261be029b7fe998dcb03875c8c1f7b1136750b",
+      "sha256": "66f5d0720deb17f41bee12714e87f6c7452d4636e22b0c48a90e1c476e94c913",
       "source": "fixtures/activity-deliveries.md",
       "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
     },
@@ -21,7 +21,7 @@
       "target": ".agents/tools/vault-layout/src/skill_routes.rs"
     },
     {
-      "sha256": "28954eb116365d3c62e341b38224e6a397aef84fcfecf6f9c1661e243fad311c",
+      "sha256": "0fb5d500294dbd9e15e0d685ce8f09c7be80bc99db53da080c01884e18501879",
       "source": "crates/vault-layout/src/adoption.rs",
       "target": ".agents/tools/vault-layout/src/adoption.rs"
     },
@@ -36,12 +36,12 @@
       "target": ".viggobsidian/core/write-validation.md"
     },
     {
-      "sha256": "5c634e1a3ea7bac3ac4938c2379467395cc68a764b2f5a57591caa52dec2d5be",
+      "sha256": "6ca9146b4deec6300a69ae8b1309f6b2bba8231a791bd2da3b39177f59a79731",
       "source": "crates/vault-layout/src/activity_delivery.rs",
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "9b9dfa7550bd714de81ad43226128444b17fbf416f1f78057be53fe1476b9170",
+      "sha256": "5a99f1e1f2f620334bc3ef6482e89da7d2d3a5cc80e4e7c894c18599edaba679",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -91,12 +91,12 @@
       "target": ".agents/tools/vault-layout/src/navigation_contract.rs"
     },
     {
-      "sha256": "1af3a6f4f50e88f98d1a4078a0ccda4c48a1adbe2739a765ac60c96ef1397c1c",
+      "sha256": "939f2614ff4fe6a3843740072d1bbb26576ae6b480a3e29dccf75859b6ac02e9",
       "source": "docs/mail-format.md",
       "target": ".viggobsidian/core/mail-format.md"
     },
     {
-      "sha256": "9f43d1cf21a3299401ce6edf4f6989b1fa231bfcef55ab1dfdd6f9abc309051d",
+      "sha256": "60cb8e2f136c5fee5731eae25d9a825e42136ff44a1682999c309c42c36523a2",
       "source": "templates/mail-draft.md",
       "target": ".viggobsidian/core/mail-draft.md"
     },
@@ -166,7 +166,7 @@
       "target": "99-system/vault/vault-navigation/standaard/wiki/vault-templates.base"
     },
     {
-      "sha256": "9c4c4f1102ecd962c515baad6d11c5eba6680212309bde9fb98d405fbe1f75a9",
+      "sha256": "41315def7ea3d01ad88613579e9faf4dbafa20aba9dd62676410d2e01c3541c5",
       "source": "skills/vault/SKILL.md",
       "target": ".agents/skills/vault/SKILL.md"
     },
@@ -201,7 +201,7 @@
       "target": ".agents/skills/vault-brief/SKILL.md"
     },
     {
-      "sha256": "3bb5135d99dc7c08dc4007127635fe88f04dd24e2fdf5f19f3b4203319e00994",
+      "sha256": "ae10e76975af0bbfe68a3909269b28b75a26bc02ed6462bd615fe4ce1c8b771e",
       "source": "assets/folder-note.css",
       "target": ".viggobsidian/core/folder-note.css"
     },
@@ -216,7 +216,7 @@
       "target": ".obsidian/snippets/active-note-contrast.css"
     },
     {
-      "sha256": "3bb5135d99dc7c08dc4007127635fe88f04dd24e2fdf5f19f3b4203319e00994",
+      "sha256": "ae10e76975af0bbfe68a3909269b28b75a26bc02ed6462bd615fe4ce1c8b771e",
       "source": "assets/folder-note.css",
       "target": ".obsidian/snippets/folder-note.css",
       "transform": "css-v1"
@@ -287,7 +287,7 @@
       "target": ".agents/tools/vault-layout/src/mail_manifest.rs"
     },
     {
-      "sha256": "2bf8612e9194846d857ec6d28aeb7817372c1af685201fcc92ccecbc1fa81910",
+      "sha256": "eace4bf18bf5fb70ee67c4129bd30d9b6595891744215af39eb44a7860e48ee6",
       "source": "crates/vault-layout/src/work_intake.rs",
       "target": ".agents/tools/vault-layout/src/work_intake.rs"
     },
@@ -302,7 +302,7 @@
       "target": ".agents/tools/vault-layout/src/event_header.rs"
     },
     {
-      "sha256": "36ba214959cb092b310bba6152efae6f8a8a3af887498a41dcec35df8da3327a",
+      "sha256": "04c105651a69c399a99d3d7020674d02b4f60466dda01a5430f7675a83f75bcc",
       "source": "crates/vault-layout/src/raw_processing.rs",
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
@@ -332,7 +332,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "b176c68feb25cd6b732602d5a6ab89fdfc1f1669b713ca500f9c93499de919d4",
+      "sha256": "83455595f871504dedf473988d7178c88cc1156c9ceb95b75dd18cba112c42e3",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -1832,7 +1832,7 @@
       "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ],
-  "revision": "ee61f6664f8cebaa47960ccaeac08ddfb421c067",
+  "revision": "32b0cb9839987aa912eb1df08f5b4a59d5bdd200",
   "schema": "viggobsidian.package.v1",
-  "version": "0.19.1"
+  "version": "0.20.0"
 }

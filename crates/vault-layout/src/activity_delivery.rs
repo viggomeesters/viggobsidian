@@ -115,15 +115,40 @@ pub(crate) fn provenance_findings(body: &str) -> Vec<String> {
             .get(1)
             .and_then(|l| l.strip_prefix("> `"))
             .and_then(|s| s.strip_suffix('`'));
+        // Only direct, visible final italic paragraphs are provenance. Nested
+        // details and fenced/copyable source text must never supply a footer.
+        let footers: Vec<_> = message
+            .iter()
+            .filter_map(|line| {
+                line.strip_prefix("> *")?
+                    .strip_suffix('*')
+                    .filter(|text| text.split(" · ").count() >= 3)
+            })
+            .collect();
+        let footer = footers.first().copied();
         let header = header_stamp(line, author);
+        let legacy = stamp.is_some_and(|s| s.split(" · ").count() == 3);
         if header == Some(false)
-            || (header.is_some() && stamp.is_some_and(|s| s.split(" · ").count() == 3))
+            || usize::from(header.is_some()) + usize::from(legacy) + footers.len() > 1
         {
             result.push(format!(
-                "{author}: invalid or duplicate Activity header provenance"
+                "{author}: invalid or duplicate Activity provenance"
             ));
+        } else if let Some(footer) = footer {
+            let expected = format!("> *{footer}*");
+            let last = raw_message.iter().rposition(|line| *line != ">");
+            if !valid_stamp(footer, author)
+                || footer
+                    .chars()
+                    .any(|c| matches!(c, '<' | '>' | '&' | '*' | '[' | ']' | '`'))
+                || !last.is_some_and(|i| {
+                    raw_message[i] == expected && i > 1 && raw_message[i - 1] == ">"
+                })
+            {
+                result.push(format!("{author}: end the outer bubble with a separate *HH:mm · {author} · channel* paragraph; use — for unknown time"));
+            }
         } else if header.is_none() && !stamp.is_some_and(|stamp| valid_stamp(stamp, author)) {
-            result.push(format!("{author}: start the bubble with `HH:mm · {author} · channel`, or use — for unknown time"));
+            result.push(format!("{author}: end the bubble with *HH:mm · {author} · channel*, or use — for unknown time (legacy top stamps and headers remain supported)"));
         }
         if role == "human" {
             continue;
@@ -366,6 +391,37 @@ pub(crate) fn findings(body: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn footer_is_final_direct_unique_and_preserves_italic_source() {
+        let good = "## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alexandra van Voorbeeld\n> *Gewone cursieve inhoud.*\n> [Source](https://example.org/message)\n>\n> > [!activity-more]- Meer\n> > Detail.\n>\n> *— · Alexandra van Voorbeeld · Mail (summary)*\n";
+        assert!(provenance_findings(good).is_empty());
+        for broken in [
+            good.replace("· Alexandra van Voorbeeld ·", "· Someone Else ·"),
+            good.replace("*— ·", "*25:00 ·"),
+            good.replace("> *— ·", "> > *— ·"),
+            good.replace(">\n> *— ·", "> *— ·"),
+            format!("{good}> After the footer.\n"),
+            format!("{good}>\n> *12:00 · Alexandra van Voorbeeld · Chat*\n"),
+            good.replace(
+                "> *Gewone",
+                "> `— · Alexandra van Voorbeeld · Chat`\n> *Gewone",
+            ),
+            good.replace(
+                "Alexandra van Voorbeeld\n",
+                "Alexandra van Voorbeeld <span class=\"activity-meta\">— · Chat</span>\n",
+            ),
+            good.replace("> *— ·", "> ```text\n> *— ·")
+                .replace("(summary)*", "(summary)*\n> ```"),
+            good.replace("Mail (summary)", "<b>Mail</b>"),
+            good.replace("Mail (summary)", "Mail · extra"),
+        ] {
+            assert!(!provenance_findings(&broken).is_empty(), "{broken}");
+        }
+        let mail = include_str!("../fixtures/activity-deliveries.md");
+        for check in [provenance_findings, findings, crate::mail_draft::findings] {
+            assert!(check(mail).is_empty(), "{mail}");
+        }
+    }
     fn stamped() -> String {
         format!(
             "## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex\n> `23:59 · Alex · Codex-chat`\n> {INPUT}\n> Graag aanpassen.\n\n> [!activity-day|2026-11-12] 12 Nov 2026\n\n> [!activity-message|codex] Codex\n> `00:01 · Codex · draft`\n> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->\n> Aangepast resultaat."
