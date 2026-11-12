@@ -2,6 +2,15 @@
 
 Gebruik een gecontroleerde releasecheckout, niet een automatische pull van `main`. De manifesthash legt alle pakketbytes vast; `revision` wijst naar de exacte broncommit waarmee die assets zijn gebouwd. Verifieer de tag en manifestdiff voordat je een nieuwe release vertrouwt. Een hash is integriteitsbewijs, geen cryptografische uitgevershandtekening.
 
+Bouw vóór `pack` de CLI uit dezelfde releasecheckout. Wanneer `Cargo.toml`
+aanwezig is, leest de bestaande Cargo-tool de echte `package.version` met zijn
+TOML-parser via `metadata --no-deps --offline --locked`. Deze versie en de
+CLI-versie moeten exact overeenkomen. Er wordt geen broncode gebouwd of netwerk
+gebruikt, en Cargo mag de lock niet wijzigen. Een oude CLI, onleesbaar manifest of onvolledige
+bronrevision wordt geweigerd vóór `package.json` verandert. Gebruik voor de
+revision de volledige veertigtekensbroncommit; behoud gepubliceerde tags en
+herstel foutieve versiemetadata met een opvolgende patchrelease.
+
 ```sh
 cargo build --release --locked
 ./target/release/viggobsidian plan --vault /path/to/vault --package . > /path/to/preview.json

@@ -116,7 +116,7 @@
       "target": ".viggobsidian/core/skills.md"
     },
     {
-      "sha256": "13f3fbc5c6873f98e6f04bfe0e0cf0d8d69e2734e04750f42c9e2ad065e7fa20",
+      "sha256": "7280a913a767686e4235f01f3ffa79b7b734facbcb00537542fcae524b898cc0",
       "source": "docs/updates.md",
       "target": ".viggobsidian/core/updates.md"
     },
@@ -1867,7 +1867,7 @@
       "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ],
-  "revision": "fb9bd50698883a036934d09b2dea9b9557e8f300",
+  "revision": "510d20ad0052393cf3757fff67dd905c90dde269",
   "schema": "viggobsidian.package.v1",
-  "version": "0.17.0"
+  "version": "0.18.1"
 }
