@@ -19,6 +19,6 @@ alternatieve writer of runtime te bouwen.
 
 Gebruik voor repositorywijzigingen de actuele Issue → branch → PR → lokale
 controle en onafhankelijke review → merge-route. Behoud expliciet read-only,
-uitstel en beperktere lokale regels. Maak geen tweede taakregister, Go-runtime,
+uitstel en beperktere lokale regels. Maak geen tweede taakregister, workflowruntime,
 globale queue, scheduler of GitHub Actions. Een bronnotitie bewaart menselijke
 context en wordt geen verplichte tussenstap voor ieder repositorywerk.

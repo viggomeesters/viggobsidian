@@ -44,7 +44,7 @@ assumptions need adversarial scrutiny, and [wayfinder](../wayfinder/PROCEDURE.md
 maintaining a multi-session decision map. Apply their technique within this
 interview; do not recursively invoke interview through wayfinder. The explicit
 owner, scope and authorization take precedence over a specialist's generic
-Go/repository handoff. No automatic Go adoption, implementation or publication.
+Repository handoff. No automatic workflow adoption, implementation or publication.
 
 ## Inspect, ask and converge
 

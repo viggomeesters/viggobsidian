@@ -5,7 +5,7 @@ description: Safe Git compatibility route for scoped Issue, branch, PR, local va
 
 # Git
 
-Use the current `go` repository procedure for authorized Issue → branch → PR → local checks and independent review → merge work. Preserve explicit plan-only or read-only requests. Retired workflow engines, claims and contracts are not prerequisites or fallback routes.
+Use the current `github-work` repository procedure for authorized Issue → branch → PR → local checks and independent review → merge work. Preserve explicit plan-only or read-only requests. Retired workflow engines, claims and contracts are not prerequisites or fallback routes.
 
 Read `.agents/skill-adapters/git.md` from the explicitly selected target root when present. It supplies local publication, branch-retention and handoff-check conventions; otherwise follow the actual target repository's rules. Source location does not select a repository. Before commit, push, branch deletion, stash removal or rebase, snapshot state and ownership. Preserve unrelated work and stage explicit reviewed paths.
 

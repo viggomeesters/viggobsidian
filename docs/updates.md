@@ -18,7 +18,9 @@ cargo build --release --locked
 ./target/release/viggobsidian check --vault /path/to/vault
 ```
 
-Preview schrijft niets naar de vault. Apply controleert de hele preview opnieuw, weigert lokale drift en maakt een receipt met oude bytes vóór de eerste wijziging. De manifestallowlist beperkt de updater tot gedeelde instructies, zeven skills, de actieve CSS, vier Bases en de expliciete Rust-cratebestanden met regressiefixtures. Hij verandert geen notities, projecten, registraties, runtimeproviders, Gitremotes, pluginconfig of root-AGENTS. Verwijderen van eerder beheerde assets is bewust nog niet ondersteund; dat vereist een expliciete migratie.
+Preview schrijft niets naar de vault. Apply controleert de hele preview opnieuw, weigert lokale drift en maakt een receipt met oude bytes vóór de eerste wijziging. De manifestallowlist beperkt de updater tot gedeelde instructies, skills, de actieve CSS, Bases en de expliciete Rust-cratebestanden met regressiefixtures. Hij verandert geen notities, projecten, registraties, runtimeproviders, Gitremotes, pluginconfig of root-AGENTS. Algemene verwijdering van eerder beheerde assets blijft geweigerd.
+
+Vanaf v0.19 is één eindige migratie ingebouwd: de voormalige `go`-ingang en zeven `go-*`-aliases worden vervangen door `github-work`. Alleen de negen exact bekende, beheerde en ongewijzigde bestanden mogen verdwijnen, en alleen als beide nieuwe `github-work`-bestanden in het gevalideerde pakket staan. Preview toont de verwijderingen als `after: null`; apply bewaart de oude bytes in het herstelreceipt. Rollback herstelt ook de oude installatiestatus en weigert later aangemaakte bestanden op de oude paden. Onbeheerde bestanden en profielsymlinks worden niet door de pakketupdater verwijderd. De lokale profielbeheerder werkt de publieke naam en metadata afzonderlijk met eigen preimages bij.
 
 ## Stijlen en diepe layoutcontrole vanaf v0.2
 
