@@ -9,6 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod css;
+mod procedure_surface;
 const STATE: &str = ".viggobsidian/installed.json";
 const SKILLS: &[&str] = &[
     "vault",
@@ -91,6 +92,9 @@ fn allowed(target: &str) -> bool {
     if relative(target).is_err() {
         return false;
     }
+    if procedure_surface::targets().contains(target) {
+        return true;
+    }
     if target == "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
         || [
             "folder-note",
@@ -164,6 +168,7 @@ fn allowed(target: &str) -> bool {
         "work_intake",
         "work_package",
         "write_set",
+        "skill_routes",
         "maintenance",
     ]
     .iter()
