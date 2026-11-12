@@ -21,7 +21,7 @@ Een opname van `css-split --input FILE` is uitsluitend lokaal voorwerk; inspecte
 
 ## Eerste adoptie
 
-Vanaf v0.9 bezit de release ook de generieke PROCEDURE.md-callerlocaties,
+Vanaf v0.10 bezit de release ook de generieke PROCEDURE.md-callerlocaties,
 actieve referentielocators, native-vaultbridge en de acht gedeelde
 procedurecontracten. `core/procedures.json` is de expliciete dekkingsmatrix;
 de updaterallowlist is daarvan gecompileerd, niet door een aangeboden pakket

@@ -808,6 +808,104 @@ fn exact_write_set_ignores_finance_but_rejects_changed_health_and_boundary_regre
 }
 
 #[test]
+fn typed_handoff_preserves_old_owner_but_checks_destination_and_sibling_bytes() {
+    let f = Fixture::new("typed-handoff");
+    f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
+    f.write(
+        "topics/topics.md",
+        nav(
+            &f,
+            "topics",
+            "HOME",
+            "> [!navigation]\n> - [[topics/old/old|Old]]\n> - [[topics/new/new|New]]\n",
+        ),
+    );
+    let old =
+        "---\ntype: reference\ncategory: legacy\n---\n\n# Old\n\nOriginal historical prose.\n";
+    f.write("topics/old/old.md", old);
+    f.write("topics/old/history.txt", "Immutable sibling.");
+    f.write(
+        "topics/new/new.md",
+        nav(&f, "topics/new", "topics/topics", ""),
+    );
+    let proof = json!({"kind":"owner-handoff","before":old,"target":"topics/new/new.md"});
+    let changes = json!([{"path":"topics/old/old.md","expect":"present","proof":proof}]);
+    let (out, baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
+    assert!(out.status.success(), "{baseline}");
+    let (fm, body) = old.split_once("\n---\n").unwrap();
+    let after = format!(
+        "{fm}\n---\n\n<!-- viggobsidian:knowledge-owner -->\n> [!info] Actuele kennis\n> [[topics/new/new|Open actuele kennis]]\n<!-- /viggobsidian:knowledge-owner -->\n{body}"
+    );
+    f.write("topics/old/old.md", &after);
+    let (out, r) = write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(out.status.success(), "{r}");
+    f.write("topics/old/old.md", old);
+    let mut mixed = changes.clone();
+    mixed
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"path":"topics/old/history.txt","expect":"present"}));
+    let (_, mixed_baseline) = write_check(&f, "baseline", mixed.clone(), Value::Null);
+    f.write("topics/old/old.md", &after);
+    f.write("topics/old/history.txt", "Rewritten ordinary file.");
+    let (out, _) = write_check(&f, "validate", mixed, mixed_baseline);
+    assert!(
+        !out.status.success(),
+        "changed nonproof files must remain strict even with an identical old finding"
+    );
+    f.write("topics/old/history.txt", "Immutable sibling.");
+    f.write("topics/old/history.txt", "Foreign edit.");
+    let (out, _) = write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(!out.status.success());
+    f.write("topics/old/history.txt", "Immutable sibling.");
+    f.write("topics/new/new.md", "Broken destination.");
+    let (out, _) = write_check(&f, "validate", changes, baseline);
+    assert!(!out.status.success());
+}
+
+#[test]
+fn navigation_has_one_grid_and_respects_declared_dates() {
+    let f = Fixture::new("navigation-grid-date");
+    f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
+    let child = nav(&f, "topics/child", "topics/topics", "").replacen(
+        "\n---\n",
+        "\nnavigation_date: '2024-03'\n---\n",
+        1,
+    );
+    f.write("topics/child/child.md", child);
+    f.write("topics/topics.md",nav(&f,"topics","HOME","> [!navigation]\n> - [[topics/child/child|Child]]\n\n> [!navigation]\n> - [[topics/child/child|Child]]\n").replacen("\n---\n","\ncssclasses: [vault-dashboard]\n---\n",1));
+    let r: Value = serde_json::from_slice(&f.strict("topics").stdout).unwrap();
+    for code in ["navigation-grid", "navigation-date"] {
+        assert!(
+            r["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|v| v["code"] == code),
+            "{r}"
+        );
+    }
+    f.write(
+        "topics/topics.md",
+        nav(
+            &f,
+            "topics",
+            "HOME",
+            "> [!navigation]\n> - [[topics/child/child|2024-03 · Child]]\n",
+        ),
+    );
+    let r: Value = serde_json::from_slice(&f.strict("topics").stdout).unwrap();
+    assert!(
+        !r["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v["code"] == "navigation-grid" || v["code"] == "navigation-date"),
+        "{r}"
+    );
+}
+
+#[test]
 fn exact_write_set_creation_and_deletion_require_parent_navigation() {
     let fixture = Fixture::new("write-set-create");
     fixture.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");

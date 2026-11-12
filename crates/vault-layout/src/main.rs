@@ -16,6 +16,7 @@ mod index_navigation;
 mod link_style;
 mod mail_draft;
 mod mail_manifest;
+mod maintenance;
 mod navigation_contract;
 mod project_codes;
 mod raw_processing;
@@ -73,6 +74,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut link_style = None;
     let mut write_set_mode = false;
     let mut adoption_mode = None;
+    let mut maintenance_transform = false;
     let mut skill_route = None;
     let mut skill_routes = false;
     let mut source_adapter = None;
@@ -100,6 +102,9 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             Some("--adoption-apply") if adoption_mode.is_none() => adoption_mode = Some("apply"),
             Some("--adoption-recover") if adoption_mode.is_none() => {
                 adoption_mode = Some("recover")
+            }
+            Some("--maintenance-transform") if !maintenance_transform => {
+                maintenance_transform = true
             }
             Some("--new-work-task") => new_work_task = true,
             Some("--link-style") if link_style.is_none() => link_style = Some(false),
@@ -150,6 +155,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             || link_style.is_some()
             || write_set_mode
             || adoption_mode.is_some()
+            || maintenance_transform
         {
             return Err("skill preflight requires --vault and one exclusive route mode".into());
         }
@@ -161,7 +167,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         );
     }
     let vault = vault.canonicalize()?;
-    if write_set_mode || adoption_mode.is_some() {
+    if write_set_mode || maintenance_transform || adoption_mode.is_some() {
         if folder.is_some()
             || tiles_only
             || indexes
@@ -175,16 +181,26 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             || check_all
             || new_work_task
             || link_style.is_some()
-            || (write_set_mode && adoption_mode.is_some())
+            || (write_set_mode && maintenance_transform)
+            || (adoption_mode.is_some() && (write_set_mode || maintenance_transform))
         {
             return Err(USAGE.into());
         }
-        let input = serde_json::from_reader(io::stdin().lock())?;
-        return if let Some(apply) = adoption_mode {
-            adoption::run(&vault, apply, input)
-        } else {
-            write_set::run(&vault, input)
-        };
+        let request: Value = serde_json::from_reader(io::stdin().lock())?;
+        if let Some(mode) = adoption_mode {
+            return adoption::run(&vault, mode, request);
+        }
+        if maintenance_transform {
+            let path = request["path"].as_str().ok_or("maintenance path missing")?;
+            println!(
+                "{}",
+                serde_json::to_string(
+                    &json!({"after":maintenance::transform(path,&request["proof"])?})
+                )?
+            );
+            return Ok(0);
+        }
+        return write_set::run(&vault, request);
     }
     if let Some(apply) = link_style {
         if check_work
@@ -583,6 +599,22 @@ impl Scan<'_> {
             return Ok(());
         }
         for target in targets() {
+            let target_file = self
+                .vault
+                .join(format!("{}.md", target.split('#').next().unwrap_or(target)));
+            if let Some((meta, _)) = read_metadata(&target_file)?
+                && let Some(date) = meta["navigation_date"].as_str()
+                && tiles(body, false).flatten().any(|t| t == target)
+                && !body
+                    .lines()
+                    .any(|line| line.starts_with(&format!("> - [[{target}|{date} · ")))
+            {
+                self.issue(
+                    path,
+                    "navigation-date",
+                    "show the child's declared navigation_date at the start of its tile label",
+                );
+            }
             self.tiles += 1;
             if !self
                 .tile_styles
@@ -596,7 +628,19 @@ impl Scan<'_> {
                 );
             }
         }
-        let home_dashboard = has_class("dashboard-variant-2-2");
+        if body
+            .lines()
+            .filter(|line| *line == "> [!navigation]")
+            .count()
+            > 1
+        {
+            self.issue(
+                path,
+                "navigation-grid",
+                "put sibling tiles in one navigation callout so they form one grid",
+            );
+        }
+        let home_dashboard = path == self.vault.join("HOME.md");
         let distinct_accents = home_dashboard || has_class("tile-distinct-accents");
         let distinct_icons = home_dashboard || has_class("tile-distinct-icons");
         if distinct_accents || distinct_icons {
@@ -1098,6 +1142,7 @@ impl Scan<'_> {
             self.issue(path, "frontmatter", "expected a YAML frontmatter block");
             return Ok(None);
         };
+        let body = maintenance::without_notice(&body).to_owned();
         if self.strict {
             for message in mail_draft::findings(&body) {
                 self.issue(path, "strict-mail-draft", message);
@@ -2499,7 +2544,7 @@ mod tests {
             .unwrap();
         assert!(scan.findings.is_empty());
         scan.check_tiles(
-            path,
+            Path::new("./HOME.md"),
             &json!({"cssclasses": ["vault-dashboard", "dashboard-variant-2-2"]}),
             body,
         )

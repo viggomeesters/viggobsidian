@@ -2,7 +2,7 @@
 
 De publieke ingangen zijn `vault`, `vault-log`, `vault-process`, `vault-task`, `vault-tackle`, `vault-hub` en `vault-brief`. Elke ingang verwijst naar hetzelfde expliciete-doelcontract. Ze worden uit een gepinde release op stabiele `.agents/skills/<naam>/SKILL.md`-paden geïnstalleerd; hostprofielen kunnen naar die geïnstalleerde paden blijven verwijzen. De repositorycheckout wordt geen vault en krijgt geen brondata.
 
-Vanaf v0.9 zijn ook de generieke interne procedures, actieve bronreferenties en
+Vanaf v0.10 zijn ook de generieke interne procedures, actieve bronreferenties en
 compatibilityaliases release-assets. `.viggobsidian/core/procedures.json` is de
 volledige machineleesbare dekkingsmatrix; `core/procedures/*.md` bezit de gedeelde
 gedragscontracten. De bestaande callerpaden blijven behouden. De zeven publieke
