@@ -1,23 +1,81 @@
 {
   "files": [
-    {"source":"crates/vault-layout/src/maintenance.rs","target":".agents/tools/vault-layout/src/maintenance.rs"},
-    { "source": "crates/vault-layout/src/adoption.rs", "target": ".agents/tools/vault-layout/src/adoption.rs" },
-    { "source": "crates/vault-layout/src/write_set.rs", "target": ".agents/tools/vault-layout/src/write_set.rs" },
-    { "source": "docs/write-validation.md", "target": ".viggobsidian/core/write-validation.md" },
-    { "source": "crates/vault-layout/src/activity_delivery.rs", "target": ".agents/tools/vault-layout/src/activity_delivery.rs" },
-    { "source": "docs/navigation.md", "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md" },
-    { "source": "docs/compat/folder-note.md", "target": "99-system/vault/vault-navigation/standaard/wiki/folder-note.md" },
-    { "source": "docs/compat/folder-workspace.md", "target": "99-system/vault/vault-navigation/standaard/wiki/folder-workspace.md" },
-    { "source": "docs/compat/project-folder-note.md", "target": "99-system/vault/vault-navigation/standaard/wiki/project-folder-note.md" },
-    { "source": "docs/compat/root-folder-note.md", "target": "99-system/vault/vault-navigation/standaard/wiki/root-folder-note.md" },
-    { "source": "docs/compat/vault-navigation-check.md", "target": "99-system/vault/vault-navigation/standaard/wiki/vault-navigation-check.md" },
-    { "source": "docs/compat/vault-schema-check.md", "target": "99-system/vault/vault-navigation/standaard/wiki/vault-schema-check.md" },
-    { "source": "schemas/navigation-contract.yaml", "target": ".viggobsidian/core/navigation-contract.yaml" },
-    { "source": "schemas/navigation-contract.yaml", "target": ".agents/tools/vault-layout/fixtures/navigation-contract.yaml" },
-    { "source": "crates/vault-layout/src/navigation_contract.rs", "target": ".agents/tools/vault-layout/src/navigation_contract.rs" },
-    { "source": "docs/mail-format.md", "target": ".viggobsidian/core/mail-format.md" },
-    { "source": "templates/mail-draft.md", "target": ".viggobsidian/core/mail-draft.md" },
-    { "source": "crates/vault-layout/src/mail_draft.rs", "target": ".agents/tools/vault-layout/src/mail_draft.rs" },
+    {
+      "source": "crates/vault-layout/src/maintenance.rs",
+      "target": ".agents/tools/vault-layout/src/maintenance.rs"
+    },
+    {
+      "source": "crates/vault-layout/src/skill_routes.rs",
+      "target": ".agents/tools/vault-layout/src/skill_routes.rs"
+    },
+    {
+      "source": "crates/vault-layout/src/adoption.rs",
+      "target": ".agents/tools/vault-layout/src/adoption.rs"
+    },
+    {
+      "source": "crates/vault-layout/src/write_set.rs",
+      "target": ".agents/tools/vault-layout/src/write_set.rs"
+    },
+    {
+      "source": "docs/write-validation.md",
+      "target": ".viggobsidian/core/write-validation.md"
+    },
+    {
+      "source": "crates/vault-layout/src/activity_delivery.rs",
+      "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
+    },
+    {
+      "source": "docs/navigation.md",
+      "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
+    },
+    {
+      "source": "docs/compat/folder-note.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/folder-note.md"
+    },
+    {
+      "source": "docs/compat/folder-workspace.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/folder-workspace.md"
+    },
+    {
+      "source": "docs/compat/project-folder-note.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/project-folder-note.md"
+    },
+    {
+      "source": "docs/compat/root-folder-note.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/root-folder-note.md"
+    },
+    {
+      "source": "docs/compat/vault-navigation-check.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/vault-navigation-check.md"
+    },
+    {
+      "source": "docs/compat/vault-schema-check.md",
+      "target": "99-system/vault/vault-navigation/standaard/wiki/vault-schema-check.md"
+    },
+    {
+      "source": "schemas/navigation-contract.yaml",
+      "target": ".viggobsidian/core/navigation-contract.yaml"
+    },
+    {
+      "source": "schemas/navigation-contract.yaml",
+      "target": ".agents/tools/vault-layout/fixtures/navigation-contract.yaml"
+    },
+    {
+      "source": "crates/vault-layout/src/navigation_contract.rs",
+      "target": ".agents/tools/vault-layout/src/navigation_contract.rs"
+    },
+    {
+      "source": "docs/mail-format.md",
+      "target": ".viggobsidian/core/mail-format.md"
+    },
+    {
+      "source": "templates/mail-draft.md",
+      "target": ".viggobsidian/core/mail-draft.md"
+    },
+    {
+      "source": "crates/vault-layout/src/mail_draft.rs",
+      "target": ".agents/tools/vault-layout/src/mail_draft.rs"
+    },
     {
       "source": "docs/policy.md",
       "target": ".viggobsidian/core/policy.md"
@@ -198,6 +256,334 @@
     {
       "source": "LICENSES/lucide.txt",
       "target": ".viggobsidian/core/lucide-license.txt"
+    },
+    {
+      "source": "procedures/authority.md",
+      "target": ".viggobsidian/core/procedures/authority.md"
+    },
+    {
+      "source": "procedures/read-capture.md",
+      "target": ".viggobsidian/core/procedures/read-capture.md"
+    },
+    {
+      "source": "procedures/process.md",
+      "target": ".viggobsidian/core/procedures/process.md"
+    },
+    {
+      "source": "procedures/daily.md",
+      "target": ".viggobsidian/core/procedures/daily.md"
+    },
+    {
+      "source": "procedures/task.md",
+      "target": ".viggobsidian/core/procedures/task.md"
+    },
+    {
+      "source": "procedures/selection-hub.md",
+      "target": ".viggobsidian/core/procedures/selection-hub.md"
+    },
+    {
+      "source": "procedures/batches-imports.md",
+      "target": ".viggobsidian/core/procedures/batches-imports.md"
+    },
+    {
+      "source": "procedures/maintenance-context.md",
+      "target": ".viggobsidian/core/procedures/maintenance-context.md"
+    },
+    {
+      "source": "skills/apple-mail-vault/PROCEDURE.md",
+      "target": ".agents/skills/apple-mail-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/audio-to-obsidian-vault/PROCEDURE.md",
+      "target": ".agents/skills/audio-to-obsidian-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/bookmarks/PROCEDURE.md",
+      "target": ".agents/skills/bookmarks/PROCEDURE.md"
+    },
+    {
+      "source": "skills/briefing/PROCEDURE.md",
+      "target": ".agents/skills/briefing/PROCEDURE.md"
+    },
+    {
+      "source": "skills/contacts/PROCEDURE.md",
+      "target": ".agents/skills/contacts/PROCEDURE.md"
+    },
+    {
+      "source": "skills/document-photo-to-vault/PROCEDURE.md",
+      "target": ".agents/skills/document-photo-to-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/email-inbox-vault/PROCEDURE.md",
+      "target": ".agents/skills/email-inbox-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/email-to-jsonl-vault/PROCEDURE.md",
+      "target": ".agents/skills/email-to-jsonl-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/enrich/PROCEDURE.md",
+      "target": ".agents/skills/enrich/PROCEDURE.md"
+    },
+    {
+      "source": "skills/external-message-evidence-capture/PROCEDURE.md",
+      "target": ".agents/skills/external-message-evidence-capture/PROCEDURE.md"
+    },
+    {
+      "source": "skills/folder-workspace/PROCEDURE.md",
+      "target": ".agents/skills/folder-workspace/PROCEDURE.md"
+    },
+    {
+      "source": "skills/inbox/PROCEDURE.md",
+      "target": ".agents/skills/inbox/PROCEDURE.md"
+    },
+    {
+      "source": "skills/jsonl-vault-capture-operations/PROCEDURE.md",
+      "target": ".agents/skills/jsonl-vault-capture-operations/PROCEDURE.md"
+    },
+    {
+      "source": "skills/life-os-task/PROCEDURE.md",
+      "target": ".agents/skills/life-os-task/PROCEDURE.md"
+    },
+    {
+      "source": "skills/mailbox/PROCEDURE.md",
+      "target": ".agents/skills/mailbox/PROCEDURE.md"
+    },
+    {
+      "source": "skills/obsidian/PROCEDURE.md",
+      "target": ".agents/skills/obsidian/PROCEDURE.md"
+    },
+    {
+      "source": "skills/obsidian-enrich/PROCEDURE.md",
+      "target": ".agents/skills/obsidian-enrich/PROCEDURE.md"
+    },
+    {
+      "source": "skills/obsidian-vault/PROCEDURE.md",
+      "target": ".agents/skills/obsidian-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-aw-lite-operations/PROCEDURE.md",
+      "target": ".agents/skills/vault-aw-lite-operations/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-briefing-link/PROCEDURE.md",
+      "target": ".agents/skills/vault-briefing-link/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-capture/PROCEDURE.md",
+      "target": ".agents/skills/vault-capture/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-capture-operations/PROCEDURE.md",
+      "target": ".agents/skills/vault-capture-operations/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-compile/PROCEDURE.md",
+      "target": ".agents/skills/vault-compile/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-contact/PROCEDURE.md",
+      "target": ".agents/skills/vault-contact/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-context/PROCEDURE.md",
+      "target": ".agents/skills/vault-context/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-context-memory-ingestion/PROCEDURE.md",
+      "target": ".agents/skills/vault-context-memory-ingestion/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-document-capture/PROCEDURE.md",
+      "target": ".agents/skills/vault-document-capture/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-email/PROCEDURE.md",
+      "target": ".agents/skills/vault-email/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-email-process/PROCEDURE.md",
+      "target": ".agents/skills/vault-email-process/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-inbox/PROCEDURE.md",
+      "target": ".agents/skills/vault-inbox/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-project-refresh/PROCEDURE.md",
+      "target": ".agents/skills/vault-project-refresh/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-read/PROCEDURE.md",
+      "target": ".agents/skills/vault-read/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-review/PROCEDURE.md",
+      "target": ".agents/skills/vault-review/PROCEDURE.md"
+    },
+    {
+      "source": "skills/viggo-life-os-vault/PROCEDURE.md",
+      "target": ".agents/skills/viggo-life-os-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/website-scrape-to-vault/PROCEDURE.md",
+      "target": ".agents/skills/website-scrape-to-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/youtube-to-obsidian-vault/PROCEDURE.md",
+      "target": ".agents/skills/youtube-to-obsidian-vault/PROCEDURE.md"
+    },
+    {
+      "source": "skills/vault-capture/references/uitwerken.md",
+      "target": ".agents/skills/vault-capture/references/uitwerken.md"
+    },
+    {
+      "source": "skills/vault-document-capture/references/financial-offer-document-review-and-propagation.md",
+      "target": ".agents/skills/vault-document-capture/references/financial-offer-document-review-and-propagation.md"
+    },
+    {
+      "source": "skills/vault-document-capture/references/jsonl-document-retrieval-and-blocked-ingest.md",
+      "target": ".agents/skills/vault-document-capture/references/jsonl-document-retrieval-and-blocked-ingest.md"
+    },
+    {
+      "source": "skills/vault-document-capture/references/jsonl-vault-document-bundle-capture.md",
+      "target": ".agents/skills/vault-document-capture/references/jsonl-vault-document-bundle-capture.md"
+    },
+    {
+      "source": "skills/vault-document-capture/references/production-cas-and-dispatcher-capture.md",
+      "target": ".agents/skills/vault-document-capture/references/production-cas-and-dispatcher-capture.md"
+    },
+    {
+      "source": "skills/vault-document-capture/references/rich-document-capture-transaction-compatibility.md",
+      "target": ".agents/skills/vault-document-capture/references/rich-document-capture-transaction-compatibility.md"
+    },
+    {
+      "source": "skills/vault-email/references/entity-goal-supplement.md",
+      "target": ".agents/skills/vault-email/references/entity-goal-supplement.md"
+    },
+    {
+      "source": "skills/vault-email/references/ingestion.md",
+      "target": ".agents/skills/vault-email/references/ingestion.md"
+    },
+    {
+      "source": "skills/vault-hub/references/assessment.md",
+      "target": ".agents/skills/vault-hub/references/assessment.md"
+    },
+    {
+      "source": "skills/vault-hub/references/layout.md",
+      "target": ".agents/skills/vault-hub/references/layout.md"
+    },
+    {
+      "source": "skills/vault-hub/references/publication.md",
+      "target": ".agents/skills/vault-hub/references/publication.md"
+    },
+    {
+      "source": "skills/vault-hub/references/recency.md",
+      "target": ".agents/skills/vault-hub/references/recency.md"
+    },
+    {
+      "source": "skills/vault-hub/references/reuse.md",
+      "target": ".agents/skills/vault-hub/references/reuse.md"
+    },
+    {
+      "source": "skills/vault-hub/references/scoring.md",
+      "target": ".agents/skills/vault-hub/references/scoring.md"
+    },
+    {
+      "source": "skills/vault-hub/references/updates.md",
+      "target": ".agents/skills/vault-hub/references/updates.md"
+    },
+    {
+      "source": "skills/vault-inbox/references/daily-processing.md",
+      "target": ".agents/skills/vault-inbox/references/daily-processing.md"
+    },
+    {
+      "source": "skills/vault-inbox/references/daily-review.md",
+      "target": ".agents/skills/vault-inbox/references/daily-review.md"
+    },
+    {
+      "source": "skills/vault-inbox/references/historische-contacten.md",
+      "target": ".agents/skills/vault-inbox/references/historische-contacten.md"
+    },
+    {
+      "source": "skills/vault-inbox/references/mail-processing.md",
+      "target": ".agents/skills/vault-inbox/references/mail-processing.md"
+    },
+    {
+      "source": "skills/vault-inbox/references/whatsapp-processing.md",
+      "target": ".agents/skills/vault-inbox/references/whatsapp-processing.md"
+    },
+    {
+      "source": "skills/vault-process/references/bookmark-reference.md",
+      "target": ".agents/skills/vault-process/references/bookmark-reference.md"
+    },
+    {
+      "source": "skills/vault-process/references/bookmark-run.md",
+      "target": ".agents/skills/vault-process/references/bookmark-run.md"
+    },
+    {
+      "source": "skills/vault-process/references/joint-bookmarks.md",
+      "target": ".agents/skills/vault-process/references/joint-bookmarks.md"
+    },
+    {
+      "source": "skills/vault-process/references/parallel-processing.md",
+      "target": ".agents/skills/vault-process/references/parallel-processing.md"
+    },
+    {
+      "source": "skills/vault-process/references/prepared-bundles.md",
+      "target": ".agents/skills/vault-process/references/prepared-bundles.md"
+    },
+    {
+      "source": "skills/vault-process/references/sociale-verwerking.md",
+      "target": ".agents/skills/vault-process/references/sociale-verwerking.md"
+    },
+    {
+      "source": "skills/vault-review/references/shared-selection.md",
+      "target": ".agents/skills/vault-review/references/shared-selection.md"
+    },
+    {
+      "source": "skills/vault-tackle/references/taakselectie.md",
+      "target": ".agents/skills/vault-tackle/references/taakselectie.md"
+    },
+    {
+      "source": "skills/vault-task/references/action-notes.md",
+      "target": ".agents/skills/vault-task/references/action-notes.md"
+    },
+    {
+      "source": "skills/vault-task/references/lifecycle-flow.md",
+      "target": ".agents/skills/vault-task/references/lifecycle-flow.md"
+    },
+    {
+      "source": "skills/vault-task/references/subagent-preferences.md",
+      "target": ".agents/skills/vault-task/references/subagent-preferences.md"
+    },
+    {
+      "source": "skills/vault-task/references/task-changes.md",
+      "target": ".agents/skills/vault-task/references/task-changes.md"
+    },
+    {
+      "source": "skills/vault/references/derived-export-bundle-views.md",
+      "target": ".agents/skills/vault/references/derived-export-bundle-views.md"
+    },
+    {
+      "source": "skills/vault/references/imessage-import.md",
+      "target": ".agents/skills/vault/references/imessage-import.md"
+    },
+    {
+      "source": "skills/vault/references/reading-list-import.md",
+      "target": ".agents/skills/vault/references/reading-list-import.md"
+    },
+    {
+      "source": "skills/_bundle/contracts/native-vault.md",
+      "target": ".agents/skills/_bundle/contracts/native-vault.md"
+    },
+    {
+      "source": "schemas/procedures.json",
+      "target": ".viggobsidian/core/procedures.json"
+    },
+    {
+      "source": "skills/obsidian-enrich/references/range.md",
+      "target": ".agents/skills/obsidian-enrich/references/range.md"
     }
   ]
 }

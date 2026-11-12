@@ -21,6 +21,28 @@ Een opname van `css-split --input FILE` is uitsluitend lokaal voorwerk; inspecte
 
 ## Eerste adoptie
 
+Vanaf v0.10 bezit de release ook de generieke PROCEDURE.md-callerlocaties,
+actieve referentielocators, native-vaultbridge en de acht gedeelde
+procedurecontracten. `core/procedures.json` is de expliciete dekkingsmatrix;
+de updaterallowlist is daarvan gecompileerd, niet door een aangeboden pakket
+uit te breiden. Bestaande onbeheerde procedurebytes vragen beoordeelde
+adoptiehashes en blijven in de herstelreceipt behouden. De authoringhelper
+`cargo run --bin procedure-assets -- --adoption-map TARGET` maakt uitsluitend
+een read-only hashinventaris voor inspectie; zij geeft geen adoptietoestemming.
+
+Maak vóór gebruik de lokale `.viggobsidian/providers.json` met exact gebonden
+doelroot en alle capabilities. Een beschikbare capability wijst naar een
+bestaande lokale instructiesectie en haar benodigde providerbestanden. Externe
+providerbestanden zijn alleen expliciete absolute locators; zij selecteren nooit
+een andere doelvault. Een ontbrekende capability wordt `unavailable` met reden.
+`vault-layout --vault ROOT --skill-routes` controleert de gedeelde release-assets
+en volledige lokale binding; de controle voert geen provider uit. Zie docs/skills.md.
+
+Verander lokale writer-/registry-/importercode niet als bijeffect van deze
+bronoverdracht. Vergelijk hun oorspronkelijke hashes en draai bestaande
+gedragstests. Gedeelde tekstwijzigingen kunnen reviewcaches/plannen terecht laten
+weigeren; herlees en herplan, vernieuw geen oude reviewguards of bewijswaarden.
+
 Maak lokaal `.viggobsidian/integration.json` met `schema: viggobsidian.integration.v1`, `profile: numbered-v1`, `adoption: {legacy_project_roots: []}` en `local_adapter: .viggobsidian/local-adapter.md`. Schrijf die adapter voor de werkelijke doelvault en providers. Deze twee bestanden zijn lokale configuratie en staan buiten releasebeheer.
 
 Bestaande skill- of Base-bestanden worden nooit automatisch als eigendom geclaimd. Een adoptiebestand is een JSON-object met per doelpad de beoordeelde SHA256 van de bestaande bytes. Geef dat expliciet mee via `plan --adopt /path/to/adoption.json`. Bekijk de delta vóór apply en bewaar een lokale Git-snapshot. Latere updates gebruiken de vorige geïnstalleerde hashes en vereisen geen hernieuwde adoptie.

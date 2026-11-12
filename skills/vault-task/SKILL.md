@@ -5,6 +5,11 @@ description: "Voer een concrete vaultopdracht uit vanuit de bestaande taaknote o
 
 # Taak uitvoeren
 
+Lees vóór handelen alle gedeelde contracten voor route `vault-task` uit
+`.viggobsidian/core/procedures.json` in de gekozen doelvault. Controleer de lokale
+capability met `vault-layout --vault ROOT --skill-route vault-task` en lees de
+gebonden providerinstructies. Een groene check vervangt deze inhoudelijke lezing niet.
+
 Lees voor nieuwe of gewijzigde mailconcepten `.viggobsidian/core/mail-format.md`
 en gebruik `.viggobsidian/core/mail-draft.md`: To, Onderwerp en Body apart
 kopieerbaar in dezelfde auteursbubble, adresbewijs en conceptstatus erbuiten.

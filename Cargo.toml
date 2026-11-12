@@ -1,6 +1,7 @@
 [package]
 name = "viggobsidian"
 version = "0.11.0"
+default-run = "viggobsidian"
 edition = "2024"
 rust-version = "1.89"
 license = "MIT"

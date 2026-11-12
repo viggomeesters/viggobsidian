@@ -6,6 +6,11 @@
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
     {
+      "sha256": "9af108a6a7468985cd8eef4247b26b808d0ad2e11c2bcddd115d5db541f61169",
+      "source": "crates/vault-layout/src/skill_routes.rs",
+      "target": ".agents/tools/vault-layout/src/skill_routes.rs"
+    },
+    {
       "sha256": "426cc2f9b64367144b70a6402a9a2d90ef74656ebe56d27c0c635987ba3786d2",
       "source": "crates/vault-layout/src/adoption.rs",
       "target": ".agents/tools/vault-layout/src/adoption.rs"
@@ -91,17 +96,17 @@
       "target": ".agents/tools/vault-layout/src/mail_draft.rs"
     },
     {
-      "sha256": "ad5d07747d6036dc5f11f91271d1f539ff085ae7ebc670eafe4fef3fff0375ff",
+      "sha256": "d4945750046f3fd2e2ae4c919e81e59e627098bc95ba83e8d47d94176a721bf4",
       "source": "docs/policy.md",
       "target": ".viggobsidian/core/policy.md"
     },
     {
-      "sha256": "fecf603b413d6d4fded67213914579401e46657b83eb5ba9023caea3386254d8",
+      "sha256": "8934a0af06ae4f0d993a495b3073ed534b97e413427a878a835ba6bed2f83400",
       "source": "docs/skills.md",
       "target": ".viggobsidian/core/skills.md"
     },
     {
-      "sha256": "3a4a22a323305c839a8098d01bd542ee4be246aa24cd98b9476610f8d7309e87",
+      "sha256": "13f3fbc5c6873f98e6f04bfe0e0cf0d8d69e2734e04750f42c9e2ad065e7fa20",
       "source": "docs/updates.md",
       "target": ".viggobsidian/core/updates.md"
     },
@@ -151,37 +156,37 @@
       "target": "99-system/vault/vault-navigation/standaard/wiki/vault-templates.base"
     },
     {
-      "sha256": "1ebdf05aa63dacfdb83bb49763ae163a9d62689a189e66a2856f6cb26e06099c",
+      "sha256": "6d6d2d240c84f6c75fb7595b2fc5b845c7755b59a2de7fa96ff648011a4d0c99",
       "source": "skills/vault/SKILL.md",
       "target": ".agents/skills/vault/SKILL.md"
     },
     {
-      "sha256": "917e967cd12e88f944f204eb06911c493650ee18140d97a76d0a7841fb6122ef",
+      "sha256": "4d43c93b332304fbf6691c88610542f563e5dfe861bb7ef8d8f2a651285d59fe",
       "source": "skills/vault-log/SKILL.md",
       "target": ".agents/skills/vault-log/SKILL.md"
     },
     {
-      "sha256": "d7291de3ea53d8cd44f15ade0cc7bee4b9c0b5fe1578ba92eacf22d5d0e61a30",
+      "sha256": "3e71318100fce24f8b37e05ebdee8d0a497dc044d958d6374ae150cd573fafd7",
       "source": "skills/vault-process/SKILL.md",
       "target": ".agents/skills/vault-process/SKILL.md"
     },
     {
-      "sha256": "e32ea521566f6f03a51f3635e9954fbe7ab46c91be804fa6d79182ab9153f6e9",
+      "sha256": "53718414d53b8746812003a086351e40784357ed41023b3e82ebc7d955b57724",
       "source": "skills/vault-task/SKILL.md",
       "target": ".agents/skills/vault-task/SKILL.md"
     },
     {
-      "sha256": "36e865f4b9352941b7f02378396aaf9ac396af168845253d2712e51e9631008f",
+      "sha256": "2440ba1c6f1814e0ded29b4ce38b3b2d0b0e2cd2cff0a4b9704c69590531a05c",
       "source": "skills/vault-tackle/SKILL.md",
       "target": ".agents/skills/vault-tackle/SKILL.md"
     },
     {
-      "sha256": "24ff38394c132545826be1672e4a91c2013dba4816fedb192722b978d8a8a9a9",
+      "sha256": "dcc8deff98171c9ce941e9626301d11c43d5c0a5c3bc4161dbb67020f4eefe3d",
       "source": "skills/vault-hub/SKILL.md",
       "target": ".agents/skills/vault-hub/SKILL.md"
     },
     {
-      "sha256": "b7109364e62d02913f16027d4be5b30451e75fc2997a906973e001ed683c272f",
+      "sha256": "f99a34cb5834970fdd8c0e8a83100f499a6566c7c29a517255c035c67bafeb90",
       "source": "skills/vault-brief/SKILL.md",
       "target": ".agents/skills/vault-brief/SKILL.md"
     },
@@ -282,7 +287,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "9b10b89030f9062a0af2cff9a71646f3358cc227154c4eeff692242985ae2306",
+      "sha256": "bd54ea6d51215b2291f2cac2767e5b22279b5a44ef0973fe20b841b26b594536",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -307,7 +312,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "951e1b34ce97af461a63f356aaa899014e83aba83973791d16d99c7fdc632d5c",
+      "sha256": "c0dcf0df7cf32b77790fb573d09217bb05bad055afe67e64d2d3d726fd38117f",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -315,9 +320,419 @@
       "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
       "source": "LICENSES/lucide.txt",
       "target": ".viggobsidian/core/lucide-license.txt"
+    },
+    {
+      "sha256": "fa2fc9a22d7250b5dddca38679bc23c0cf4a33f2126af2048ca6d4fd851138cb",
+      "source": "procedures/authority.md",
+      "target": ".viggobsidian/core/procedures/authority.md"
+    },
+    {
+      "sha256": "acffb5a1c84561b6c805cdc389d89d483714420bff07d62a94cb069655f91f5f",
+      "source": "procedures/read-capture.md",
+      "target": ".viggobsidian/core/procedures/read-capture.md"
+    },
+    {
+      "sha256": "21deaaf6ecdda57570a4d7fc53b44644912ec9219306418c212a9ccf6dfc1056",
+      "source": "procedures/process.md",
+      "target": ".viggobsidian/core/procedures/process.md"
+    },
+    {
+      "sha256": "f417cdafcaafc7d22216297d73dbaeb28036b4fc52046498ef2bcc569bf7a85e",
+      "source": "procedures/daily.md",
+      "target": ".viggobsidian/core/procedures/daily.md"
+    },
+    {
+      "sha256": "281fa6f1106b98cc780ffea785e19466cbebbc8ff04fe97fc8901a30590c3497",
+      "source": "procedures/task.md",
+      "target": ".viggobsidian/core/procedures/task.md"
+    },
+    {
+      "sha256": "c20613c1b3c8d02216260bced5aa5f49c3ae6f249707326526fffc8e175d8f02",
+      "source": "procedures/selection-hub.md",
+      "target": ".viggobsidian/core/procedures/selection-hub.md"
+    },
+    {
+      "sha256": "41e3fe28648674a4d2ed4aaa3e9b535b5fdea7e0393313edc1e17f2269e815ad",
+      "source": "procedures/batches-imports.md",
+      "target": ".viggobsidian/core/procedures/batches-imports.md"
+    },
+    {
+      "sha256": "5d3a6f3d7e5f6e26c53f21112ec7a4f1d5bc52a51c1f1a4a7982968e33485e88",
+      "source": "procedures/maintenance-context.md",
+      "target": ".viggobsidian/core/procedures/maintenance-context.md"
+    },
+    {
+      "sha256": "0439431b82322b49670691b64d1e1c85b0cb1a40fa08dfde46d11d8b8e5c4411",
+      "source": "skills/apple-mail-vault/PROCEDURE.md",
+      "target": ".agents/skills/apple-mail-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "2680bf62e6b216c631f77b6ea97cb15a1a18eff820e33e9726830c396f07da1f",
+      "source": "skills/audio-to-obsidian-vault/PROCEDURE.md",
+      "target": ".agents/skills/audio-to-obsidian-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "d6fa785f1227086187cca63697de48e210421c762e06bc14d4a96c18861ccf13",
+      "source": "skills/bookmarks/PROCEDURE.md",
+      "target": ".agents/skills/bookmarks/PROCEDURE.md"
+    },
+    {
+      "sha256": "c6ddb17125dd7a4c2cd7b325a784050056b776bff040122f967731b09d4a70ff",
+      "source": "skills/briefing/PROCEDURE.md",
+      "target": ".agents/skills/briefing/PROCEDURE.md"
+    },
+    {
+      "sha256": "73773bfdc50a4be01da5bc193285f50dcd863cedea5e21b33b6a9fc208a42d4f",
+      "source": "skills/contacts/PROCEDURE.md",
+      "target": ".agents/skills/contacts/PROCEDURE.md"
+    },
+    {
+      "sha256": "ddab3b9fb3d95097de10692a99ab586de265190f7f572da2c62ecaba6a55a7c6",
+      "source": "skills/document-photo-to-vault/PROCEDURE.md",
+      "target": ".agents/skills/document-photo-to-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "03b9b329cad29be2081422d6fcc5df6a0bac36963324f84423addc160cb96b67",
+      "source": "skills/email-inbox-vault/PROCEDURE.md",
+      "target": ".agents/skills/email-inbox-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "b5a7e4af84e94a36f3175a67d87b41f5159ffbe75dba5682d868a18f48036984",
+      "source": "skills/email-to-jsonl-vault/PROCEDURE.md",
+      "target": ".agents/skills/email-to-jsonl-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "2136e4ecdc5d776a202ffab4c36a2ded872032034131be6968146d453b834a81",
+      "source": "skills/enrich/PROCEDURE.md",
+      "target": ".agents/skills/enrich/PROCEDURE.md"
+    },
+    {
+      "sha256": "880da6f2f935790a86a161c703d5e8d8b198ab5fddaf6dea4ba1da003864e2c4",
+      "source": "skills/external-message-evidence-capture/PROCEDURE.md",
+      "target": ".agents/skills/external-message-evidence-capture/PROCEDURE.md"
+    },
+    {
+      "sha256": "7823781b3a3c043a689d4e9bdcf8a0adecf7aed37d05356e36b587620b8ddb93",
+      "source": "skills/folder-workspace/PROCEDURE.md",
+      "target": ".agents/skills/folder-workspace/PROCEDURE.md"
+    },
+    {
+      "sha256": "e8b7bffe497cebf56d5b737a221afc1dafbb5560e9a1d108c97a8e0ed113bf04",
+      "source": "skills/inbox/PROCEDURE.md",
+      "target": ".agents/skills/inbox/PROCEDURE.md"
+    },
+    {
+      "sha256": "1f762ba14c857d285fca418b565ec69bb792bd1b920c57f174d3df35719bd5b1",
+      "source": "skills/jsonl-vault-capture-operations/PROCEDURE.md",
+      "target": ".agents/skills/jsonl-vault-capture-operations/PROCEDURE.md"
+    },
+    {
+      "sha256": "3828cf9168ef30d548dd1bcc959149743d3190997653c9766d08dd59b0b2669c",
+      "source": "skills/life-os-task/PROCEDURE.md",
+      "target": ".agents/skills/life-os-task/PROCEDURE.md"
+    },
+    {
+      "sha256": "3514006836f6c2b604df21f94ad6b0f0245be7156f433aad5713f1297b21b9c7",
+      "source": "skills/mailbox/PROCEDURE.md",
+      "target": ".agents/skills/mailbox/PROCEDURE.md"
+    },
+    {
+      "sha256": "e4717f7c0fbe07b013c9d69f03a41dc1de35cf59b0523c3e5a27fce952e2c006",
+      "source": "skills/obsidian/PROCEDURE.md",
+      "target": ".agents/skills/obsidian/PROCEDURE.md"
+    },
+    {
+      "sha256": "6f9e9103d3c7a1a094fbec1f0667658379347cd362739ac6206d96a319c76cd0",
+      "source": "skills/obsidian-enrich/PROCEDURE.md",
+      "target": ".agents/skills/obsidian-enrich/PROCEDURE.md"
+    },
+    {
+      "sha256": "3ca1aaf5e066b800bf8b53a56bac7b4934b16da0aad723e946f22eda24914082",
+      "source": "skills/obsidian-vault/PROCEDURE.md",
+      "target": ".agents/skills/obsidian-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "9cef197fc69318691cf2073255aaf715657b8039fc97bf8eb945c98b28bad25b",
+      "source": "skills/vault-aw-lite-operations/PROCEDURE.md",
+      "target": ".agents/skills/vault-aw-lite-operations/PROCEDURE.md"
+    },
+    {
+      "sha256": "64ff478af0ae5ab74cfc45140f5587ad2656ca7b8f301e3e6fa7dfd3d72600af",
+      "source": "skills/vault-briefing-link/PROCEDURE.md",
+      "target": ".agents/skills/vault-briefing-link/PROCEDURE.md"
+    },
+    {
+      "sha256": "91306ee5284b2b3a33259b39d963db53761fecf8b09f6ed9615bebacbb17181c",
+      "source": "skills/vault-capture/PROCEDURE.md",
+      "target": ".agents/skills/vault-capture/PROCEDURE.md"
+    },
+    {
+      "sha256": "4df30c540f2e45590a139c5c6061b30dffa596d0938ea02e9fdf7754906e17d0",
+      "source": "skills/vault-capture-operations/PROCEDURE.md",
+      "target": ".agents/skills/vault-capture-operations/PROCEDURE.md"
+    },
+    {
+      "sha256": "532658cf437436cb54488b9ccd0fbe3e8208df93fe12ff1fb8e72852605eabce",
+      "source": "skills/vault-compile/PROCEDURE.md",
+      "target": ".agents/skills/vault-compile/PROCEDURE.md"
+    },
+    {
+      "sha256": "e4fd53a1272d388f89db14e61ea42564ce9d3ce1e06e2b2cd1c994e4e5193f0f",
+      "source": "skills/vault-contact/PROCEDURE.md",
+      "target": ".agents/skills/vault-contact/PROCEDURE.md"
+    },
+    {
+      "sha256": "5a8a1243c01ef63dd8305ffc890517fc1d35ae7fd9bf92f06bc44dc6172990b6",
+      "source": "skills/vault-context/PROCEDURE.md",
+      "target": ".agents/skills/vault-context/PROCEDURE.md"
+    },
+    {
+      "sha256": "c44129d4edffdcfac089d936fcf1761e5f377b781edb6fc1f5a4c0416ea04ec8",
+      "source": "skills/vault-context-memory-ingestion/PROCEDURE.md",
+      "target": ".agents/skills/vault-context-memory-ingestion/PROCEDURE.md"
+    },
+    {
+      "sha256": "bea28e2137ddb8f2c988f9a25e8430b1a4c09202bf567a436b4a9e20c385f76e",
+      "source": "skills/vault-document-capture/PROCEDURE.md",
+      "target": ".agents/skills/vault-document-capture/PROCEDURE.md"
+    },
+    {
+      "sha256": "4b94ebd83a0cb2d3c1e5a35d3bba551eb9547787febc80e6798c19a10fb90f56",
+      "source": "skills/vault-email/PROCEDURE.md",
+      "target": ".agents/skills/vault-email/PROCEDURE.md"
+    },
+    {
+      "sha256": "e5a6939f41b0fe3243f7e172c2386e63932788cd5135617c0a4f91df920119b8",
+      "source": "skills/vault-email-process/PROCEDURE.md",
+      "target": ".agents/skills/vault-email-process/PROCEDURE.md"
+    },
+    {
+      "sha256": "6d21c3f44b77d07aa5b32953af6787cf03175e1e9395c709a037e863cc1d0b1b",
+      "source": "skills/vault-inbox/PROCEDURE.md",
+      "target": ".agents/skills/vault-inbox/PROCEDURE.md"
+    },
+    {
+      "sha256": "c8a024d05f8ac0ab5e77c9b0ebe5a344ddba2ac93ebda02b6537e854b6272552",
+      "source": "skills/vault-project-refresh/PROCEDURE.md",
+      "target": ".agents/skills/vault-project-refresh/PROCEDURE.md"
+    },
+    {
+      "sha256": "4eff6623e99c0e6bf5d16f685f73c303cd3b40272234d1945c01958468712361",
+      "source": "skills/vault-read/PROCEDURE.md",
+      "target": ".agents/skills/vault-read/PROCEDURE.md"
+    },
+    {
+      "sha256": "aef1c58b6a533084d1c67e339e97355b0e62e3c922c316280b38f553ed81b3d5",
+      "source": "skills/vault-review/PROCEDURE.md",
+      "target": ".agents/skills/vault-review/PROCEDURE.md"
+    },
+    {
+      "sha256": "9492ac8204158882cedbb61b035d5226be5f6e1609d733c7da1dc7a5bf3c4d6e",
+      "source": "skills/viggo-life-os-vault/PROCEDURE.md",
+      "target": ".agents/skills/viggo-life-os-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "d62d16eaf9af2980b0eb3c70e76c81179894de4b104d85494bc74813161c3944",
+      "source": "skills/website-scrape-to-vault/PROCEDURE.md",
+      "target": ".agents/skills/website-scrape-to-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "a1fc2e74627de046f3f0e82751c06dd8d48e038819f51fd143c8b1b55cb66217",
+      "source": "skills/youtube-to-obsidian-vault/PROCEDURE.md",
+      "target": ".agents/skills/youtube-to-obsidian-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "7415b27a8234d01365eb9003511b5e20d5f874e928dd81e1952346694c4a50da",
+      "source": "skills/vault-capture/references/uitwerken.md",
+      "target": ".agents/skills/vault-capture/references/uitwerken.md"
+    },
+    {
+      "sha256": "36efc21d860feab4dc09586e730d75778d2277f215e5c6b809477ef9b3ea8024",
+      "source": "skills/vault-document-capture/references/financial-offer-document-review-and-propagation.md",
+      "target": ".agents/skills/vault-document-capture/references/financial-offer-document-review-and-propagation.md"
+    },
+    {
+      "sha256": "46a21c6ecbe439525982f4ceea65b886f8fe39c6826ae77d17c4a5abfd898b57",
+      "source": "skills/vault-document-capture/references/jsonl-document-retrieval-and-blocked-ingest.md",
+      "target": ".agents/skills/vault-document-capture/references/jsonl-document-retrieval-and-blocked-ingest.md"
+    },
+    {
+      "sha256": "79313a5805558eb18c3555b4567cf311d21cbf548cb616bb972dfdcb90c06ddd",
+      "source": "skills/vault-document-capture/references/jsonl-vault-document-bundle-capture.md",
+      "target": ".agents/skills/vault-document-capture/references/jsonl-vault-document-bundle-capture.md"
+    },
+    {
+      "sha256": "15da8d2827ffad83f52e5854aba7d77123e6d354485bbc6de802cda84459ad2f",
+      "source": "skills/vault-document-capture/references/production-cas-and-dispatcher-capture.md",
+      "target": ".agents/skills/vault-document-capture/references/production-cas-and-dispatcher-capture.md"
+    },
+    {
+      "sha256": "f18a67a638d854bef09b90fc95986a49e99d565cb088096803d2fd3fce13faa8",
+      "source": "skills/vault-document-capture/references/rich-document-capture-transaction-compatibility.md",
+      "target": ".agents/skills/vault-document-capture/references/rich-document-capture-transaction-compatibility.md"
+    },
+    {
+      "sha256": "e767102cb965eaba1034f0f1af6d09ce3f753713d324ea32a35d6d9cee68ebf4",
+      "source": "skills/vault-email/references/entity-goal-supplement.md",
+      "target": ".agents/skills/vault-email/references/entity-goal-supplement.md"
+    },
+    {
+      "sha256": "94a711c72d65576cc11deea6d7cd0d634d22e184987dbdebf4baa26c5ef804a7",
+      "source": "skills/vault-email/references/ingestion.md",
+      "target": ".agents/skills/vault-email/references/ingestion.md"
+    },
+    {
+      "sha256": "4f35dc914c4624fffa2901d9685a7d0e038327b19b846a8dcf8ec04e686ec549",
+      "source": "skills/vault-hub/references/assessment.md",
+      "target": ".agents/skills/vault-hub/references/assessment.md"
+    },
+    {
+      "sha256": "843d4addb6b55048301cc7b6b5fdc9efd3fdd69fa2d0ea22b36c49e25ed4425c",
+      "source": "skills/vault-hub/references/layout.md",
+      "target": ".agents/skills/vault-hub/references/layout.md"
+    },
+    {
+      "sha256": "3f82ab9c1400f1dad8d225d05a61bdaea909a06488e4da7b818162729600b5ec",
+      "source": "skills/vault-hub/references/publication.md",
+      "target": ".agents/skills/vault-hub/references/publication.md"
+    },
+    {
+      "sha256": "dda1aef7f56e3ec36fbbc0fb101f51a26aa2623bad581e6f68f9370e00f6ad81",
+      "source": "skills/vault-hub/references/recency.md",
+      "target": ".agents/skills/vault-hub/references/recency.md"
+    },
+    {
+      "sha256": "fc8b10d66129af9134c3dcbabfe7bd145f7f7d692bb878f6ed77ecb89ad23a27",
+      "source": "skills/vault-hub/references/reuse.md",
+      "target": ".agents/skills/vault-hub/references/reuse.md"
+    },
+    {
+      "sha256": "06ab77db3755c9fcea35727f7689018745f4baea6b8f041642f31a489b45d2ac",
+      "source": "skills/vault-hub/references/scoring.md",
+      "target": ".agents/skills/vault-hub/references/scoring.md"
+    },
+    {
+      "sha256": "fd0d73fb2aac6ec43eabe2c21882ce4d3d740f8d33d81d15527018ae94b36469",
+      "source": "skills/vault-hub/references/updates.md",
+      "target": ".agents/skills/vault-hub/references/updates.md"
+    },
+    {
+      "sha256": "f1f55157c90225595a9d4adb432bbccafe796afccc8d0b6b084a5abc73e9eedf",
+      "source": "skills/vault-inbox/references/daily-processing.md",
+      "target": ".agents/skills/vault-inbox/references/daily-processing.md"
+    },
+    {
+      "sha256": "c7ec626caed0ff65e5c9ed6b4b85a42da689af585a106a11c7bcb0c1dadc25cf",
+      "source": "skills/vault-inbox/references/daily-review.md",
+      "target": ".agents/skills/vault-inbox/references/daily-review.md"
+    },
+    {
+      "sha256": "80904d549ae2ba80bad88678fe1a3202fd0a47df4dbc04b3053d771e3bd3199c",
+      "source": "skills/vault-inbox/references/historische-contacten.md",
+      "target": ".agents/skills/vault-inbox/references/historische-contacten.md"
+    },
+    {
+      "sha256": "95243fa78c3598fd9d013dff98c4ad289b90c882df0b0e04ae6ee4842347b4d1",
+      "source": "skills/vault-inbox/references/mail-processing.md",
+      "target": ".agents/skills/vault-inbox/references/mail-processing.md"
+    },
+    {
+      "sha256": "a733c7faa32bd36ed7fc295ad1b5c7c0e1a58442b4c99390bfb57736918dc50c",
+      "source": "skills/vault-inbox/references/whatsapp-processing.md",
+      "target": ".agents/skills/vault-inbox/references/whatsapp-processing.md"
+    },
+    {
+      "sha256": "813a83bf67a31999a5a9f75cd57f7a81ddeea74e821f041a9f7512e4f9b5da6e",
+      "source": "skills/vault-process/references/bookmark-reference.md",
+      "target": ".agents/skills/vault-process/references/bookmark-reference.md"
+    },
+    {
+      "sha256": "702e5f357e6ccfe154fd699a7857115dd7c8f1075cfc0eff6625ac0774df7f2f",
+      "source": "skills/vault-process/references/bookmark-run.md",
+      "target": ".agents/skills/vault-process/references/bookmark-run.md"
+    },
+    {
+      "sha256": "9041deabe19885db44037b3a8807c898af984db9093381389844145d0e7db414",
+      "source": "skills/vault-process/references/joint-bookmarks.md",
+      "target": ".agents/skills/vault-process/references/joint-bookmarks.md"
+    },
+    {
+      "sha256": "189f1b12777f89c4b8737b9e0f8480adb19cc62aa3573872f6c628acdb0faab0",
+      "source": "skills/vault-process/references/parallel-processing.md",
+      "target": ".agents/skills/vault-process/references/parallel-processing.md"
+    },
+    {
+      "sha256": "f7eb3a27cb6e6a4c3b2125d16892a34f484ff96596ae507bc1cb29694177d286",
+      "source": "skills/vault-process/references/prepared-bundles.md",
+      "target": ".agents/skills/vault-process/references/prepared-bundles.md"
+    },
+    {
+      "sha256": "149aa1ae5cb26167ea0395788df012d3fed498f0b730bab7d9fad285401e3776",
+      "source": "skills/vault-process/references/sociale-verwerking.md",
+      "target": ".agents/skills/vault-process/references/sociale-verwerking.md"
+    },
+    {
+      "sha256": "3c0ffcc9506f0cf99fd1b729344bf08c36f5f13c266e16b49149dc267a1128bb",
+      "source": "skills/vault-review/references/shared-selection.md",
+      "target": ".agents/skills/vault-review/references/shared-selection.md"
+    },
+    {
+      "sha256": "29777be56916b406673d5c9f368eccbda7f500251316b442299c5957eb9efdc5",
+      "source": "skills/vault-tackle/references/taakselectie.md",
+      "target": ".agents/skills/vault-tackle/references/taakselectie.md"
+    },
+    {
+      "sha256": "ecab3ae7af415d9e0adb694a3872630ce13e4055360a96a45cfe55812a471b7c",
+      "source": "skills/vault-task/references/action-notes.md",
+      "target": ".agents/skills/vault-task/references/action-notes.md"
+    },
+    {
+      "sha256": "5c2841af1be788e9b58c9af7f1dba25734ac54b5ef573a55f194eed952ae5835",
+      "source": "skills/vault-task/references/lifecycle-flow.md",
+      "target": ".agents/skills/vault-task/references/lifecycle-flow.md"
+    },
+    {
+      "sha256": "35437b6ee9e58c1d0e3d0cf722aefa10c94c08c96d6caceef41edbae6185355a",
+      "source": "skills/vault-task/references/subagent-preferences.md",
+      "target": ".agents/skills/vault-task/references/subagent-preferences.md"
+    },
+    {
+      "sha256": "089ea88007afa21b34b9563be6e6663e08d6926519d89c267529be82c3e73187",
+      "source": "skills/vault-task/references/task-changes.md",
+      "target": ".agents/skills/vault-task/references/task-changes.md"
+    },
+    {
+      "sha256": "db487d948390530ced14b32eaa362e49a0fbe015d84a394b7618195f67f6fc5b",
+      "source": "skills/vault/references/derived-export-bundle-views.md",
+      "target": ".agents/skills/vault/references/derived-export-bundle-views.md"
+    },
+    {
+      "sha256": "85ae4cb0a101cd89935cce2b662b85e7fb8959b1bcd647f604649311fe93a9a5",
+      "source": "skills/vault/references/imessage-import.md",
+      "target": ".agents/skills/vault/references/imessage-import.md"
+    },
+    {
+      "sha256": "9f6233dc14d610ca7f7c92967d96c0346fd22069098c3aec6535cca310b51f83",
+      "source": "skills/vault/references/reading-list-import.md",
+      "target": ".agents/skills/vault/references/reading-list-import.md"
+    },
+    {
+      "sha256": "ec8241b7d6d47c29a6ec8643bbd2bc4b8c3d4bc71866138163958b3c00944bbf",
+      "source": "skills/_bundle/contracts/native-vault.md",
+      "target": ".agents/skills/_bundle/contracts/native-vault.md"
+    },
+    {
+      "sha256": "9c214c608f485b13dc8f3e6aed5f872004f51a49baeb589f0c950cb673bae935",
+      "source": "schemas/procedures.json",
+      "target": ".viggobsidian/core/procedures.json"
+    },
+    {
+      "sha256": "c54d9a47e5f5efd273288f305b4f2c8a20acf27c334f2a5fe1ae7fc91c04921f",
+      "source": "skills/obsidian-enrich/references/range.md",
+      "target": ".agents/skills/obsidian-enrich/references/range.md"
     }
   ],
-  "revision": "8e41285c8c14feb3e7299970bdae1d6583282ed6",
+  "revision": "fb70e16d9bfe7ca91957ead1592cbd2063608836",
   "schema": "viggobsidian.package.v1",
-  "version": "0.11.0"
+  "version": "0.10.0"
 }
