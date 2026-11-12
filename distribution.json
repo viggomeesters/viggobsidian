@@ -210,6 +210,10 @@
       "target": ".agents/tools/vault-layout/src/source_inventory.rs"
     },
     {
+      "source": "crates/vault-layout/src/export_artifacts.rs",
+      "target": ".agents/tools/vault-layout/src/export_artifacts.rs"
+    },
+    {
       "source": "crates/vault-layout/src/raw_task.rs",
       "target": ".agents/tools/vault-layout/src/raw_task.rs"
     },
