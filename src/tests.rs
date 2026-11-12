@@ -1,6 +1,103 @@
 use super::*;
 
 #[test]
+fn reviewed_skill_library_has_an_exact_surface_and_no_local_adapters() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let spec = read_json(&root.join("schemas/skill-library.json")).unwrap();
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    let mut seen = BTreeSet::new();
+    for row in rows(&spec, "files").unwrap() {
+        let target = field(row, "target").unwrap();
+        let source = field(row, "source").unwrap();
+        assert!(seen.insert(target));
+        assert!(allowed(target));
+        assert!(root.join(relative(source).unwrap()).is_file());
+        assert!(
+            rows(&distribution, "files")
+                .unwrap()
+                .iter()
+                .any(|r| r["target"] == target && r["source"] == source)
+        );
+        assert!(!target.starts_with(".agents/skill-adapters/"));
+        assert!(!target.contains("/scripts/"));
+    }
+    assert!(!allowed(".agents/skill-adapters/draft.md"));
+    assert!(!allowed(".agents/skills/work-client/SKILL.md"));
+    assert!(!allowed(".viggobsidian/skill-adapters.json"));
+}
+
+#[test]
+fn public_skill_sources_do_not_embed_host_home_paths() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let spec = read_json(&root.join("schemas/skill-library.json")).unwrap();
+    for row in rows(&spec, "files").unwrap() {
+        let source = field(row, "source").unwrap();
+        let body = fs::read_to_string(root.join(source)).unwrap();
+        for forbidden in ["/Users/", "/home/"] {
+            assert!(
+                !body.contains(forbidden),
+                "host/private source in {source}: {forbidden}"
+            );
+        }
+    }
+}
+
+#[test]
+fn library_markdown_links_resolve_inside_the_distribution() {
+    let mut missing = Vec::new();
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    let targets: BTreeSet<_> = rows(&distribution, "files")
+        .unwrap()
+        .iter()
+        .map(|r| r["target"].as_str().unwrap().to_owned())
+        .collect();
+    let spec = read_json(&root.join("schemas/skill-library.json")).unwrap();
+    for row in rows(&spec, "files").unwrap() {
+        let source = field(row, "source").unwrap();
+        if !source.ends_with(".md") {
+            continue;
+        }
+        let body = fs::read_to_string(root.join(source)).unwrap();
+        let target = field(row, "target").unwrap();
+        for part in body.split("](").skip(1) {
+            let Some(link) = part.split(')').next() else {
+                continue;
+            };
+            let link = link.split('#').next().unwrap().trim_matches(['<', '>']);
+            if link.is_empty()
+                || link.contains("://")
+                || link.starts_with("mailto:")
+                || link.starts_with("tel:")
+            {
+                continue;
+            }
+            let mut normalized: Vec<_> = target.split('/').collect();
+            normalized.pop();
+            for component in Path::new(link).components() {
+                match component {
+                    Component::Normal(s) => normalized.push(s.to_str().unwrap()),
+                    Component::ParentDir => {
+                        normalized.pop().expect("link remains within install root");
+                    }
+                    Component::CurDir => {}
+                    _ => panic!("absolute skill link {source}: {link}"),
+                }
+            }
+            let resolved = normalized.join("/");
+            if !targets.contains(&resolved) {
+                missing.push(format!("{source}: {link} -> {resolved}"));
+            }
+        }
+    }
+    assert!(
+        missing.is_empty(),
+        "missing shared targets:\n{}",
+        missing.join("\n")
+    );
+}
+
+#[test]
 fn all_declared_procedure_assets_are_distributed_with_a_bounded_allowlist() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let distribution = read_json(&root.join("distribution.json")).unwrap();
