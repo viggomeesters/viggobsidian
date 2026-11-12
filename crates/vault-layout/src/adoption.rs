@@ -107,7 +107,9 @@ pub(crate) fn formatting(vault: &Path, row: &Value) -> Result<bool> {
             || message == "put Activity immediately after the Event Note v1.1 header");
     }
     if code == "strict-activity-provenance" {
-        if !message.contains(": start the bubble with ") {
+        if !message.contains(": start the bubble with ")
+            && !message.contains(": end the bubble with ")
+        {
             return Ok(false);
         }
         let path = row["path"].as_str().ok_or("finding path missing")?;

@@ -1270,7 +1270,8 @@ fn local_intake_is_valid_and_idempotent_in_every_work_program() {
         assert_eq!(first["task-code"], "EX-00-T01");
         assert_eq!(first["reused"], false);
         let created = fs::read_to_string(fixture.0.join(first["path"].as_str().unwrap())).unwrap();
-        assert!(created.contains("<span class=\"activity-meta\">— · Work intake</span>"));
+        assert!(created.contains("\n>\n> *— · Human · Work intake*\n"));
+        assert!(!created.contains("activity-meta"));
         assert!(created.contains("activity_contract: \"provenance-v1\""));
         assert!(!created.contains("> `— ·"));
         let path = first["path"].as_str().unwrap();

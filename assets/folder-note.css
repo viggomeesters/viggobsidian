@@ -796,8 +796,9 @@
   white-space: nowrap;
 }
 
-/* Explicit provenance headers: one author, with quiet time/channel metadata.
-   Historical stamp-only bubbles retain their existing appearance. */
+/* New/explicitly converted bubbles keep the accessible author title hidden and
+   use the final separate italic paragraph below Details. Preserve the older
+   #32 header display until a source-preserving, targeted conversion. */
 :is(.markdown-preview-view, .is-live-preview) [data-callout="activity-message"] > .callout-title:has(.activity-meta) > .callout-title-inner {
   position: static;
   width: auto;

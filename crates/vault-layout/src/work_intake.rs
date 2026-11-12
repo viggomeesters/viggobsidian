@@ -197,12 +197,13 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
         return Err("invalid local activity_actor".into());
     }
     let mut body = format!(
-        "# {task_code} · {title}\n\n> [!navigation|shortcuts]\n> - [[{}/raw|Back]]\n> - [Finder](file://{folder_url})\n\n> [!wiki-facts|dossier]\n> - Dossier **{breadcrumb}**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> Oorspronkelijke opdracht: {title}\n\n## Activity\n\n> [!activity-day|{day}] {day}\n\n> [!activity-message|human] {actor} <span class=\"activity-meta\">— · Work intake</span>\n",
+        "# {task_code} · {title}\n\n> [!navigation|shortcuts]\n> - [[{}/raw|Back]]\n> - [Finder](file://{folder_url})\n\n> [!wiki-facts|dossier]\n> - Dossier **{breadcrumb}**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> Oorspronkelijke opdracht: {title}\n\n## Activity\n\n> [!activity-day|{day}] {day}\n\n> [!activity-message|human] {actor}\n",
         raw.display()
     );
     for line in request.split('\n') {
         body.push_str(&format!("> {line}\n"));
     }
+    body.push_str(&format!(">\n> *— · {actor} · Work intake*\n"));
     event_header::check(root, &destination, &data, &body)?;
     activity_layout::check_task_event(&body)?;
     let mut content = String::from("---\n");
