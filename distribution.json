@@ -1,5 +1,6 @@
 {
   "files": [
+    { "source": "crates/vault-layout/src/adoption.rs", "target": ".agents/tools/vault-layout/src/adoption.rs" },
     { "source": "crates/vault-layout/src/write_set.rs", "target": ".agents/tools/vault-layout/src/write_set.rs" },
     { "source": "docs/write-validation.md", "target": ".viggobsidian/core/write-validation.md" },
     { "source": "crates/vault-layout/src/activity_delivery.rs", "target": ".agents/tools/vault-layout/src/activity_delivery.rs" },

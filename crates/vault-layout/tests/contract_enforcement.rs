@@ -132,6 +132,332 @@ fn link_style_cli_checks_repairs_and_rechecks_without_touching_sources() {
 
 struct Fixture(PathBuf);
 
+fn adoption_command(fixture: &Fixture, mode: &str, input: &Value) -> (Output, Value) {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+        .arg("--vault")
+        .arg(&fixture.0)
+        .arg(mode)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    serde_json::to_writer(child.stdin.take().unwrap(), input).unwrap();
+    let output = child.wait_with_output().unwrap();
+    let value = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
+    (output, value)
+}
+
+fn adopt(fixture: &Fixture, owners: Value) {
+    let (output, plan) = adoption_command(
+        fixture,
+        "--adoption-plan",
+        &json!({"schema":"viggobsidian.adoption-request.v1","owners":owners}),
+    );
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let (output, _) = adoption_command(fixture, "--adoption-apply", &plan);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+fn appended() -> &'static str {
+    "\n> [!activity-day|2026-11-12] 12 November 2026\n\n> [!activity-message|human] Alex\n> `— · Alex · chat`\n> New source-bound information.\n"
+}
+
+#[test]
+fn legacy_adoption_preserves_three_errors_but_checks_each_added_bubble() {
+    let fixture = Fixture::new("legacy-append");
+    let path = "topics/legacy/legacy.md";
+    let original = "---\ntype: note\ncategory: knowledge\nactivity_contract: provenance-v1\n---\n# Legacy\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 November 2026\n\n> [!activity-message|human] Alex\n> Old source A.\n\n> [!activity-message|human] Blake\n> Old source B.\n\n> [!activity-message|human] Casey\n> Old source C.\n";
+    fixture.write(path, original);
+    adopt(&fixture, json!({"topics/legacy":"legacy"}));
+    let changes = json!([{"path":path,"expect":"present"}]);
+    let (_, baseline) = write_check(&fixture, "baseline", changes.clone(), Value::Null);
+    assert!(
+        baseline["legacy_findings"].as_array().unwrap().len() >= 3,
+        "{baseline}"
+    );
+    fixture.write(path, format!("{original}{}", appended()));
+    let (output, report) = write_check(&fixture, "validate", changes.clone(), baseline.clone());
+    assert!(output.status.success(), "{report}");
+    assert_eq!(fixture.strict("topics/legacy").status.code(), Some(1));
+    // Same author and error text: set subtraction alone would miss this error.
+    fixture.write(
+        path,
+        format!(
+            "{original}{}",
+            appended().replace("> `— · Alex · chat`\n", "")
+        ),
+    );
+    assert_eq!(
+        write_check(&fixture, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+    fixture.write(
+        path,
+        format!(
+            "{}{}",
+            original.replace("Old source A.", "Rewritten source."),
+            appended()
+        ),
+    );
+    assert_eq!(
+        write_check(&fixture, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+    fixture.write(path, format!("{original}{}", appended()));
+    // Config drift, including disappearance, is an execution failure.
+    let state = fs::read(fixture.0.join(".viggobsidian/adoption.json")).unwrap();
+    fs::remove_file(fixture.0.join(".viggobsidian/adoption.json")).unwrap();
+    assert_eq!(
+        write_check(&fixture, "validate", changes.clone(), baseline)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    fixture.write(".viggobsidian/adoption.json", state);
+    // A new source never borrows an old source's exemption.
+    let fresh = "topics/legacy/new/new.md";
+    let creation = json!([{"path":fresh,"expect":"present"}]);
+    let (_, baseline) = write_check(&fixture, "baseline", creation.clone(), Value::Null);
+    fixture.write(fresh, original);
+    assert_eq!(
+        write_check(&fixture, "validate", creation, baseline)
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+}
+
+#[test]
+fn adoption_promotes_only_clean_owners_and_never_downgrades_strict_children() {
+    let fixture = Fixture::new("legacy-promotion");
+    fixture.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home\n");
+    fixture.write(
+        "topics/topics.md",
+        nav(
+            &fixture,
+            "topics",
+            "HOME",
+            "> [!navigation]\n> - [[topics/child/child|Child]]\n",
+        ),
+    );
+    let child = "topics/child/child.md";
+    let good = nav(&fixture, "topics/child", "topics/topics", "");
+    fixture.write(child, &good);
+    adopt(&fixture, json!({"topics":"legacy","topics/child":"strict"}));
+    let changes = json!([{"path":child,"expect":"present"}]);
+    let (_, baseline) = write_check(&fixture, "baseline", changes.clone(), Value::Null);
+    fixture.write(child, "Broken former strict entrance\n");
+    let (output, report) = write_check(&fixture, "validate", changes.clone(), baseline);
+    assert_eq!(output.status.code(), Some(1), "{report}");
+    assert!(report["legacy_findings"].as_array().unwrap().is_empty());
+    let request =
+        json!({"schema":"viggobsidian.adoption-request.v1","owners":{"topics/child":"legacy"}});
+    assert_eq!(
+        adoption_command(&fixture, "--adoption-plan", &request)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    let request = json!({"schema":"viggobsidian.adoption-request.v1","owners":{"topics":"strict"}});
+    assert_eq!(
+        adoption_command(&fixture, "--adoption-plan", &request)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    fixture.write(child, &good);
+    adopt(&fixture, json!({"topics":"strict"}));
+    // State is no longer legacy even if note metadata is subsequently removed.
+    fixture.write(child, "No metadata\n");
+    let (_, baseline) = write_check(&fixture, "baseline", changes.clone(), Value::Null);
+    assert_eq!(
+        write_check(&fixture, "validate", changes, baseline)
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+}
+
+#[test]
+fn adoption_refuses_stale_plans_and_symlinks_without_rebaselining() {
+    let fixture = Fixture::new("adoption-drift");
+    fixture.write(
+        "topics/old/old.md",
+        "---\ntype: note\ncategory: source\n---\nOld input\n",
+    );
+    let request =
+        json!({"schema":"viggobsidian.adoption-request.v1","owners":{"topics/old":"legacy"}});
+    let (_, plan) = adoption_command(&fixture, "--adoption-plan", &request);
+    fixture.write("topics/old/old.md", "changed\n");
+    assert_eq!(
+        adoption_command(&fixture, "--adoption-apply", &plan)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    adopt(&fixture, json!({"topics/old":"legacy"}));
+    assert_eq!(
+        adoption_command(&fixture, "--adoption-plan", &request)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    let state = fixture.0.join(".viggobsidian/adoption.json");
+    fs::remove_file(&state).unwrap();
+    symlink(fixture.0.join("topics/old/old.md"), &state).unwrap();
+    assert_eq!(
+        write_check(
+            &fixture,
+            "baseline",
+            json!([{"path":"topics/old/old.md","expect":"present"}]),
+            Value::Null
+        )
+        .0
+        .status
+        .code(),
+        Some(2)
+    );
+}
+
+#[test]
+fn adoption_recovers_exact_interruption_and_replays_without_resetting_history() {
+    let fixture = Fixture::new("adoption-recovery");
+    fixture.write(
+        "topics/old/old.md",
+        "---\ntype: note\ncategory: source\n---\nOriginal.\n",
+    );
+    let request =
+        json!({"schema":"viggobsidian.adoption-request.v1","owners":{"topics/old":"legacy"}});
+    let (_, plan) = adoption_command(&fixture, "--adoption-plan", &request);
+    let bytes = serde_json::to_vec_pretty(&plan["next"]).unwrap();
+    let receipt = format!(".viggobsidian/adoption-{:x}.json", Sha256::digest(&bytes));
+    fixture.write(
+        &receipt,
+        serde_json::to_vec(&json!({"plan":plan,"previous":null})).unwrap(),
+    );
+    fixture.write(
+        ".viggobsidian/adoption.lock",
+        format!("{:x}", Sha256::digest(serde_json::to_vec(&plan).unwrap())),
+    );
+    fixture.write(".viggobsidian/adoption.pending", b"foreign bytes");
+    assert_eq!(
+        adoption_command(&fixture, "--adoption-recover", &plan)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    assert!(fixture.0.join(".viggobsidian/adoption.lock").exists());
+    fixture.write(".viggobsidian/adoption.pending", bytes);
+    let (output, report) = adoption_command(&fixture, "--adoption-recover", &plan);
+    assert!(
+        output.status.success(),
+        "{} {report}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(!fixture.0.join(".viggobsidian/adoption.lock").exists());
+    assert!(!fixture.0.join(".viggobsidian/adoption.pending").exists());
+    let (output, report) = adoption_command(&fixture, "--adoption-apply", &plan);
+    assert!(output.status.success(), "{report}");
+    assert_eq!(report["status"], "already-applied");
+}
+
+#[test]
+fn strict_parent_and_legacy_child_cannot_be_created_in_one_plan() {
+    let fixture = Fixture::new("adoption-mixed-request");
+    fixture.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home\n");
+    fixture.write(
+        "topics/topics.md",
+        nav(
+            &fixture,
+            "topics",
+            "HOME",
+            "> [!navigation]\n> - [[topics/child/child|Child]]\n",
+        ),
+    );
+    fixture.write(
+        "topics/child/child.md",
+        nav(&fixture, "topics/child", "topics/topics", ""),
+    );
+    let request = json!({"schema":"viggobsidian.adoption-request.v1","owners":{"topics":"strict","topics/child":"legacy"}});
+    assert_eq!(
+        adoption_command(&fixture, "--adoption-plan", &request)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    adopt(&fixture, json!({"topics":"legacy"}));
+    assert_eq!(
+        adoption_command(&fixture, "--adoption-plan", &request)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+}
+
+#[test]
+fn historical_identity_mismatch_and_new_chronology_regression_remain_blocking() {
+    let fixture = Fixture::new("adoption-integrity");
+    let path = "topics/old/old.md";
+    let original = "---\ntype: note\ncategory: source\nactivity_contract: provenance-v1\n---\n# Source\n\n## Activity\n\n> [!activity-day|2026-11-12] 12 November 2026\n\n> [!activity-message|human] Alex\n> `— · Blake · chat`\n> Original.\n";
+    fixture.write(path, original);
+    adopt(&fixture, json!({"topics/old":"legacy"}));
+    let changes = json!([{"path":path,"expect":"present"}]);
+    let (_, baseline) = write_check(&fixture, "baseline", changes.clone(), Value::Null);
+    assert_eq!(
+        write_check(&fixture, "validate", changes, baseline)
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+    // Fresh fixture with a missing stamp: append cannot go back before history.
+    let other = Fixture::new("adoption-chronology");
+    let original = original.replace("> `— · Blake · chat`\n", "");
+    other.write(path, &original);
+    adopt(&other, json!({"topics/old":"legacy"}));
+    let changes = json!([{"path":path,"expect":"present"}]);
+    let (_, baseline) = write_check(&other, "baseline", changes.clone(), Value::Null);
+    other.write(
+        path,
+        format!(
+            "{original}{}",
+            appended().replace("2026-11-12", "2026-11-10")
+        ),
+    );
+    assert_eq!(
+        write_check(&other, "validate", changes, baseline)
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+}
+
 fn write_check(fixture: &Fixture, phase: &str, changes: Value, baseline: Value) -> (Output, Value) {
     let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
         .arg("--vault")

@@ -5,6 +5,13 @@ description: "Lees vaultkennis, leg input vast, verwerk bronnen of pak bestaande
 
 # Vault
 
+Tijdens gefaseerde adoptie geldt `.viggobsidian/core/write-validation.md`.
+Alleen expliciet geregistreerde historische bronopmaak mag tijdelijk blijven
+staan; laat de canonieke writer haar baseline en adoptieconfiguratie binden.
+Nieuwe bijdragen krijgen het actuele contract. Een volledig gemigreerd dossier
+blijft strikt. Herkenning van een oude indeling is geen automatische vrijstelling
+en een weigering is geen toestemming om de configuratie of writer te omzeilen.
+
 Nieuwe en expliciet omgezette Event Notes gebruiken
 `activity_contract: provenance-v1` volgens het mailcontract. Elke menselijke én agentbubble krijgt
 direct na de auteurskop het bewezen lokale tijdstip, de echte auteur en het
