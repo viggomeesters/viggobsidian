@@ -21,6 +21,7 @@ mod project_codes;
 mod raw_processing;
 mod raw_task;
 mod shortcut_links;
+mod skill_routes;
 mod source_inventory;
 mod wiki_layout;
 mod work_intake;
@@ -72,6 +73,10 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut link_style = None;
     let mut write_set_mode = false;
     let mut adoption_mode = None;
+    let mut skill_route = None;
+    let mut skill_routes = false;
+    let mut source_adapter = None;
+    let mut explicit_vault = false;
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
@@ -79,6 +84,13 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
                 return Ok(0);
             }
             Some("--json") => json_output = true,
+            Some("--skill-route") if skill_route.is_none() => {
+                skill_route = Some(args.next().ok_or(USAGE)?.into_string().map_err(|_| USAGE)?)
+            }
+            Some("--skill-routes") if !skill_routes => skill_routes = true,
+            Some("--source-adapter") if source_adapter.is_none() => {
+                source_adapter = Some(args.next().ok_or(USAGE)?.into_string().map_err(|_| USAGE)?)
+            }
             Some("--tiles-only") => tiles_only = true,
             Some("--strict") => strict = true,
             Some("--check-work") => check_work = true,
@@ -110,11 +122,43 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             Some("--resolve-code") if resolve_code.is_none() => {
                 resolve_code = Some(args.next().ok_or(USAGE)?.into_string().map_err(|_| USAGE)?);
             }
-            Some("--vault") => vault = args.next().ok_or(USAGE)?.into(),
+            Some("--vault") => {
+                vault = args.next().ok_or(USAGE)?.into();
+                explicit_vault = true;
+            }
             Some(option) if option.starts_with('-') => return Err(USAGE.into()),
             _ if folder.is_none() => folder = Some(PathBuf::from(arg)),
             _ => return Err(USAGE.into()),
         }
+    }
+    if skill_route.is_some() || skill_routes || source_adapter.is_some() {
+        if !explicit_vault
+            || skill_route.is_some() && skill_routes
+            || source_adapter.is_some() && skill_route.is_none()
+            || folder.is_some()
+            || tiles_only
+            || indexes
+            || !paths.is_empty()
+            || !anchors
+            || scope_policy.is_some()
+            || resolve_code.is_some()
+            || stage_raw_task
+            || strict
+            || check_work
+            || check_all
+            || new_work_task
+            || link_style.is_some()
+            || write_set_mode
+            || adoption_mode.is_some()
+        {
+            return Err("skill preflight requires --vault and one exclusive route mode".into());
+        }
+        skill_routes::explicit_root(&vault)?;
+        return skill_routes::run(
+            &vault.canonicalize()?,
+            skill_route.as_deref(),
+            source_adapter.as_deref(),
+        );
     }
     let vault = vault.canonicalize()?;
     if write_set_mode || adoption_mode.is_some() {

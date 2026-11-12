@@ -5,6 +5,11 @@ description: "Bewaar oorspronkelijke input en bronregistratie in de expliciet ge
 
 # Input bewaren
 
+Lees vóór handelen alle gedeelde contracten voor route `vault-log` uit
+`.viggobsidian/core/procedures.json` in de gekozen doelvault. Controleer de lokale
+capability met `vault-layout --vault ROOT --skill-route vault-log` en lees de
+gebonden providerinstructies. Een groene check vervangt deze inhoudelijke lezing niet.
+
 Lees het doelcontract uit [vault](../vault/SKILL.md) en `.viggobsidian/core/skills.md` in de expliciet gekozen vault. Lees de lokale `log`-adapter vóór iedere write; een ontbrekende registratie- of claimprovider geeft geen toestemming voor een alternatieve writer.
 
 Bewaar de volledige oorspronkelijke input, herkomst, echte bijlagen en beschikbare bronidentiteit. Zoek een bestaand pakket vóór aanmaak; append alleen met actuele bronhash en geldige claim volgens de lokale provider. Een onbekende eigenaar gaat naar de ene inbox, met vermoedelijke eigenaar en open vraag. Maak samenvattingen herkenbaar als afgeleid en verander geen oorspronkelijke bronbytes.

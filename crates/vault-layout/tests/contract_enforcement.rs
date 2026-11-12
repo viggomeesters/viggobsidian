@@ -132,6 +132,251 @@ fn link_style_cli_checks_repairs_and_rechecks_without_touching_sources() {
 
 struct Fixture(PathBuf);
 
+fn procedure_fixture(name: &str) -> Fixture {
+    let fixture = Fixture::new(name);
+    let repository = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let distribution: Value =
+        serde_json::from_slice(&fs::read(repository.join("distribution.json")).unwrap()).unwrap();
+    let mut entries = Vec::new();
+    let mut files = serde_json::Map::new();
+    for entry in distribution["files"].as_array().unwrap() {
+        let target = entry["target"].as_str().unwrap();
+        if !(target.starts_with(".agents/skills/")
+            || target.starts_with(".viggobsidian/core/procedures"))
+        {
+            continue;
+        }
+        let bytes = fs::read(repository.join(entry["source"].as_str().unwrap())).unwrap();
+        let hash = format!("{:x}", Sha256::digest(&bytes));
+        fixture.write(target, bytes);
+        files.insert(target.into(), json!(hash));
+        entries.push(json!({"source":entry["source"],"target":target,"sha256":hash}));
+    }
+    let manifest=json!({"schema":"viggobsidian.package.v1","version":"0.9.0","revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","files":entries}).to_string();
+    fixture.write(".viggobsidian/installed.json",json!({"schema":"viggobsidian.installed.v1","version":"0.9.0","revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","manifest_sha256":format!("{:x}",Sha256::digest(manifest.as_bytes())),"manifest_bytes":manifest,"files":files}).to_string());
+    let spec: Value = serde_json::from_slice(
+        &fs::read(fixture.0.join(".viggobsidian/core/procedures.json")).unwrap(),
+    )
+    .unwrap();
+    let mut capabilities = serde_json::Map::new();
+    for name in spec["routes"]
+        .as_object()
+        .unwrap()
+        .values()
+        .map(|v| v["capability"].as_str().unwrap())
+        .chain(
+            spec["source_adapters"]
+                .as_object()
+                .unwrap()
+                .values()
+                .map(|v| v.as_str().unwrap()),
+        )
+    {
+        capabilities.insert(name.into(),json!({"state":"unavailable","mode":"unavailable","reason":"Not installed in this fixture"}));
+    }
+    capabilities.insert("read".into(),json!({"state":"available","mode":"read-only","instructions":"provider/read.md","section":"read","required_files":["provider/reader.txt"]}));
+    fixture.write(
+        "provider/read.md",
+        "# Local provider\n\n## read\nUse bounded read-only current Markdown.\n",
+    );
+    fixture.write("provider/reader.txt", "Do not execute this file.\n");
+    fixture.write(".viggobsidian/providers.json",json!({"schema":"viggobsidian.providers.v1","vault":fixture.0.canonicalize().unwrap(),"capabilities":capabilities}).to_string());
+    fixture
+}
+
+fn skill_check(fixture: &Fixture, args: &[&str]) -> (Output, Value) {
+    let output = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+        .arg("--vault")
+        .arg(&fixture.0)
+        .args(args)
+        .current_dir(Path::new(env!("CARGO_MANIFEST_DIR")))
+        .output()
+        .unwrap();
+    let report = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
+    (output, report)
+}
+
+#[test]
+fn procedure_preflight_reads_explicit_target_without_executing_or_mutating() {
+    let fixture = procedure_fixture("procedures-explicit");
+    let before = fs::read(fixture.0.join("provider/reader.txt")).unwrap();
+    let (output, report) = skill_check(&fixture, &["--skill-route", "vault-read"]);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(report["write_authority"], false);
+    assert_eq!(report["routes"][0]["mode"], "read-only");
+    assert_eq!(
+        fs::read(fixture.0.join("provider/reader.txt")).unwrap(),
+        before
+    );
+    assert_eq!(
+        report["providers_sha256"],
+        format!(
+            "{:x}",
+            Sha256::digest(fs::read(fixture.0.join(".viggobsidian/providers.json")).unwrap())
+        )
+    );
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "vault-hub"])
+            .0
+            .status
+            .code(),
+        Some(1)
+    );
+    let (output, report) = skill_check(&fixture, &["--skill-routes"]);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(report["routes"].as_array().unwrap().len(), 47);
+    let missing = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+        .args(["--skill-route", "vault-read"])
+        .output()
+        .unwrap();
+    assert_eq!(missing.status.code(), Some(2));
+}
+
+#[test]
+fn procedure_importer_is_additional_and_every_source_provider_is_validated() {
+    let fixture = procedure_fixture("procedures-import");
+    let file = fixture.0.join(".viggobsidian/providers.json");
+    let mut providers: Value = serde_json::from_slice(&fs::read(&file).unwrap()).unwrap();
+    providers["capabilities"]["imessage"] = providers["capabilities"]["read"].clone();
+    fs::write(&file, providers.to_string()).unwrap();
+    let (output, report) = skill_check(
+        &fixture,
+        &[
+            "--skill-route",
+            "vault-process",
+            "--source-adapter",
+            "imessage",
+        ],
+    );
+    assert_eq!(output.status.code(), Some(1), "{report}");
+    assert_eq!(report["routes"].as_array().unwrap().len(), 2);
+    assert_eq!(report["routes"][0]["capability"], "process");
+    providers["capabilities"]["imessage"] = json!({});
+    fs::write(&file, providers.to_string()).unwrap();
+    assert_eq!(
+        skill_check(&fixture, &["--skill-routes"]).0.status.code(),
+        Some(2)
+    );
+    assert_eq!(
+        skill_check(
+            &fixture,
+            &["--skill-route", "vault-task", "--source-adapter", "daily"]
+        )
+        .0
+        .status
+        .code(),
+        Some(2)
+    );
+}
+
+#[test]
+fn procedure_preflight_rejects_root_drift_missing_provider_and_release_drift() {
+    let fixture = procedure_fixture("procedures-binding");
+    let config = fixture.0.join(".viggobsidian/providers.json");
+    let original = fs::read(&config).unwrap();
+    let mut value: Value = serde_json::from_slice(&original).unwrap();
+    value["vault"] = json!(fixture.0.join("other"));
+    fs::write(&config, value.to_string()).unwrap();
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "vault-read"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    fs::write(&config, &original).unwrap();
+    fs::remove_file(fixture.0.join("provider/reader.txt")).unwrap();
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "vault-read"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    fixture.write("provider/reader.txt", "Do not execute this file.\n");
+    fixture.write(
+        ".viggobsidian/core/procedures/read-capture.md",
+        "Locally changed contract",
+    );
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "vault-read"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+}
+
+#[test]
+fn procedure_preflight_refuses_alias_escape_symlinks_and_unknown_transforms() {
+    let fixture = procedure_fixture("procedures-malformed");
+    let config = fixture.0.join(".viggobsidian/providers.json");
+    let original = fs::read(&config).unwrap();
+    let mut value: Value = serde_json::from_slice(&original).unwrap();
+    value["capabilities"]["read"]["required_files"] = json!(["../escape"]);
+    fs::write(&config, value.to_string()).unwrap();
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "vault-read"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    fs::write(&config, &original).unwrap();
+    let reader = fixture.0.join("provider/reader.txt");
+    fs::remove_file(&reader).unwrap();
+    symlink(fixture.0.join("provider/read.md"), &reader).unwrap();
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "vault-read"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "unknown"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "vault-read", "--check-all"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    fs::remove_file(&reader).unwrap();
+    fixture.write("provider/reader.txt", "Do not execute this file.\n");
+    let installed = fixture.0.join(".viggobsidian/installed.json");
+    let mut state: Value = serde_json::from_slice(&fs::read(&installed).unwrap()).unwrap();
+    let mut manifest: Value =
+        serde_json::from_str(state["manifest_bytes"].as_str().unwrap()).unwrap();
+    let target = manifest["files"][0]["target"].as_str().unwrap().to_owned();
+    manifest["files"][0]["transform"] = json!("arbitrary-procedure-transform");
+    let raw = manifest.to_string();
+    state["manifest_bytes"] = json!(raw);
+    state["manifest_sha256"] = json!(format!("{:x}", Sha256::digest(raw.as_bytes())));
+    state["derived"][&target]["sha256"] = state["files"][&target].clone();
+    fs::write(installed, state.to_string()).unwrap();
+    assert_eq!(
+        skill_check(&fixture, &["--skill-route", "vault-read"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+}
+
 fn adoption_command(fixture: &Fixture, mode: &str, input: &Value) -> (Output, Value) {
     let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
         .arg("--vault")

@@ -5,6 +5,14 @@ description: "Lees vaultkennis, leg input vast, verwerk bronnen of pak bestaande
 
 # Vault
 
+Lees `.viggobsidian/core/procedures/authority.md` in de expliciet gekozen
+doelvault. Lees voor het gekozen effect ook alle contracten uit de bijbehorende
+route in `.viggobsidian/core/procedures.json`. Lokale beschikbaarheid staat in
+`.viggobsidian/providers.json`; controleer die met
+`vault-layout --vault ROOT --skill-route vault`. De controle vervangt het lezen
+van de contracten en de providerinstructies niet. Een bronimport gebruikt bovendien
+de expliciete source-adaptercapability; geen bronlocatiefallback.
+
 Tijdens gefaseerde adoptie geldt `.viggobsidian/core/write-validation.md`.
 Alleen expliciet geregistreerde historische bronopmaak mag tijdelijk blijven
 staan; laat de canonieke writer haar baseline en adoptieconfiguratie binden.

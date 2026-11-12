@@ -1,6 +1,80 @@
 use super::*;
 
 #[test]
+fn all_declared_procedure_assets_are_distributed_with_a_bounded_allowlist() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    let targets: BTreeSet<_> = rows(&distribution, "files")
+        .unwrap()
+        .iter()
+        .map(|r| r["target"].as_str().unwrap().to_owned())
+        .collect();
+    for target in procedure_surface::targets() {
+        assert!(
+            targets.contains(target),
+            "missing distribution for {target}"
+        );
+        assert!(allowed(target));
+    }
+    assert!(!allowed(".agents/skills/vault-task/scripts/create_note.py"));
+    assert!(!allowed(".viggobsidian/providers.json"));
+    assert!(!allowed(".agents/skills/unreviewed/PROCEDURE.md"));
+}
+
+#[test]
+fn procedure_adoption_preserves_the_existing_provider_and_restores_original_text() {
+    let f = Fixture::new();
+    let target = ".agents/skills/vault-read/PROCEDURE.md";
+    atomic(&f.vault, target, b"Original local procedure").unwrap();
+    atomic(
+        &f.vault,
+        ".agents/skills/vault-read/scripts/provider.py",
+        b"Original provider bytes",
+    )
+    .unwrap();
+    fs::write(f.package.join("read.md"), b"Reviewed shared procedure").unwrap();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["files"].as_array_mut().unwrap().push(
+        json!({"source":"read.md","target":target,"sha256":hash(b"Reviewed shared procedure")}),
+    );
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    assert!(plan(&f.vault, &f.package, &json!({})).is_err());
+    let proposal = plan(
+        &f.vault,
+        &f.package,
+        &json!({target:hash(b"Original local procedure")}),
+    )
+    .unwrap();
+    let receipt = apply(&f.vault, &proposal).unwrap();
+    assert_eq!(
+        fs::read(
+            f.vault
+                .join(".agents/skills/vault-read/scripts/provider.py")
+        )
+        .unwrap(),
+        b"Original provider bytes"
+    );
+    let receipt = read_json(&f.vault.join(receipt["receipt"].as_str().unwrap())).unwrap();
+    rollback(&f.vault, &receipt).unwrap();
+    assert_eq!(
+        fs::read(f.vault.join(target)).unwrap(),
+        b"Original local procedure"
+    );
+    assert_eq!(
+        fs::read(
+            f.vault
+                .join(".agents/skills/vault-read/scripts/provider.py")
+        )
+        .unwrap(),
+        b"Original provider bytes"
+    );
+}
+
+#[test]
 fn derived_css_binds_local_configuration_rejects_stale_plans_and_rolls_back() {
     let f = Fixture::new();
     let shared = ".vault-dashboard { display: grid; }";
