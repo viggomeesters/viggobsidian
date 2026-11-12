@@ -730,9 +730,1099 @@
       "sha256": "c54d9a47e5f5efd273288f305b4f2c8a20acf27c334f2a5fe1ae7fc91c04921f",
       "source": "skills/obsidian-enrich/references/range.md",
       "target": ".agents/skills/obsidian-enrich/references/range.md"
+    },
+    {
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+      "source": "LICENSES/matt-pocock-skills.txt",
+      "target": ".agents/licenses/matt-pocock-skills.txt"
+    },
+    {
+      "sha256": "e616b3ca84e6386eaed146872df0d92d479c807ce84a0c2dd6ede7d4b3b3f19a",
+      "source": "skills/_bundle/contracts/decision-conversation.md",
+      "target": ".agents/skills/_bundle/contracts/decision-conversation.md"
+    },
+    {
+      "sha256": "f53ba30abd5803fc1a2182576bba7afb5a0af4879bdf9170be813af592218ed8",
+      "source": "skills/_bundle/contracts/quality-evidence.md",
+      "target": ".agents/skills/_bundle/contracts/quality-evidence.md"
+    },
+    {
+      "sha256": "05b19c969d0099fdf1aa125ad1c8d03083affb4c80f249a1ec7cd558a397e2c2",
+      "source": "skills/_bundle/contracts/routing.md",
+      "target": ".agents/skills/_bundle/contracts/routing.md"
+    },
+    {
+      "sha256": "d20d9c406e5361141f6976a487cfb0b4842fe2c687230b059d910d626b18251a",
+      "source": "skills/_bundle/contracts/work-handoff.md",
+      "target": ".agents/skills/_bundle/contracts/work-handoff.md"
+    },
+    {
+      "sha256": "c4cd2e560e60bca5ac10f14269a477a09a80d8d17d159e32e0d311d428e5b22e",
+      "source": "skills/_bundle/modules/quality.challenge.md",
+      "target": ".agents/skills/_bundle/modules/quality.challenge.md"
+    },
+    {
+      "sha256": "b442a00ef0424d251b8a8beb67c0f6731425c83cd4ac598a6fcd1ab193fa5b95",
+      "source": "skills/_bundle/modules/quality.finish.md",
+      "target": ".agents/skills/_bundle/modules/quality.finish.md"
+    },
+    {
+      "sha256": "ab7c5d9a104813470599110db3cae648c836b111cf417b5380773d9238ecf683",
+      "source": "skills/_bundle/modules/quality.inspect.md",
+      "target": ".agents/skills/_bundle/modules/quality.inspect.md"
+    },
+    {
+      "sha256": "7f888941012c865768dcd437b46f2c41c088fdf7ebaa350c5673e047165cbc33",
+      "source": "skills/_bundle/modules/thinking.domain.md",
+      "target": ".agents/skills/_bundle/modules/thinking.domain.md"
+    },
+    {
+      "sha256": "50e3fa0b18ee54640fe38ced444ea324c2c78813a500928241062dcd88d886ad",
+      "source": "skills/_bundle/modules/thinking.shape.md",
+      "target": ".agents/skills/_bundle/modules/thinking.shape.md"
+    },
+    {
+      "sha256": "c529d3edc37d24c594e75212552d1d96fc4009e99ffaeea95df8a89da9a383be",
+      "source": "skills/adr/PROCEDURE.md",
+      "target": ".agents/skills/adr/PROCEDURE.md"
+    },
+    {
+      "sha256": "67cf52b70f78e2a3e93758b1370f5a2f5573ebcb1920c5856dda4c7bab153d04",
+      "source": "skills/agent-project-lifecycle/PROCEDURE.md",
+      "target": ".agents/skills/agent-project-lifecycle/PROCEDURE.md"
+    },
+    {
+      "sha256": "3c823d4a86dbc3651069527e6be8542528e94c41f7f73d7e34b7d7c3d94b6441",
+      "source": "skills/agent-workflow-lite/PROCEDURE.md",
+      "target": ".agents/skills/agent-workflow-lite/PROCEDURE.md"
+    },
+    {
+      "sha256": "dc57e1cd4ec03c5a24b76be88ff21fa698ade16c9ae936464cb467c80e20b5b8",
+      "source": "skills/audit/PROCEDURE.md",
+      "target": ".agents/skills/audit/PROCEDURE.md"
+    },
+    {
+      "sha256": "3909aebf5f75cb990db1badb5769dc76ec3154a3a212e6e8911581c79d5d3257",
+      "source": "skills/audit/SKILL.md",
+      "target": ".agents/skills/audit/SKILL.md"
+    },
+    {
+      "sha256": "297f0fee01ba155b01c6636e8a6fc7044361ecd16c7d3a1fd971ef0d1f16c2e8",
+      "source": "skills/bertus-command-bus/PROCEDURE.md",
+      "target": ".agents/skills/bertus-command-bus/PROCEDURE.md"
+    },
+    {
+      "sha256": "93a9081408ee05fd17c0335440e1f1a3b165ae1b91f1e10aaf15b9f72bca0180",
+      "source": "skills/better/PROCEDURE.md",
+      "target": ".agents/skills/better/PROCEDURE.md"
+    },
+    {
+      "sha256": "dda0041204b5cff04a2965621efaba2047e1fafee33a7027a14886ba331ad57e",
+      "source": "skills/brainstorm/PROCEDURE.md",
+      "target": ".agents/skills/brainstorm/PROCEDURE.md"
+    },
+    {
+      "sha256": "b5aa4317fb399a925911f39f6fde53f552cc09d9ebc033fe1586a65a476299db",
+      "source": "skills/brainstorm/SKILL.md",
+      "target": ".agents/skills/brainstorm/SKILL.md"
+    },
+    {
+      "sha256": "9a2a87f8e442f4f7437ea1856aff3e21eaef1e9eea1440026cadf7c705a395e9",
+      "source": "skills/browser-local-artifact-generation/PROCEDURE.md",
+      "target": ".agents/skills/browser-local-artifact-generation/PROCEDURE.md"
+    },
+    {
+      "sha256": "cdfe0591bb6418256ba86987912cff7f4e92fe676e42866f004e60196349c0a9",
+      "source": "skills/calendar-invite-email/PROCEDURE.md",
+      "target": ".agents/skills/calendar-invite-email/PROCEDURE.md"
+    },
+    {
+      "sha256": "9f2d8f2fbaf5f8a84591e8514ca720fad0be6d99dd4991b54ced2f095df2d044",
+      "source": "skills/calendar/SKILL.md",
+      "target": ".agents/skills/calendar/SKILL.md"
+    },
+    {
+      "sha256": "9afce3fc9599850027ff958c180dd1d3a1e5f095f326d6b51d0e7dc079918ee1",
+      "source": "skills/career-transition-coach/PROCEDURE.md",
+      "target": ".agents/skills/career-transition-coach/PROCEDURE.md"
+    },
+    {
+      "sha256": "204d1dfc95052443f949983abafc78dd7327fe57984f818e6f813b1940b4fb1e",
+      "source": "skills/caveman/PROCEDURE.md",
+      "target": ".agents/skills/caveman/PROCEDURE.md"
+    },
+    {
+      "sha256": "7f2a90ab4c21a6696bf732af9ec1b4da1537355f0518c1ed53f39f86ec00cce2",
+      "source": "skills/check-in-coach/PROCEDURE.md",
+      "target": ".agents/skills/check-in-coach/PROCEDURE.md"
+    },
+    {
+      "sha256": "76b430fb41e80d208e7d483b9eeb8fcac5f0595c6a1c6a9fbb979cb938a79642",
+      "source": "skills/check-in/SKILL.md",
+      "target": ".agents/skills/check-in/SKILL.md"
+    },
+    {
+      "sha256": "26422a85e7a06bea9d68db4bfa9c403e728af04a0f07d752da2e0ccb5e189122",
+      "source": "skills/checkpoint/PROCEDURE.md",
+      "target": ".agents/skills/checkpoint/PROCEDURE.md"
+    },
+    {
+      "sha256": "1f92b8fe6cf1a767a8cb430b4cc7659fc57c6aa986358529ad53682a653c5e6b",
+      "source": "skills/coach/SKILL.md",
+      "target": ".agents/skills/coach/SKILL.md"
+    },
+    {
+      "sha256": "8843160c983d5e7c0505ad75c5cb9c1a9f81703874fddb012c45036be5b632c4",
+      "source": "skills/create-work/PROCEDURE.md",
+      "target": ".agents/skills/create-work/PROCEDURE.md"
+    },
+    {
+      "sha256": "861c7470d307e819b278fc11aaa2ee2fb41771b50464461137997b14964b649e",
+      "source": "skills/debug/PROCEDURE.md",
+      "target": ".agents/skills/debug/PROCEDURE.md"
+    },
+    {
+      "sha256": "076f617ace7cce93281079664dbea55cb61061ef15d50bdc35e1de294d326057",
+      "source": "skills/deliverable/SKILL.md",
+      "target": ".agents/skills/deliverable/SKILL.md"
+    },
+    {
+      "sha256": "7d1f7df92e037bb7e23d4794dab7d5f2894ecef44b7360f136da7597189269a4",
+      "source": "skills/design-md/PROCEDURE.md",
+      "target": ".agents/skills/design-md/PROCEDURE.md"
+    },
+    {
+      "sha256": "73cbffbb4a553db6c11e0904262f4d50f01be7d9777a77e6c7b244af9e7cc0c9",
+      "source": "skills/devil-review/PROCEDURE.md",
+      "target": ".agents/skills/devil-review/PROCEDURE.md"
+    },
+    {
+      "sha256": "b5be6169f9aefe2c157d761a9cda6a1b698fc5c6e606e6b58f1ce486234569e1",
+      "source": "skills/devil/PROCEDURE.md",
+      "target": ".agents/skills/devil/PROCEDURE.md"
+    },
+    {
+      "sha256": "75df1272bbeb4193141022ac78df84a168f7a1c0ca4d3cbf793620ecf09c7eea",
+      "source": "skills/diagram/PROCEDURE.md",
+      "target": ".agents/skills/diagram/PROCEDURE.md"
+    },
+    {
+      "sha256": "a1d598842f516d54aed6c2ad7c823dee91aaee5cc76e4f32f34639c7bb03698c",
+      "source": "skills/discover/PROCEDURE.md",
+      "target": ".agents/skills/discover/PROCEDURE.md"
+    },
+    {
+      "sha256": "b9ee41c2f5ea28cb70d334b125d01d370ff1d855c23e8e249076fc38bc9684cc",
+      "source": "skills/domain-modeling/PROCEDURE.md",
+      "target": ".agents/skills/domain-modeling/PROCEDURE.md"
+    },
+    {
+      "sha256": "a82173b552fdcbeacd5b1ea5f3fe01772533cc4c63e458316d20bf384cb61b59",
+      "source": "skills/draft/PROCEDURE.md",
+      "target": ".agents/skills/draft/PROCEDURE.md"
+    },
+    {
+      "sha256": "d812a92babdec19650bbe62cd080d629b077fc61cd18b110a7e090540209ee03",
+      "source": "skills/draft/SKILL.md",
+      "target": ".agents/skills/draft/SKILL.md"
+    },
+    {
+      "sha256": "65e207833a352e8ae9ce14ff08e5fca60ccda796b05dd2250a1a96343416bbd6",
+      "source": "skills/error-learning/PROCEDURE.md",
+      "target": ".agents/skills/error-learning/PROCEDURE.md"
+    },
+    {
+      "sha256": "8cf8e3f00395adb0317cc1a5c01a5402877d4fbd094ffbfb887ee2b0a4f9f7d2",
+      "source": "skills/f1/SKILL.md",
+      "target": ".agents/skills/f1/SKILL.md"
+    },
+    {
+      "sha256": "077e0a15b1119b1c96deac333cc36cf8e3934c6f4e5cb212298d05eabba19088",
+      "source": "skills/f1/references/min-max.md",
+      "target": ".agents/skills/f1/references/min-max.md"
+    },
+    {
+      "sha256": "d420f15ba5587b9153fb87bc2fef8745960621e80a09685b9aa22841ced33e94",
+      "source": "skills/f1/references/process-innovation.md",
+      "target": ".agents/skills/f1/references/process-innovation.md"
+    },
+    {
+      "sha256": "219cec646bcc1810078c2f05ee62f4b1210dd3b5655d3429a5a6fd57f4571c1c",
+      "source": "skills/f1/references/richting-scorecard.md",
+      "target": ".agents/skills/f1/references/richting-scorecard.md"
+    },
+    {
+      "sha256": "7091e73d68f5c74557cfa9ca5e01ccffa6c277d28a021d048c73fccd6ecca407",
+      "source": "skills/f1/references/tech-guru.md",
+      "target": ".agents/skills/f1/references/tech-guru.md"
+    },
+    {
+      "sha256": "ae57a385f9075d25001e7f4640bc69cd154abd4a4f1e733130d565a7ed7e335d",
+      "source": "skills/finance/SKILL.md",
+      "target": ".agents/skills/finance/SKILL.md"
+    },
+    {
+      "sha256": "e31c356069c2d1d4a0dd8eba2035c13f4508950024648f63bd2a4396be098f9a",
+      "source": "skills/flutter/PROCEDURE.md",
+      "target": ".agents/skills/flutter/PROCEDURE.md"
+    },
+    {
+      "sha256": "dec9dacc473319eb630c7a0ac8909d2112d563196a73df34e6961dc8e9786856",
+      "source": "skills/focus-topics/PROCEDURE.md",
+      "target": ".agents/skills/focus-topics/PROCEDURE.md"
+    },
+    {
+      "sha256": "54cbc6bc548161e5a642a8e2a5f20e9739beb0d92c46e1479255711ceddd5ba0",
+      "source": "skills/frontend/PROCEDURE.md",
+      "target": ".agents/skills/frontend/PROCEDURE.md"
+    },
+    {
+      "sha256": "a76060c52ede4dcef6ac7059e7dd7bd0ff181641503865741285e6c6d2a08d59",
+      "source": "skills/frysk/PROCEDURE.md",
+      "target": ".agents/skills/frysk/PROCEDURE.md"
+    },
+    {
+      "sha256": "5c4981b895123f67331cd3c7493c76a8ba612d3a3ad8a76bfc2f956a377812f6",
+      "source": "skills/git-cleanup/PROCEDURE.md",
+      "target": ".agents/skills/git-cleanup/PROCEDURE.md"
+    },
+    {
+      "sha256": "dab823af10e369d2ba97440285eaeba4ec072791dce1f8b09f96d126914cdcb3",
+      "source": "skills/git/PROCEDURE.md",
+      "target": ".agents/skills/git/PROCEDURE.md"
+    },
+    {
+      "sha256": "0aff92efab378e6dc66c348127026060a32b967300f16686600d5a2c224a744a",
+      "source": "skills/git/references/resolving-merge-conflicts.md",
+      "target": ".agents/skills/git/references/resolving-merge-conflicts.md"
+    },
+    {
+      "sha256": "3061f0f08015494a6313f2001b46a0b01df613428a7c763602209ba1338911fe",
+      "source": "skills/go-autopilot/PROCEDURE.md",
+      "target": ".agents/skills/go-autopilot/PROCEDURE.md"
+    },
+    {
+      "sha256": "d4f8da16a768cf625a968b04711fe597659b5b91e95fbea79dea53c83687accf",
+      "source": "skills/go-goal/PROCEDURE.md",
+      "target": ".agents/skills/go-goal/PROCEDURE.md"
+    },
+    {
+      "sha256": "00ebeed361969ac26a982838aecd37e7d0ff399a24b71ff7d9f20bb2af33640d",
+      "source": "skills/go-loop/PROCEDURE.md",
+      "target": ".agents/skills/go-loop/PROCEDURE.md"
+    },
+    {
+      "sha256": "20683fcca53e17611a510f5f32ee428c8ae7dd48a7012056ca65bbd86d281eb7",
+      "source": "skills/go-now/PROCEDURE.md",
+      "target": ".agents/skills/go-now/PROCEDURE.md"
+    },
+    {
+      "sha256": "06b0acaf9db41b46b5025491f75e096e0d76a74958707708d10d85db09426726",
+      "source": "skills/go-plan/PROCEDURE.md",
+      "target": ".agents/skills/go-plan/PROCEDURE.md"
+    },
+    {
+      "sha256": "ad7fe485f8966983cda2b054a68a3c4c8597c70c35a80ded70ec45685dd1cb49",
+      "source": "skills/go-task/PROCEDURE.md",
+      "target": ".agents/skills/go-task/PROCEDURE.md"
+    },
+    {
+      "sha256": "5e39e314eed4103aec980a4fd447411ef2259d2dffa7dd6dc35b0e2f3e6409c4",
+      "source": "skills/go-vision/PROCEDURE.md",
+      "target": ".agents/skills/go-vision/PROCEDURE.md"
+    },
+    {
+      "sha256": "26fb01ef351db9997c970f2c7f1e789b1ee8ad580d12ba2e8f9788495944f1a1",
+      "source": "skills/go/PROCEDURE.md",
+      "target": ".agents/skills/go/PROCEDURE.md"
+    },
+    {
+      "sha256": "5574a348a4ea3b524b0532a541c339e57bbf0d504375b05c202bbc242cb24757",
+      "source": "skills/go/SKILL.md",
+      "target": ".agents/skills/go/SKILL.md"
+    },
+    {
+      "sha256": "a98bde7432a97bc945722e5601eb5776f668d9eb17d5d1a5a268cf05c06e8478",
+      "source": "skills/grill-me/PROCEDURE.md",
+      "target": ".agents/skills/grill-me/PROCEDURE.md"
+    },
+    {
+      "sha256": "944e6d2e20f87114435873099f5db5415cad01f437caadfd22aa89fa4daee965",
+      "source": "skills/grill-with-docs/PROCEDURE.md",
+      "target": ".agents/skills/grill-with-docs/PROCEDURE.md"
+    },
+    {
+      "sha256": "16597cb188e2f146d262b182d0fea9b053f24ffed5be55a37332857d0e63e878",
+      "source": "skills/hardening-pass/PROCEDURE.md",
+      "target": ".agents/skills/hardening-pass/PROCEDURE.md"
+    },
+    {
+      "sha256": "921606b37d73b3bb3f3c3ff282fd791f7ba11020ca85406bd3c7d83e6744a7ef",
+      "source": "skills/hardening-pass/references/rollout-readiness.md",
+      "target": ".agents/skills/hardening-pass/references/rollout-readiness.md"
+    },
+    {
+      "sha256": "eab11ee94c31b6c4b0bd0c35030ec38b85e4dd427524434f2262a22c2c5eb729",
+      "source": "skills/help/PROCEDURE.md",
+      "target": ".agents/skills/help/PROCEDURE.md"
+    },
+    {
+      "sha256": "acd46184edca76be47d14327bcfd6245100ad0f3630406bcc8b7e29a5f55ca24",
+      "source": "skills/herdr/PROCEDURE.md",
+      "target": ".agents/skills/herdr/PROCEDURE.md"
+    },
+    {
+      "sha256": "9e82562a7dd6c7ca1665ecdb56e1b61d462648e5d4d4bbf75c3b4b11be9d98c4",
+      "source": "skills/hermes-upgrade-train/PROCEDURE.md",
+      "target": ".agents/skills/hermes-upgrade-train/PROCEDURE.md"
+    },
+    {
+      "sha256": "3227f364a7d96964fafd1206492c30a24017aa8c125b7bbd0a902d13d84efe8d",
+      "source": "skills/impeccable/PROCEDURE.md",
+      "target": ".agents/skills/impeccable/PROCEDURE.md"
+    },
+    {
+      "sha256": "7052dd585553c2104a961d71b18443c41a63b4edf17d78e271acd2f4a2962ead",
+      "source": "skills/impeccable/references/upstream-refresh.md",
+      "target": ".agents/skills/impeccable/references/upstream-refresh.md"
+    },
+    {
+      "sha256": "ba9dfedd7c251398319d177212ed1e9670a564b989801396f72cda6ddc38830f",
+      "source": "skills/impeccable/references/upstream-sources.json",
+      "target": ".agents/skills/impeccable/references/upstream-sources.json"
+    },
+    {
+      "sha256": "a379a39511e0bfb146b601f37957f1d9a80466eaa3a1b1a86c57c8095c221214",
+      "source": "skills/improve/PROCEDURE.md",
+      "target": ".agents/skills/improve/PROCEDURE.md"
+    },
+    {
+      "sha256": "ab0f468c450d85c58af2b0187da97b01ab5812e4446a4539ab9bf46c4d19063f",
+      "source": "skills/interview/PROCEDURE.md",
+      "target": ".agents/skills/interview/PROCEDURE.md"
+    },
+    {
+      "sha256": "7bb1d8057f73eaa5ef70973b45f1a0532fa96a036bb6e953402e2dfb24e3fc88",
+      "source": "skills/jsonl-vault-operations/PROCEDURE.md",
+      "target": ".agents/skills/jsonl-vault-operations/PROCEDURE.md"
+    },
+    {
+      "sha256": "42dd9b40f1925d29387c556a5c465a7594ab4840c5a72a50ff1c14a1c8e1b2d6",
+      "source": "skills/life-os-memory-pipeline/PROCEDURE.md",
+      "target": ".agents/skills/life-os-memory-pipeline/PROCEDURE.md"
+    },
+    {
+      "sha256": "57c200ca566c8564ffd6eadbb7eb70253a6b02e732560a2c62c3388e12eb2995",
+      "source": "skills/loop/PROCEDURE.md",
+      "target": ".agents/skills/loop/PROCEDURE.md"
+    },
+    {
+      "sha256": "81fc9465ad6c278cdf9bc5c8e0c291b3f84ac6b2ab8d174cfa0e964d34a1fd75",
+      "source": "skills/master-tactician/PROCEDURE.md",
+      "target": ".agents/skills/master-tactician/PROCEDURE.md"
+    },
+    {
+      "sha256": "0dcd41f9b3ce757c92df96f076a2350d028fa09945df218f3ba7720cd25df20c",
+      "source": "skills/meeting/SKILL.md",
+      "target": ".agents/skills/meeting/SKILL.md"
+    },
+    {
+      "sha256": "b71dc8d7014bb902f6f1ed53fb177a28fb67ff433f51e4330fc3a4f058932f34",
+      "source": "skills/next-improvements/PROCEDURE.md",
+      "target": ".agents/skills/next-improvements/PROCEDURE.md"
+    },
+    {
+      "sha256": "701f16b9fd110cae338c427edac15a4681b84662eec5c9be6adb751da2e0addb",
+      "source": "skills/next/PROCEDURE.md",
+      "target": ".agents/skills/next/PROCEDURE.md"
+    },
+    {
+      "sha256": "3f9567b883eb87d74576812b911800472669c0593c7e03781e7fdbf6f9e0e333",
+      "source": "skills/next/SKILL.md",
+      "target": ".agents/skills/next/SKILL.md"
+    },
+    {
+      "sha256": "40c5b4362c57f18638cab6493c4a9b0741176719b6a58743db83c6ca8d77bb7d",
+      "source": "skills/nice/PROCEDURE.md",
+      "target": ".agents/skills/nice/PROCEDURE.md"
+    },
+    {
+      "sha256": "95ac9b63535b3467b79e760a95a9ceb864228c5ba5592df2a00ac096503a617f",
+      "source": "skills/nutrition-logging/PROCEDURE.md",
+      "target": ".agents/skills/nutrition-logging/PROCEDURE.md"
+    },
+    {
+      "sha256": "8d62cfb599209da1488af59d5cd26c92f81b832d5e89aa3d6163a0edcb0b733f",
+      "source": "skills/nutrition/PROCEDURE.md",
+      "target": ".agents/skills/nutrition/PROCEDURE.md"
+    },
+    {
+      "sha256": "a8f9237a9d1736b46f609fa26a91728d1954da92b5cfa4ae965bfefb6fbcc18a",
+      "source": "skills/obsidian-meeting/PROCEDURE.md",
+      "target": ".agents/skills/obsidian-meeting/PROCEDURE.md"
+    },
+    {
+      "sha256": "c59f4c05a55b49f10ea9b21c612872a2abc1f7fa96bc30f07b58642cdfb688ff",
+      "source": "skills/opleverbericht/SKILL.md",
+      "target": ".agents/skills/opleverbericht/SKILL.md"
+    },
+    {
+      "sha256": "da65ddb8c5b300135971c02ba89cf3e740f5cad8ac28d2b88fbcd29b56888853",
+      "source": "skills/ops/SKILL.md",
+      "target": ".agents/skills/ops/SKILL.md"
+    },
+    {
+      "sha256": "0ca9b5d888e4705e773245ea70bf0e46327e9c0bae1d8a5cde787c81d9e0205c",
+      "source": "skills/output/PROCEDURE.md",
+      "target": ".agents/skills/output/PROCEDURE.md"
+    },
+    {
+      "sha256": "fa16e061043c91b51aba03989833209645091d932459628af0541407227cdcb1",
+      "source": "skills/output/SKILL.md",
+      "target": ".agents/skills/output/SKILL.md"
+    },
+    {
+      "sha256": "d405f417dbbd996ae250b519d819fd8035e289412afff5bb9ce6dd032c05d27a",
+      "source": "skills/pdf/PROCEDURE.md",
+      "target": ".agents/skills/pdf/PROCEDURE.md"
+    },
+    {
+      "sha256": "0967f09ee60c3230b2d980bc7b83232238ff2bfb3c9390c742e70b4d1365e544",
+      "source": "skills/portable-snapshots/PROCEDURE.md",
+      "target": ".agents/skills/portable-snapshots/PROCEDURE.md"
+    },
+    {
+      "sha256": "d8ffe17279163306575172a214f94033eb320b2d9e0355170d4378c84fd3d9dc",
+      "source": "skills/pr/PROCEDURE.md",
+      "target": ".agents/skills/pr/PROCEDURE.md"
+    },
+    {
+      "sha256": "02f2cfe2e5090328852d2037d279321cf9ffb0c6834a8ef8c2e1b6db49d0e2cb",
+      "source": "skills/prep/PROCEDURE.md",
+      "target": ".agents/skills/prep/PROCEDURE.md"
+    },
+    {
+      "sha256": "c7f3946caa94f109b6cfd0e44a64b1802fb9fb170da7fa97706c6ceaa18f0bc7",
+      "source": "skills/production-genai/PROCEDURE.md",
+      "target": ".agents/skills/production-genai/PROCEDURE.md"
+    },
+    {
+      "sha256": "68a3f1b8b5b36d6d596ef52c6b33817707eba70b6049039c906c32be0c1c4e81",
+      "source": "skills/prototype/PROCEDURE.md",
+      "target": ".agents/skills/prototype/PROCEDURE.md"
+    },
+    {
+      "sha256": "21868d0372ab9b04b7022a6f7bb26c69408cbfc3d43fd4565cad0affd42494be",
+      "source": "skills/publish/PROCEDURE.md",
+      "target": ".agents/skills/publish/PROCEDURE.md"
+    },
+    {
+      "sha256": "dec36315f62cbc9f3da92dbe8d56339381b87f32dc2698bc1f48d841969e7f99",
+      "source": "skills/purchase/PROCEDURE.md",
+      "target": ".agents/skills/purchase/PROCEDURE.md"
+    },
+    {
+      "sha256": "468ee90ce6377f1a3b254e37702094d1203b8cd5ed6bbd0db2b7834586f1d6bc",
+      "source": "skills/python/PROCEDURE.md",
+      "target": ".agents/skills/python/PROCEDURE.md"
+    },
+    {
+      "sha256": "389335e930960cc9a638cbf42b30a997bfbd0d33d1e10ec32a5c43137befcb61",
+      "source": "skills/quality-audit/PROCEDURE.md",
+      "target": ".agents/skills/quality-audit/PROCEDURE.md"
+    },
+    {
+      "sha256": "38b1004cd85712d5aaebc17a6ec8af72ce597561ab44f9f80b595b47c56c2514",
+      "source": "skills/raycast/PROCEDURE.md",
+      "target": ".agents/skills/raycast/PROCEDURE.md"
+    },
+    {
+      "sha256": "d81026c1d4a1e1586c263f0d6a76f86747f34b2f98e0a0e170d7fffc82403581",
+      "source": "skills/react/AGENTS.md",
+      "target": ".agents/skills/react/AGENTS.md"
+    },
+    {
+      "sha256": "7c64b3ae70024afa728f78c8722b4e8cb034446da248b6361590a4513effabf4",
+      "source": "skills/react/PROCEDURE.md",
+      "target": ".agents/skills/react/PROCEDURE.md"
+    },
+    {
+      "sha256": "149da013e6d4a9ae9a684ef641321edd514d33a31c1e98b3ae342e040fbb15e9",
+      "source": "skills/react/UPSTREAM.md",
+      "target": ".agents/skills/react/UPSTREAM.md"
+    },
+    {
+      "sha256": "c4e18bac3290fbe1b471a605867d4df68b03144ea26b8befdbe8f9d8fd124354",
+      "source": "skills/react/metadata.json",
+      "target": ".agents/skills/react/metadata.json"
+    },
+    {
+      "sha256": "01c59969e4e867f0708c8f8ef9c6d87fab9a07d0586244f429ff84013db8a115",
+      "source": "skills/react/rules/_sections.md",
+      "target": ".agents/skills/react/rules/_sections.md"
+    },
+    {
+      "sha256": "a3097edeecfb2ff6851cd66ed8cdf0617c3c88180504bee824aa6e75a215bbbc",
+      "source": "skills/react/rules/advanced-event-handler-refs.md",
+      "target": ".agents/skills/react/rules/advanced-event-handler-refs.md"
+    },
+    {
+      "sha256": "3e4dc22173eb0e2b6dcf583e3babd862b8696328f8f59aee7c4d746c5bc05f6c",
+      "source": "skills/react/rules/advanced-init-once.md",
+      "target": ".agents/skills/react/rules/advanced-init-once.md"
+    },
+    {
+      "sha256": "8a3f64dfe5a77d1564248faf17fe662ae75b55d497a243cb30b38eb07ccbbf9a",
+      "source": "skills/react/rules/advanced-use-latest.md",
+      "target": ".agents/skills/react/rules/advanced-use-latest.md"
+    },
+    {
+      "sha256": "523338540d73427dc14c0cbb19f2741ebccdf8b105a7b2c1b33d2905cf237a42",
+      "source": "skills/react/rules/async-api-routes.md",
+      "target": ".agents/skills/react/rules/async-api-routes.md"
+    },
+    {
+      "sha256": "9b9166c7fc58b436cf039ac4e36dd0d3c4f762b61111f579d93cdb9f2ab2b6f9",
+      "source": "skills/react/rules/async-defer-await.md",
+      "target": ".agents/skills/react/rules/async-defer-await.md"
+    },
+    {
+      "sha256": "16ef469f877e30c6b8e1e1b4bc3e527312fa3c6318cb785a4eca186ea236131a",
+      "source": "skills/react/rules/async-dependencies.md",
+      "target": ".agents/skills/react/rules/async-dependencies.md"
+    },
+    {
+      "sha256": "6d2f841896279e976dfcdc1ac89e70771ac188baadfd43c096b5706cb838b961",
+      "source": "skills/react/rules/async-parallel.md",
+      "target": ".agents/skills/react/rules/async-parallel.md"
+    },
+    {
+      "sha256": "de05fedac2eb7ae563b887b5a424464ec3dfaf84e5b7797467ebe2a796ac8afc",
+      "source": "skills/react/rules/async-suspense-boundaries.md",
+      "target": ".agents/skills/react/rules/async-suspense-boundaries.md"
+    },
+    {
+      "sha256": "9e61a5d579a8a7d55194c2e110414d7ee2d8da947ba187d444daa1e54d265f0f",
+      "source": "skills/react/rules/bundle-barrel-imports.md",
+      "target": ".agents/skills/react/rules/bundle-barrel-imports.md"
+    },
+    {
+      "sha256": "09c8259c3efb04fc0abb8e412ccbda217c222ae8118516283e571c995fe3a7d4",
+      "source": "skills/react/rules/bundle-conditional.md",
+      "target": ".agents/skills/react/rules/bundle-conditional.md"
+    },
+    {
+      "sha256": "3719fb47b191e8db4fe22686ec88448ad5af9e6838585425abbe103d0b642e37",
+      "source": "skills/react/rules/bundle-defer-third-party.md",
+      "target": ".agents/skills/react/rules/bundle-defer-third-party.md"
+    },
+    {
+      "sha256": "401817a7369f315fc5a68a1095742ff7d53d0461906880dc9d64a41495ee1986",
+      "source": "skills/react/rules/bundle-dynamic-imports.md",
+      "target": ".agents/skills/react/rules/bundle-dynamic-imports.md"
+    },
+    {
+      "sha256": "d1f7cc28da7cd5ab249acd287edc5b761afcfb194e9cb62cd44c5f3543db2de2",
+      "source": "skills/react/rules/bundle-preload.md",
+      "target": ".agents/skills/react/rules/bundle-preload.md"
+    },
+    {
+      "sha256": "242a873349febc1ce685e85617994784dbab92c2eaa68aed7fed5a83e7680e93",
+      "source": "skills/react/rules/client-event-listeners.md",
+      "target": ".agents/skills/react/rules/client-event-listeners.md"
+    },
+    {
+      "sha256": "0fb7cdf9dc93fdf22f87e3669f953fb9d4ac9b0be42eec4a29fe9a2560610b88",
+      "source": "skills/react/rules/client-localstorage-schema.md",
+      "target": ".agents/skills/react/rules/client-localstorage-schema.md"
+    },
+    {
+      "sha256": "1f35016f9053de69e884ee9be00654e37979c2ca85f5e57764dc2626ff7acb4b",
+      "source": "skills/react/rules/client-passive-event-listeners.md",
+      "target": ".agents/skills/react/rules/client-passive-event-listeners.md"
+    },
+    {
+      "sha256": "644652c39c6cc00de8d1c77a7273612e868dc3f7edda30764164c12ec0f764a3",
+      "source": "skills/react/rules/client-swr-dedup.md",
+      "target": ".agents/skills/react/rules/client-swr-dedup.md"
+    },
+    {
+      "sha256": "480b891b9eaf96e929dc1e964274a4828e3a78009b7d00ccd965a0d425215959",
+      "source": "skills/react/rules/js-batch-dom-css.md",
+      "target": ".agents/skills/react/rules/js-batch-dom-css.md"
+    },
+    {
+      "sha256": "3daaa11d24f4295cb6be8bc6f407f2ce83cc7b5bd1f0e68891ea8ab835721dc7",
+      "source": "skills/react/rules/js-cache-function-results.md",
+      "target": ".agents/skills/react/rules/js-cache-function-results.md"
+    },
+    {
+      "sha256": "73e47431e74878a927061bf0ddc7cd91a7556cb35d2573f3421e82300d9ae311",
+      "source": "skills/react/rules/js-cache-property-access.md",
+      "target": ".agents/skills/react/rules/js-cache-property-access.md"
+    },
+    {
+      "sha256": "11b826b0433898c1ece2d3547010d8e77db9fb240185748c45db91493de9b6cc",
+      "source": "skills/react/rules/js-cache-storage.md",
+      "target": ".agents/skills/react/rules/js-cache-storage.md"
+    },
+    {
+      "sha256": "71add08aeeb43091d4ff4c0b2842cce8b4bdef8ad3e732cc034bb5a84827e746",
+      "source": "skills/react/rules/js-combine-iterations.md",
+      "target": ".agents/skills/react/rules/js-combine-iterations.md"
+    },
+    {
+      "sha256": "925ce5ce87f3347186ca62212f29cc6baa2b8c85a96d2720ad07c3d0abf781c0",
+      "source": "skills/react/rules/js-early-exit.md",
+      "target": ".agents/skills/react/rules/js-early-exit.md"
+    },
+    {
+      "sha256": "f9e9aef2f7c2307dd7310f283df85dcada45fc43e9bb941b0c3aa414dec21ec4",
+      "source": "skills/react/rules/js-hoist-regexp.md",
+      "target": ".agents/skills/react/rules/js-hoist-regexp.md"
+    },
+    {
+      "sha256": "5df1bdc2cfabb2c98abd55d26762e5c18189535c2e686184f426082e62920391",
+      "source": "skills/react/rules/js-index-maps.md",
+      "target": ".agents/skills/react/rules/js-index-maps.md"
+    },
+    {
+      "sha256": "8b54a311c826b299272f29187fc58bc55772a04c4a72eeb29456ee96dc9fc624",
+      "source": "skills/react/rules/js-length-check-first.md",
+      "target": ".agents/skills/react/rules/js-length-check-first.md"
+    },
+    {
+      "sha256": "87dfb67e2f39df6ad8bcfb5b78c5fb364d3c07554ad188a202408d99f3763421",
+      "source": "skills/react/rules/js-min-max-loop.md",
+      "target": ".agents/skills/react/rules/js-min-max-loop.md"
+    },
+    {
+      "sha256": "a7fd781a6ba9ad49065961b6f9a90ef486bf6b648390e1a08704025f98e1642b",
+      "source": "skills/react/rules/js-set-map-lookups.md",
+      "target": ".agents/skills/react/rules/js-set-map-lookups.md"
+    },
+    {
+      "sha256": "d0a5e1b0fec48a0a81397957e2f068e224329f7c42cb5feeed8aae6fa64025e8",
+      "source": "skills/react/rules/js-tosorted-immutable.md",
+      "target": ".agents/skills/react/rules/js-tosorted-immutable.md"
+    },
+    {
+      "sha256": "1e5e7eaf3555e61d6a2e900089c676527d26259501db5594f59544b6c664f85a",
+      "source": "skills/react/rules/rendering-activity.md",
+      "target": ".agents/skills/react/rules/rendering-activity.md"
+    },
+    {
+      "sha256": "9c6ae0ca7a51434e803887c64cded760956579a1452ccb80a461a03f9c937c77",
+      "source": "skills/react/rules/rendering-animate-svg-wrapper.md",
+      "target": ".agents/skills/react/rules/rendering-animate-svg-wrapper.md"
+    },
+    {
+      "sha256": "2ec2fa23c4148285144687050c52369adba3da2fbe3d486f8d3e0aad8f06f2bc",
+      "source": "skills/react/rules/rendering-conditional-render.md",
+      "target": ".agents/skills/react/rules/rendering-conditional-render.md"
+    },
+    {
+      "sha256": "64eee6d5b916fe74df33363994b27fc7f71bea3bcedc7ee04bda23107ca3e6e4",
+      "source": "skills/react/rules/rendering-content-visibility.md",
+      "target": ".agents/skills/react/rules/rendering-content-visibility.md"
+    },
+    {
+      "sha256": "93b229560fae92005ed9a2a829064607b39b2e984e92d221d05b2d41df2b7c0e",
+      "source": "skills/react/rules/rendering-hoist-jsx.md",
+      "target": ".agents/skills/react/rules/rendering-hoist-jsx.md"
+    },
+    {
+      "sha256": "dc7ab358c67c177bca6e6f360fbc935ebe4efa928c0ba3ebd3f9f3d9e2000ca3",
+      "source": "skills/react/rules/rendering-hydration-no-flicker.md",
+      "target": ".agents/skills/react/rules/rendering-hydration-no-flicker.md"
+    },
+    {
+      "sha256": "915bacb934e2927d84b37a3f3d225a47b309ac8f9e494ed2bcb66ce07c5676a2",
+      "source": "skills/react/rules/rendering-hydration-suppress-warning.md",
+      "target": ".agents/skills/react/rules/rendering-hydration-suppress-warning.md"
+    },
+    {
+      "sha256": "9d568a7f099b00be329b150fd4a2178fe0181eede0ae893aa7fc0aaab0506fdb",
+      "source": "skills/react/rules/rendering-svg-precision.md",
+      "target": ".agents/skills/react/rules/rendering-svg-precision.md"
+    },
+    {
+      "sha256": "3a1249c3f13026b6f54ab5712c388df219d6af01b12aa542749acd99a46f4bc1",
+      "source": "skills/react/rules/rendering-usetransition-loading.md",
+      "target": ".agents/skills/react/rules/rendering-usetransition-loading.md"
+    },
+    {
+      "sha256": "234050a77faf50cb306be10a9e15bd4421134ab5907e75f13e6d78e2bd262dc9",
+      "source": "skills/react/rules/rerender-defer-reads.md",
+      "target": ".agents/skills/react/rules/rerender-defer-reads.md"
+    },
+    {
+      "sha256": "17eb5830956fb56486fd3cfc7431f5849d39751730c05ad9e77dd4f0c27169c5",
+      "source": "skills/react/rules/rerender-dependencies.md",
+      "target": ".agents/skills/react/rules/rerender-dependencies.md"
+    },
+    {
+      "sha256": "cb11ec76f50aa7b6847269f02d79b120c889a30d9ecd2c1d578f75144419c77a",
+      "source": "skills/react/rules/rerender-derived-state-no-effect.md",
+      "target": ".agents/skills/react/rules/rerender-derived-state-no-effect.md"
+    },
+    {
+      "sha256": "1c326bb67b01fb084eb00c8911b0a7cff54681c2315b629f88e49b64eaa6481d",
+      "source": "skills/react/rules/rerender-derived-state.md",
+      "target": ".agents/skills/react/rules/rerender-derived-state.md"
+    },
+    {
+      "sha256": "5e68df6b2ae8058e67f476ff1ac67bde159f5a9d18df439e46eabcdeb7b52e58",
+      "source": "skills/react/rules/rerender-functional-setstate.md",
+      "target": ".agents/skills/react/rules/rerender-functional-setstate.md"
+    },
+    {
+      "sha256": "4ae844740f266fc8cbf050701230286624a2440ec5be67b9a63d9edc3c580573",
+      "source": "skills/react/rules/rerender-lazy-state-init.md",
+      "target": ".agents/skills/react/rules/rerender-lazy-state-init.md"
+    },
+    {
+      "sha256": "81c47476564ad8a79fc68fc442734255ca7d6829424359464503fda0a9f9a0dd",
+      "source": "skills/react/rules/rerender-memo-with-default-value.md",
+      "target": ".agents/skills/react/rules/rerender-memo-with-default-value.md"
+    },
+    {
+      "sha256": "1f258990c2f27ff6256b3cc5c43300631bb3f0d81f749aed08d07fcdcc131dd1",
+      "source": "skills/react/rules/rerender-memo.md",
+      "target": ".agents/skills/react/rules/rerender-memo.md"
+    },
+    {
+      "sha256": "abc2cbf167bee056743023351e96806a411d3398da8802093620aecf0721f029",
+      "source": "skills/react/rules/rerender-move-effect-to-event.md",
+      "target": ".agents/skills/react/rules/rerender-move-effect-to-event.md"
+    },
+    {
+      "sha256": "5bdcf2d1558ba5204e643c887b7b4060f89630969425651eb68e96427d97f800",
+      "source": "skills/react/rules/rerender-simple-expression-in-memo.md",
+      "target": ".agents/skills/react/rules/rerender-simple-expression-in-memo.md"
+    },
+    {
+      "sha256": "60f4033909a62df5e5b8c601494f9e50a562e2f8c1c2d81eac24f38142265f1c",
+      "source": "skills/react/rules/rerender-transitions.md",
+      "target": ".agents/skills/react/rules/rerender-transitions.md"
+    },
+    {
+      "sha256": "f1a649af9d1d0b5c762f6c9c4c1c70c90d7df82aa10296ee87aadb78c1b76c54",
+      "source": "skills/react/rules/rerender-use-ref-transient-values.md",
+      "target": ".agents/skills/react/rules/rerender-use-ref-transient-values.md"
+    },
+    {
+      "sha256": "d0b8d24a3db9f0f65f9e2bddbf230b0e03a5f60e1229d93a4a18f5e7a991c7c2",
+      "source": "skills/react/rules/server-after-nonblocking.md",
+      "target": ".agents/skills/react/rules/server-after-nonblocking.md"
+    },
+    {
+      "sha256": "a2ca8aa102839251c7971ec784560fab943c20b36fe6f80365d4110c13260c23",
+      "source": "skills/react/rules/server-auth-actions.md",
+      "target": ".agents/skills/react/rules/server-auth-actions.md"
+    },
+    {
+      "sha256": "1924b64561841923b88a657085097a0aeba3e0ba2d5470b9f5c15cc10d6ae70f",
+      "source": "skills/react/rules/server-cache-lru.md",
+      "target": ".agents/skills/react/rules/server-cache-lru.md"
+    },
+    {
+      "sha256": "fddeea6c870bb3da4134b61d54b7d09b83d2603f929b7547cd3dc1dc269edd5c",
+      "source": "skills/react/rules/server-cache-react.md",
+      "target": ".agents/skills/react/rules/server-cache-react.md"
+    },
+    {
+      "sha256": "c2747424cdac46be62f835f245a0aa887b0090b416d28e2ac8676702645eeb37",
+      "source": "skills/react/rules/server-dedup-props.md",
+      "target": ".agents/skills/react/rules/server-dedup-props.md"
+    },
+    {
+      "sha256": "569a2e9fc04f9606686cd75c5894ef8781b502786a7fffe241396846c7733472",
+      "source": "skills/react/rules/server-parallel-fetching.md",
+      "target": ".agents/skills/react/rules/server-parallel-fetching.md"
+    },
+    {
+      "sha256": "f4c7d68b29c82381baad059c4a7f09e868e71ec9c3115a26ad3ae7d24c0dfe1f",
+      "source": "skills/react/rules/server-serialization.md",
+      "target": ".agents/skills/react/rules/server-serialization.md"
+    },
+    {
+      "sha256": "42262206a9d50555daf3c87f764a8dcc0cb9366c8640296e0a283202365282b6",
+      "source": "skills/recheck/SKILL.md",
+      "target": ".agents/skills/recheck/SKILL.md"
+    },
+    {
+      "sha256": "92b98c45d9839066f433c27d4ccad52419106ff5008d18e65bd81836b1275062",
+      "source": "skills/refactor/PROCEDURE.md",
+      "target": ".agents/skills/refactor/PROCEDURE.md"
+    },
+    {
+      "sha256": "4aef28436f9ad2b8bffd969d5f9ec70997025af14113da869da84884bdd7f932",
+      "source": "skills/refactor/references/deep-module-design.md",
+      "target": ".agents/skills/refactor/references/deep-module-design.md"
+    },
+    {
+      "sha256": "59ac59cc40c09231fc353c5fd27486d040d1ba63bee2d193d8aeee8b071590ea",
+      "source": "skills/reflect/PROCEDURE.md",
+      "target": ".agents/skills/reflect/PROCEDURE.md"
+    },
+    {
+      "sha256": "757b8ebd8486c147dd1b4b8b1da150b08bf3f3876e650a8cde0493c4d777d9b3",
+      "source": "skills/reisplanner/SKILL.md",
+      "target": ".agents/skills/reisplanner/SKILL.md"
+    },
+    {
+      "sha256": "0d9838fa5c64e44b19770caf7e1781d9327fcfc2497fcaeddcd219c1c0b38665",
+      "source": "skills/release/PROCEDURE.md",
+      "target": ".agents/skills/release/PROCEDURE.md"
+    },
+    {
+      "sha256": "ab6f093218950653c4bf197c43cdef9670be3e17c6e1bfdefdce35b682ae799c",
+      "source": "skills/repo-complete/PROCEDURE.md",
+      "target": ".agents/skills/repo-complete/PROCEDURE.md"
+    },
+    {
+      "sha256": "1168a9d3535cd88347e2d0614ba44f6aeabad1cab5a2ab5b67e9b8a15ac8d5cc",
+      "source": "skills/repo-design-vision/PROCEDURE.md",
+      "target": ".agents/skills/repo-design-vision/PROCEDURE.md"
+    },
+    {
+      "sha256": "cf20f7d21f60abe239a80acfaba157841c9600eaf4c1bd5d6982bf6703eca76d",
+      "source": "skills/research/PROCEDURE.md",
+      "target": ".agents/skills/research/PROCEDURE.md"
+    },
+    {
+      "sha256": "5c2b4f2415c8b54bc82e73bc9ed3dff52fc4816abea6defc315e4ce6fc1d22c7",
+      "source": "skills/research/SKILL.md",
+      "target": ".agents/skills/research/SKILL.md"
+    },
+    {
+      "sha256": "7520bd0acf6ce2dd9b964b35172a95829060cf8622c6ef79bb84a2458163a1be",
+      "source": "skills/research/public-person-background-check-to-vault/PROCEDURE.md",
+      "target": ".agents/skills/research/public-person-background-check-to-vault/PROCEDURE.md"
+    },
+    {
+      "sha256": "ac789b7a4645fee3a0d909e185c57bbe125d76fe680738e20a176ce5ff783b31",
+      "source": "skills/research/references/vacancy-quality.md",
+      "target": ".agents/skills/research/references/vacancy-quality.md"
+    },
+    {
+      "sha256": "6edf084f74970339fc46e112369245c47f79b279727a116e82e2d0adbcb2c7c8",
+      "source": "skills/self-reflect/PROCEDURE.md",
+      "target": ".agents/skills/self-reflect/PROCEDURE.md"
+    },
+    {
+      "sha256": "6ae3472d7e4427a0b01fab405152973c6644ce0575594ada250b98696b5ffb40",
+      "source": "skills/selfimprove-axe/PROCEDURE.md",
+      "target": ".agents/skills/selfimprove-axe/PROCEDURE.md"
+    },
+    {
+      "sha256": "d727f2a2eeb7506a13ebdde550878ed9677d3081a461c995756284441cb399f3",
+      "source": "skills/selfimprove/PROCEDURE.md",
+      "target": ".agents/skills/selfimprove/PROCEDURE.md"
+    },
+    {
+      "sha256": "738bf9e632aa97a02dac330140e92c083983c53ce1fad9321c7b7d60b8a63596",
+      "source": "skills/selfimprove/SKILL.md",
+      "target": ".agents/skills/selfimprove/SKILL.md"
+    },
+    {
+      "sha256": "85ede2680ee578447a0dd7a1d75d77136c65bc08029ff4b572eb31b80fbfb3af",
+      "source": "skills/selfimprove/references/completion-runtime.md",
+      "target": ".agents/skills/selfimprove/references/completion-runtime.md"
+    },
+    {
+      "sha256": "17875ceb9c919a92c9313d3e57d08312b0d85715be8584f9b82addcd643e2cd6",
+      "source": "skills/send/SKILL.md",
+      "target": ".agents/skills/send/SKILL.md"
+    },
+    {
+      "sha256": "9a626b0b635672b52033359256e70089de6f82c689d1cb1b384fa1ed450863df",
+      "source": "skills/shop/PROCEDURE.md",
+      "target": ".agents/skills/shop/PROCEDURE.md"
+    },
+    {
+      "sha256": "2f559768f9c44878a81b7d353442294c9845c8d9b12b7b72453bee175d949c3f",
+      "source": "skills/skills-sh-curation/PROCEDURE.md",
+      "target": ".agents/skills/skills-sh-curation/PROCEDURE.md"
+    },
+    {
+      "sha256": "b79f139ab2beaa2e531fb4f6415c646b55146176221d7c535f993a9c82018ee3",
+      "source": "skills/skills-sh-curation/references/skill-authoring-predictability.md",
+      "target": ".agents/skills/skills-sh-curation/references/skill-authoring-predictability.md"
+    },
+    {
+      "sha256": "e900cc24c6d883e67b07a8b91f7128c8e86de6677ad1a684cceea0be15ec611d",
+      "source": "skills/slides/PROCEDURE.md",
+      "target": ".agents/skills/slides/PROCEDURE.md"
+    },
+    {
+      "sha256": "764e61b5c331c0b0c6b17da3ac6e0a8274f1f302bcad792528dd345240a1ffd8",
+      "source": "skills/spreadsheet/PROCEDURE.md",
+      "target": ".agents/skills/spreadsheet/PROCEDURE.md"
+    },
+    {
+      "sha256": "b9b479e6df9f27cbc8e7abe91f771b396f3f0fa114d070c7c0b02c820c6b74dc",
+      "source": "skills/swiftui-pro/LICENSE.txt",
+      "target": ".agents/skills/swiftui-pro/LICENSE.txt"
+    },
+    {
+      "sha256": "32cf96a30cd5c6d8e426ebf572dcd653c1a11ca095c033a33ea42390b1b3615c",
+      "source": "skills/swiftui-pro/PROCEDURE.md",
+      "target": ".agents/skills/swiftui-pro/PROCEDURE.md"
+    },
+    {
+      "sha256": "1ed89fb0ccdfca69392a485c523eac4868ae5bd0d5e5ab8cea65373b92d56578",
+      "source": "skills/swiftui-pro/provenance.json",
+      "target": ".agents/skills/swiftui-pro/provenance.json"
+    },
+    {
+      "sha256": "4097e392ee27506c9e94065d36a1e45075f70e3fa43234c7ed007a30ec5b78bb",
+      "source": "skills/swiftui-pro/references/api-swift.md",
+      "target": ".agents/skills/swiftui-pro/references/api-swift.md"
+    },
+    {
+      "sha256": "cc46252d703d49428d97692068c4942f05cb77ec3e61b60d57f03a45ed72d8fa",
+      "source": "skills/swiftui-pro/references/data.md",
+      "target": ".agents/skills/swiftui-pro/references/data.md"
+    },
+    {
+      "sha256": "169d5bc4c52b6d05f6c39970ba37054369de6ab8eb87b8eda23a5e5f3b2af1f8",
+      "source": "skills/swiftui-pro/references/interface.md",
+      "target": ".agents/skills/swiftui-pro/references/interface.md"
+    },
+    {
+      "sha256": "6870c3de82ec73f7dced341bb6a5a5d99fa690ff8a0195addceac0ef5337b8d7",
+      "source": "skills/swiftui-pro/references/performance-plus.md",
+      "target": ".agents/skills/swiftui-pro/references/performance-plus.md"
+    },
+    {
+      "sha256": "2fe15053c3f2b22f800f63193ab16782eee77dc3bf35fe0e0a1e48612d6ce0f8",
+      "source": "skills/swiftui-pro/references/performance.md",
+      "target": ".agents/skills/swiftui-pro/references/performance.md"
+    },
+    {
+      "sha256": "de7e974a735277c86453e728d0f7df3b15d6bd44e93c14bdc7117c9598e19d46",
+      "source": "skills/swiftui-pro/references/windows.md",
+      "target": ".agents/skills/swiftui-pro/references/windows.md"
+    },
+    {
+      "sha256": "8c1e77803a89d6e9196fb773dadb3a29e0fe3f7d9fcbfb5096cb2a5f4aed2f87",
+      "source": "skills/task/PROCEDURE.md",
+      "target": ".agents/skills/task/PROCEDURE.md"
+    },
+    {
+      "sha256": "52544c07d0bf29306ea0ab321cb29ba95b3a4dcf90f0e05a145aaac132bf5e39",
+      "source": "skills/tdd/PROCEDURE.md",
+      "target": ".agents/skills/tdd/PROCEDURE.md"
+    },
+    {
+      "sha256": "6d0c18999ad03d1c692ddc07e0fe96723ed92b8b4cb070d584ef0cbd1df99649",
+      "source": "skills/teach-me/PROCEDURE.md",
+      "target": ".agents/skills/teach-me/PROCEDURE.md"
+    },
+    {
+      "sha256": "33e8971d715ef0ce1d3dc06530597a4ac7abe3792df40c27a1f12d1162b48b0a",
+      "source": "skills/teach-me/SKILL.md",
+      "target": ".agents/skills/teach-me/SKILL.md"
+    },
+    {
+      "sha256": "aea8cc566621d5441c982d3e54c7486728616befa09aa6a93405a61dd4750bf3",
+      "source": "skills/teach-me/references/teaching-techniques.md",
+      "target": ".agents/skills/teach-me/references/teaching-techniques.md"
+    },
+    {
+      "sha256": "87763134a918457efa4f5b8111439c323955c5826f5c3a8ddc4df6b5207c161c",
+      "source": "skills/telegram-to-vault-router/PROCEDURE.md",
+      "target": ".agents/skills/telegram-to-vault-router/PROCEDURE.md"
+    },
+    {
+      "sha256": "d15bdb78d699a7b496c2755448cb414a2981b85121d446949616cc597ca15e21",
+      "source": "skills/temp-publisher/PROCEDURE.md",
+      "target": ".agents/skills/temp-publisher/PROCEDURE.md"
+    },
+    {
+      "sha256": "26d0f0fc1b27810d1a11c90651b8cd1254841986eff659f3ebe5af87bec8fd46",
+      "source": "skills/verkoop/SKILL.md",
+      "target": ".agents/skills/verkoop/SKILL.md"
+    },
+    {
+      "sha256": "fbf2e75acfb7d26477f4b1cdc23417fe95ab0265ad797e31d2a674ff7576e907",
+      "source": "skills/viggo-draft/PROCEDURE.md",
+      "target": ".agents/skills/viggo-draft/PROCEDURE.md"
+    },
+    {
+      "sha256": "464944a9bc0ac4aa32e773ed6e27812efd16df12be72c7b4baec320671cde81e",
+      "source": "skills/viggo-output/PROCEDURE.md",
+      "target": ".agents/skills/viggo-output/PROCEDURE.md"
+    },
+    {
+      "sha256": "9fcf74feed863782b8fdac118eb8e87e03e8407456374c945c9fd458c41c530c",
+      "source": "skills/viggo-reflect/PROCEDURE.md",
+      "target": ".agents/skills/viggo-reflect/PROCEDURE.md"
+    },
+    {
+      "sha256": "72075e4baf64ff97d36bd54c5ecc547c57bfbae8cba2dbf865ccbf12ee1e56bb",
+      "source": "skills/viggo-research-decision-support/PROCEDURE.md",
+      "target": ".agents/skills/viggo-research-decision-support/PROCEDURE.md"
+    },
+    {
+      "sha256": "3e914ab2f9dc54f072d31c3a773f15360759d27773c4397dc28a2cf6e6abc3ed",
+      "source": "skills/viggomeesters-asset-prompt/PROCEDURE.md",
+      "target": ".agents/skills/viggomeesters-asset-prompt/PROCEDURE.md"
+    },
+    {
+      "sha256": "31c568a822742f56066023526451e6d6a85a31c510fdfc3912c6a48f0a0270a1",
+      "source": "skills/visual-output/PROCEDURE.md",
+      "target": ".agents/skills/visual-output/PROCEDURE.md"
+    },
+    {
+      "sha256": "68ca4c574d5bdbd786d565a292a07c36f2e608b0c46c90bd98731e534185f291",
+      "source": "skills/visual-roadmap/PROCEDURE.md",
+      "target": ".agents/skills/visual-roadmap/PROCEDURE.md"
+    },
+    {
+      "sha256": "0db5857c179a4a8df94b17ae5599a78db75cfced1774caeee9661e0ac818aff2",
+      "source": "skills/wayfinder/PROCEDURE.md",
+      "target": ".agents/skills/wayfinder/PROCEDURE.md"
+    },
+    {
+      "sha256": "f735e302ea29c2bdfaafff1c8d4234198722b6bd29f330d6bf031ced0616ca8f",
+      "source": "skills/website-check/PROCEDURE.md",
+      "target": ".agents/skills/website-check/PROCEDURE.md"
+    },
+    {
+      "sha256": "84bcb871250467e48a8ada5e4860dc89c834fb60f011bef4395e408f2c495e45",
+      "source": "skills/website-clone-reconstruction/PROCEDURE.md",
+      "target": ".agents/skills/website-clone-reconstruction/PROCEDURE.md"
+    },
+    {
+      "sha256": "bdad46bfd6fc836bd60b7939d9599f27345f49bcb73052f03811a7339364cf50",
+      "source": "skills/word/PROCEDURE.md",
+      "target": ".agents/skills/word/PROCEDURE.md"
+    },
+    {
+      "sha256": "131f723c27219e7837596b1cf50e42858dbf5c5c5f99bbae912c7b7ffbb6c91a",
+      "source": "skills/xlsx/PROCEDURE.md",
+      "target": ".agents/skills/xlsx/PROCEDURE.md"
+    },
+    {
+      "sha256": "457a3850d4945b0970bd8ca7185f15b685b65a953b3bde2246590dc160336551",
+      "source": "skills/youtube/PROCEDURE.md",
+      "target": ".agents/skills/youtube/PROCEDURE.md"
+    },
+    {
+      "sha256": "ba609408c8765b91104457402cba9b6f930b77d4c670a7a9704a6e4cccda4422",
+      "source": "schemas/skill-library.json",
+      "target": ".viggobsidian/core/skill-library.json"
+    },
+    {
+      "sha256": "01b0639bc52adc7deb24a539cba505ebeb55479c66ba1e6875aa62725feececc",
+      "source": "docs/skill-library.md",
+      "target": ".viggobsidian/core/skill-library.md"
     }
   ],
-  "revision": "ec2a98c82d82aef9f8efc3c66ad89a291f9423ff",
+  "revision": "d27e6629cf4f9a8a511fd020ccec07b433ddb9ae",
   "schema": "viggobsidian.package.v1",
-  "version": "0.12.0"
+  "version": "0.13.0"
 }
