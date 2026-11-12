@@ -41,7 +41,7 @@
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "f6ac1c5d1c85bba0224be96af8747b7ce6bbef3db19466bf126ae3cc794e2074",
+      "sha256": "ffec1dec805d7a48d712ed0841a559a91a813afd400ec4be2225353ef3b7fa0e",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -262,9 +262,14 @@
       "target": ".agents/tools/vault-layout/src/source_inventory.rs"
     },
     {
-      "sha256": "e5c25e4da63c8af7adb28a0c0eba83a5b2958b184c00a010110fe15badac4cdc",
+      "sha256": "69fb1a2de9fec6c520a9f466c4a89343caa077b94e11a33479fd6ec3315f5233",
       "source": "crates/vault-layout/src/export_artifacts.rs",
       "target": ".agents/tools/vault-layout/src/export_artifacts.rs"
+    },
+    {
+      "sha256": "14065a1a5600c3c448660c6f1152209e0e7e174eb738ea6a2712816133c8d98f",
+      "source": "crates/vault-layout/src/native_source_archives.rs",
+      "target": ".agents/tools/vault-layout/src/native_source_archives.rs"
     },
     {
       "sha256": "316ac00238fef194e8dc4446fb3d8fe755316f11191ada12fdb0cd990917caf7",
@@ -302,7 +307,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "9ef7211d1c3ce3b8b562307f60b9501d7f114c3cb56dd19d7d0100abecd951c5",
+      "sha256": "524273e91017ae3e239b5b35f43f546e1e958f3aeed2c757381aa844517a250d",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -327,7 +332,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "a3ae40697ff60e1d651583a795150bf62d389347476420cf27eecc23c0fbbe22",
+      "sha256": "5c770b546b44dff8a2db14be65cf10ef5bbbe20e9ff5fd32928a7fb7f7af4b7c",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -1862,7 +1867,7 @@
       "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ],
-  "revision": "a06af9d868b553700d4662f9c82fbb7460674e8f",
+  "revision": "1bb784964bd07fb8f38895d72ea30b3c96e84d97",
   "schema": "viggobsidian.package.v1",
-  "version": "0.16.2"
+  "version": "0.17.0"
 }
