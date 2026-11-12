@@ -1,0 +1,58 @@
+{
+  "candidate": {
+    "bundleSHA256": "REPLACE_WITH_TESTED_MAIN_JS_SHA256"
+  },
+  "localValidation": {
+    "status": "pending",
+    "commit": "EXACT_COMMIT",
+    "checks": {
+      "npmCi": false,
+      "officialLint": false,
+      "typecheck": false,
+      "tests": false,
+      "build": false,
+      "productionAudit": false,
+      "typesResolved": false
+    },
+    "evidence": "Existing actual command log/report locator"
+  },
+  "hostValidation": {
+    "status": "pending",
+    "commit": "EXACT_COMMIT",
+    "pluginVersion": "0.0.0",
+    "payloadSHA256": "REPLACE_WITH_TESTED_MAIN_JS_SHA256",
+    "appVersion": "",
+    "platform": "",
+    "settingsRestored": false,
+    "sourcePreserved": false,
+    "unloadPassed": false,
+    "evidence": "Actual host report; mark synthetic/provider/platform boundaries"
+  },
+  "independentReview": {
+    "status": "pending",
+    "commit": "EXACT_COMMIT",
+    "evidence": "Actual reviewer findings and resolution"
+  },
+  "sourcePreview": {
+    "status": "pending",
+    "commit": "EXACT_COMMIT",
+    "evidence": "Exact registered-plugin preview; unavailable before first registration"
+  },
+  "releaseReview": {
+    "status": "pending",
+    "commit": "EXACT_COMMIT",
+    "evidence": "Full official release review including byte-for-byte build"
+  },
+  "catalogInstall": {
+    "status": "pending",
+    "commit": "EXACT_COMMIT",
+    "channel": "unverified",
+    "fresh": false,
+    "evidence": "Real app-catalog installation and payload readback, not manual copy"
+  },
+  "effectiveTypeScript": {
+    "commit": "EXACT_COMMIT",
+    "libraries": [],
+    "evidence": "Reviewed tsc --showConfig result for JSONC/extends; no override for a proven explicit missing library"
+  }
+}

@@ -1464,6 +1464,26 @@
     {
       "source": "docs/skill-library.md",
       "target": ".viggobsidian/core/skill-library.md"
+    },
+    {
+      "source": "skills/obsidian-plugin-development/PROCEDURE.md",
+      "target": ".agents/skills/obsidian-plugin-development/PROCEDURE.md"
+    },
+    {
+      "source": "skills/obsidian-plugin-development/references/checklist.md",
+      "target": ".agents/skills/obsidian-plugin-development/references/checklist.md"
+    },
+    {
+      "source": "skills/obsidian-plugin-development/references/failure-catalog.md",
+      "target": ".agents/skills/obsidian-plugin-development/references/failure-catalog.md"
+    },
+    {
+      "source": "skills/obsidian-plugin-development/references/plan-template.md",
+      "target": ".agents/skills/obsidian-plugin-development/references/plan-template.md"
+    },
+    {
+      "source": "skills/obsidian-plugin-development/references/evidence-template.json",
+      "target": ".agents/skills/obsidian-plugin-development/references/evidence-template.json"
     }
   ]
 }
