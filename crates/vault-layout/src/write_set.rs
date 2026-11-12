@@ -144,12 +144,19 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
     // A Raw/Wiki change owns its entire dossier: this includes inventory and
     // processed-source reverse references, rather than just the edited file.
     // Other changes own their direct folder; metadata cannot broaden a scope.
+    let mut schema: Value = serde_saphyr::from_str(&fs::read_to_string(vault.join(SCHEMA))?)?;
     let mut owned = BTreeMap::new();
     let mut boundary = BTreeSet::new();
     for path in paths.keys() {
         let parent = path.parent().ok_or("change has no folder")?;
         owned.entry(parent.to_path_buf()).or_insert(false);
         if vault.join(parent).join("raw").is_dir() {
+            owned.insert(parent.to_path_buf(), true);
+        }
+        if path.file_stem() == parent.file_name()
+            && crate::strings(&schema["work_project_code_roots"])
+                .any(|root| parent != Path::new(root) && parent.starts_with(root))
+        {
             owned.insert(parent.to_path_buf(), true);
         }
         let mut prefix = PathBuf::new();
@@ -173,7 +180,6 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         .collect();
     owned.retain(|p, _| !full.iter().any(|root| p != root && p.starts_with(root)));
     boundary.retain(|p| !owned.contains_key(p) && !full.iter().any(|root| p.starts_with(root)));
-    let mut schema: Value = serde_saphyr::from_str(&fs::read_to_string(vault.join(SCHEMA))?)?;
     if !schema["validation_profiles"]["minimal"]["required"].is_array()
         || !schema["contracts"]["raw_package"]["required_fields"].is_array()
         || !schema["contracts"]["raw_package"]["wiki_status_values"].is_object()
