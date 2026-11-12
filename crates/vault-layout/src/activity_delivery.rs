@@ -3,11 +3,152 @@ use std::collections::BTreeMap;
 const DELIVERY: &str = "<!-- viggobsidian:mail-delivery:v1 ";
 const INPUT: &str = "<!-- viggobsidian:input:v1 author=human -->";
 
+/// Whole-note opt-in: validate visible provenance without interpreting source prose.
+pub(crate) fn provenance_findings(body: &str) -> Vec<String> {
+    if let Err(message) = crate::activity_layout::check_v11(&format!("\n{body}")) {
+        return vec![message.into()];
+    }
+    let lines = visible_lines(body);
+    let sections: Vec<_> = lines
+        .iter()
+        .enumerate()
+        .filter(|(_, l)| **l == "## Activity")
+        .map(|(i, _)| i)
+        .collect();
+    if sections.len() != 1 {
+        return vec!["provenance-v1 requires exactly one Activity section".into()];
+    }
+    let lines = &lines[sections[0] + 1..];
+    let mut result = Vec::new();
+    let mut day = None;
+    let mut goals = BTreeMap::new();
+    let mut messages = 0;
+    for (index, line) in lines.iter().enumerate() {
+        if let Some((date, _)) = line
+            .strip_prefix("> [!activity-day|")
+            .and_then(|v| v.split_once("] "))
+        {
+            if !crate::iso_date(date) || day.is_some_and(|previous| previous > date) {
+                result.push("use valid local Activity dates in chronological order".into());
+            }
+            day = Some(date);
+        }
+        let Some((role, author)) = crate::activity_layout::message_heading(line) else {
+            continue;
+        };
+        messages += 1;
+        if !day.is_some_and(crate::iso_date) {
+            result.push("every stamped Activity bubble needs its original local day".into());
+        }
+        let end = lines[index + 1..]
+            .iter()
+            .position(|l| {
+                l.is_empty()
+                    || crate::activity_layout::message_heading(l).is_some()
+                    || l.starts_with("> [!activity-day|")
+            })
+            .map_or(lines.len(), |n| index + 1 + n);
+        let message = &lines[index..end];
+        let raw_lines: Vec<_> = body.lines().collect();
+        let start = raw_lines
+            .iter()
+            .position(|raw| raw.as_ptr() == line.as_ptr())
+            .unwrap();
+        let raw_message: Vec<_> = raw_lines[start..]
+            .iter()
+            .copied()
+            .take_while(|raw| !raw.trim().is_empty())
+            .collect();
+        let stamp = raw_message
+            .get(1)
+            .and_then(|l| l.strip_prefix("> `"))
+            .and_then(|s| s.strip_suffix('`'));
+        if !stamp.is_some_and(|stamp| {
+            let parts: Vec<_> = stamp.split(" · ").collect();
+            let [time, name, channel] = parts.as_slice() else {
+                return false;
+            };
+            let clock = *time == "—"
+                || time.split_once(':').is_some_and(|(hour, minute)| {
+                    hour.len() == 2
+                        && minute.len() == 2
+                        && hour
+                            .bytes()
+                            .chain(minute.bytes())
+                            .all(|b| b.is_ascii_digit())
+                        && hour.parse::<u8>().is_ok_and(|n| n < 24)
+                        && minute.parse::<u8>().is_ok_and(|n| n < 60)
+                });
+            clock
+                && *name == author
+                && !channel.trim().is_empty()
+                && *channel == channel.trim()
+                && !channel.contains('`')
+        }) {
+            result.push(format!("{author}: start the bubble with `HH:mm · {author} · channel`, or use — for unknown time"));
+        }
+        if role == "human" {
+            continue;
+        }
+        let prefix = "> <!-- viggobsidian:activity:v1 ";
+        let markers: Vec<_> = message
+            .iter()
+            .filter(|l| {
+                unquote(l, usize::MAX)
+                    .1
+                    .starts_with("<!-- viggobsidian:activity:")
+            })
+            .collect();
+        let goal = (markers.len() == 1)
+            .then(|| markers[0])
+            .and_then(|l| l.strip_prefix(prefix))
+            .and_then(|v| v.strip_suffix(" -->"))
+            .and_then(|v| v.strip_prefix("kind=result goal="));
+        let Some(goal) = goal.filter(|g| {
+            !g.is_empty()
+                && g.len() <= 80
+                && g.bytes()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+        }) else {
+            result.push(format!("{author}: bind one result bubble to a valid activity goal; merge standalone process messages into that result"));
+            continue;
+        };
+        // Mail deliveries may repeat a goal only as complete, versioned results.
+        let delivered = visible_mail_delivery(&raw_message);
+        if delivered
+            && !message
+                .iter()
+                .any(|l| identity(l).is_some_and(|(id, _)| id == goal))
+        {
+            result.push(format!(
+                "goal {goal}: mail delivery id must match the result goal"
+            ));
+        }
+        if let Some(previous) = goals.insert(goal, delivered)
+            && !(previous && delivered)
+        {
+            result.push(format!(
+                "goal {goal}: group process history in one result bubble instead of repeating it"
+            ));
+        }
+    }
+    if messages == 0 {
+        result.push("provenance-v1 requires named Activity bubbles".into());
+    }
+    result
+}
+
 fn visible_lines(body: &str) -> Vec<&str> {
     let mut fence = None;
     body.lines()
         .filter(|line| {
             let (depth, outer) = unquote(line, usize::MAX);
+            // A quoted fence ends with its containing blockquote, unlike a
+            // top-level fence. It cannot hide the next Activity bubble.
+            if fence.is_some_and(|(_, _, opening_depth)| opening_depth > 0 && depth < opening_depth)
+            {
+                fence = None;
+            }
             let content = if let Some((_, _, opening_depth)) = fence {
                 unquote(line, opening_depth).1
             } else {
@@ -107,9 +248,10 @@ pub(crate) fn visible_mail_delivery(block: &[&str]) -> bool {
     marker.len() == 1
         && identity(marker[0]).is_some()
         && identity(marker[0]).is_some_and(|(_, v)| {
-            lines
-                .iter()
-                .any(|line| *line == format!("> **Mailconcept v{v}**"))
+            lines.iter().any(|line| {
+                *line == format!("> **Mailconcept v{v}**")
+                    || *line == format!("> ### Mailconcept v{v}")
+            })
         })
         && lines
             .iter()
@@ -186,6 +328,84 @@ pub(crate) fn findings(body: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn stamped() -> String {
+        format!(
+            "## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex\n> `23:59 · Alex · Codex-chat`\n> {INPUT}\n> Graag aanpassen.\n\n> [!activity-day|2026-11-12] 12 Nov 2026\n\n> [!activity-message|codex] Codex\n> `00:01 · Codex · draft`\n> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->\n> Aangepast resultaat."
+        )
+    }
+    #[test]
+    fn provenance_requires_real_author_clock_channel_and_local_day() {
+        let good = stamped();
+        assert!(provenance_findings(&good).is_empty());
+        assert!(provenance_findings(&good.replace("23:59", "—")).is_empty());
+        for broken in [
+            good.replace("> `23:59 · Alex · Codex-chat`\n", ""),
+            good.replace(
+                "> `23:59 · Alex · Codex-chat`",
+                "> ```text\n> Example\n> ```\n> `23:59 · Alex · Codex-chat`",
+            ),
+            good.replace("23:59", "24:00"),
+            good.replace("23:59", "23:60"),
+            good.replace("23:59", "9:04"),
+            good.replace("· Alex ·", "· Codex ·"),
+            good.replace(" · Codex-chat", ""),
+            good.replace("Codex-chat`", " `"),
+            good.replace("2026-11-12", "2026-11-10"),
+            good.replace("> [!activity-day|2026-11-11] 11 Nov 2026\n", ""),
+        ] {
+            assert!(!provenance_findings(&broken).is_empty(), "{broken}");
+        }
+    }
+    #[test]
+    fn process_bubbles_must_be_grouped_by_explicit_result_goal() {
+        let good = stamped();
+        for broken in [
+            good.replace("kind=result", "kind=process"),
+            good.replace("goal=follow-up", "goal="),
+            good.replace(
+                "> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->",
+                "",
+            ),
+            good.replace(
+                "> <!-- viggobsidian:activity:v1",
+                "> > <!-- viggobsidian:activity:v1",
+            ),
+            format!(
+                "{good}\n\n> [!activity-message|codex] Codex\n> `00:02 · Codex · draft`\n> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->\n> Nog een losse melding."
+            ),
+        ] {
+            assert!(!provenance_findings(&broken).is_empty(), "{broken}");
+        }
+        let with_example = good.replace("> Aangepast resultaat.", "> Aangepast resultaat.\n> ```markdown\n> <!-- viggobsidian:activity:v1 kind=process goal=bad -->\n> [!activity-message|human] Fake\n> ```");
+        assert!(provenance_findings(&with_example).is_empty());
+        let escaped = "## Activity\n\n> [!activity-day|2026-11-12] 12 Nov 2026\n\n> [!activity-message|human] Alex\n> `00:01 · Alex · Codex-chat`\n> > ```text\n> > Literal source.\n\n> [!activity-message|codex] Codex\n> Missing stamp and goal.";
+        assert!(!provenance_findings(escaped).is_empty());
+        assert!(!provenance_findings(&escaped.replace("> > ```text", "> ```text")).is_empty());
+        assert!(!provenance_findings(&stamped().replace("|human] Alex", "|human] ")).is_empty());
+    }
+    #[test]
+    fn versioned_mail_results_can_share_a_goal_without_losing_provenance() {
+        let delivery_with_stamp = |v| {
+            delivery(v).replace("> [!activity-message|codex] Codex\n", "> [!activity-message|codex] Codex\n> `00:01 · Codex · draft`\n> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->\n")
+        };
+        let body = format!(
+            "## Activity\n\n> [!activity-day|2026-11-12] 12 Nov 2026\n\n{}\n\n{}",
+            delivery_with_stamp(1),
+            delivery_with_stamp(2)
+        );
+        assert!(provenance_findings(&body).is_empty());
+        assert!(findings(&body).is_empty());
+        assert!(
+            findings(
+                &body
+                    .replace("> **Mailconcept v", "> ### Mailconcept v")
+                    .replace("v1**", "v1")
+                    .replace("v2**", "v2")
+            )
+            .is_empty()
+        );
+        assert!(!provenance_findings(&body.replace("> **Body**", "> **Missing**")).is_empty());
+    }
     fn delivery(version: u32) -> String {
         format!(
             "> [!activity-message|codex] Codex\n> <!-- viggobsidian:mail-delivery:v1 id=follow-up version={version} -->\n> **Mailconcept v{version}**\n> <!-- viggobsidian:mail-draft:v1 recipients=resolved -->\n> Mailstatus: concept\n> Bron: [[fictional-contact]]\n> **To**\n> ```text\n> team@example.org\n> ```\n> **Onderwerp**\n> ```text\n> Afspraak v{version}\n> ```\n> **Body**\n> ```text\n> Hallo team,\n> Dit is de volledige versie {version}.\n> Groet, Alex\n> ```\n> <!-- /viggobsidian:mail-draft -->"

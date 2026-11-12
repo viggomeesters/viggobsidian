@@ -132,6 +132,41 @@ fn link_style_cli_checks_repairs_and_rechecks_without_touching_sources() {
 
 struct Fixture(PathBuf);
 
+#[test]
+fn provenance_contract_is_enforced_by_strict_cli_and_legacy_stays_compatible() {
+    let fixture = Fixture::new("provenance-cli");
+    let note = "topics/dossier/raw/20261112-example/20261112-example.md";
+    let good = format!(
+        "---\ntype: reference\ncategory: source\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nactivity_contract: provenance-v1\n---\n# Example\n\n> [!navigation|shortcuts]\n> - [[topics/dossier/raw/raw|Back]]\n> - [Finder](file://{}/topics/dossier/raw/20261112-example)\n\n> [!wiki-facts|dossier]\n> - Dossier **[[topics/dossier/dossier|Dossier]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> Fictional source.\n\n## Activity\n\n> [!activity-day|2026-11-12] 12 Nov 2026\n\n> [!activity-message|human] Alex\n> `00:01 · Alex · Codex-chat`\n> Input.\n\n> [!activity-message|codex] Codex\n> `— · Codex · draft`\n> <!-- viggobsidian:activity:v1 kind=result goal=example -->\n> Resultaat.\n",
+        fixture.0.display()
+    );
+    fixture.write(note, &good);
+    let scope = "topics/dossier/raw/20261112-example";
+    let output = fixture.strict(scope);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    for bad in [
+        good.replace("> `00:01 · Alex · Codex-chat`\n", ""),
+        good.replace("00:01 · Alex", "00:01 · Someone"),
+        good.replace("kind=result", "kind=process"),
+        good.replace("provenance-v1", "provenance-v9"),
+    ] {
+        fixture.write(note, bad);
+        let output = fixture.strict(scope);
+        assert_eq!(output.status.code(), Some(1));
+        assert!(String::from_utf8_lossy(&output.stdout).contains("strict-activity-provenance"));
+    }
+    fixture.write(
+        note,
+        good.replace("activity_contract: provenance-v1\n", "")
+            .replace("> `00:01 · Alex · Codex-chat`\n", ""),
+    );
+    assert!(fixture.strict(scope).status.success());
+}
+
 impl Fixture {
     fn new(name: &str) -> Self {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join(".tmp");

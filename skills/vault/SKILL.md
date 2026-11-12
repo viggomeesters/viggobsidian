@@ -5,6 +5,13 @@ description: "Lees vaultkennis, leg input vast, verwerk bronnen of pak bestaande
 
 # Vault
 
+Nieuwe en expliciet omgezette Event Notes gebruiken
+`activity_contract: provenance-v1` volgens het mailcontract. Elke menselijke én agentbubble krijgt
+direct na de auteurskop het bewezen lokale tijdstip, de echte auteur en het
+invoerkanaal als inlinecode. Onbekend tijdstip is `—`, geen schatting.
+Agentresultaten hebben een stabiele activity-doelmarker; groepeer proceshistorie
+bij hetzelfde resultaat. De strikte layoutchecker moet slagen vóór afronding.
+
 Letterlijke menselijke input blijft van de mens, ook bij opslag door een agent:
 gebruik een eigen canonical `human`-bubble met de werkelijke auteur. Agentduiding
 blijft apart. Groepeer procesuitleg bij haar resultaat. Een herziene oplevering

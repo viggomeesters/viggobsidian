@@ -1,6 +1,33 @@
 # Mailconcepten in Event Note v1.1
 
-## Auteurschap en nieuwe versies
+## Herkomst en groepering afdwingen
+
+Nieuwe Event Notes en expliciet omgezette notes gebruiken frontmatter
+`activity_contract: provenance-v1`. `vault-layout --strict` weigert daarin iedere
+menselijke of agentbubble zonder direct volgend stempel
+`HH:mm · werkelijke auteur · kanaal` (inlinecode). De naam moet exact overeenkomen
+met de bubbleauteur; uur en minuut moeten geldig zijn. Bij onbekende historische
+tijd gebruik je `—`, nooit een geschatte minuut. De Activity-dagscheiding is de
+oorspronkelijke lokale dag, oplopend; de schrijver controleert de tijdzone en het
+bronbericht. Bestandstijden en antwoordtijden zijn geen bewijs van verzendtijd.
+
+Elke agentbubble krijgt precies één directe marker:
+`<!-- viggobsidian:activity:v1 kind=result goal=follow-up -->`.
+Gebruik een stabiel doel met kleine letters, cijfers en koppeltekens. Herhaalde
+resultaatbubbles voor hetzelfde doel worden afgekeurd: voeg procesuitleg bij het
+resultaat, met oorspronkelijke momenten herkenbaar in de historie onder Meer.
+Een losse `kind=process`-bubble is ongeldig. Menselijke beurten blijven volledig
+in hun eigen human-bubble; ze hebben geen agentdoelmarker nodig. Volledige,
+gevalideerde maildeliveries mogen hetzelfde doel herhalen met stijgende versies.
+De bestaande maildeliverycontrole blijft daarnaast actief.
+
+Dit contract is expliciete adoptie, geen bulkconversie van oude notes. Onbekende
+contractversies falen gesloten. De checker bewijst aanwezigheid, syntaxis en
+doelbinding, geen waar auteurschap, juiste historische minuut of semantisch goed
+gekozen doelen. Beoordeel die tegen de primaire bron. Nooit oorspronkelijke
+input verwijderen of doel-ID's verzinnen om een weigering te omzeilen.
+
+## Menselijke input en opleverversies
 
 Letterlijke menselijke input krijgt een eigen `activity-message|human`-bubble,
 met de werkelijke menselijke auteur. De identiteit van de schrijvende tool
