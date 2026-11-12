@@ -214,6 +214,23 @@ header-, herkomst- en Wiki-verwerkingseisen. Integriteit van een bronpakket bewi
 geen volledige lezing, klinische waarheid of uitgevoerde taak. Verwerk alle
 beschikbare inhoud en leg leesgrenzen en onbewezen bronbindingen afzonderlijk vast.
 
+### Getypt locatoronderhoud
+
+Getypeerd locatoronderhoud (`locator-rebind`) herstelt concrete WikiLink-targets
+(ook unieke basenamevormen), lokale Markdownlinks met `file:///` of
+`obsidian://open` en expliciete `external-tasks[].path`-bindingen. Alle overige
+metadata, taakidentiteiten, labels en ankers blijven behouden. Complete paden
+tussen enkele backticks blijven de bestaande expliciete locatorvorm; gewone
+inlinecode, bronquotes inclusief lazy continuation, fences, ingesprongen code en
+HTML-bronblokken blijven onveranderd. Een niet-teruggevonden lokale link mag met
+een expliciete null-mapping worden vervangen door een niet-klikbare historische
+verwijzing met de volledige oorspronkelijke locator. Dit betekent geen bewezen
+broninhoud en geeft geen leesrecht op dat pad. ‘Markdownlink’ benoemt hier de
+linksyntax, niet het bestandstype: ontvangen PDF-, EML- en CSV-bronnen blijven
+geldige lokale locators. Iedere mapping moet een echte onderhoudbare token raken;
+de writer herberekent de volledige delta en bewaakt preimages en alle gewone
+bron-, taak-, layout- en linkgrenzen.
+
 ## Daily
 
 Daily's staan in `10-daily/notes/YYYY-MM-DD.md`. Een embedded Base selecteert
