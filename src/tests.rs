@@ -1,6 +1,49 @@
 use super::*;
 
 #[test]
+fn bundled_procedure_assets_match_the_complete_current_public_surface() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let source = "crates/vault-layout/fixtures/procedure-assets.json";
+    let target = ".agents/tools/vault-layout/fixtures/procedure-assets.json";
+    let options = serde_saphyr::options! {duplicate_keys:serde_saphyr::DuplicateKeyPolicy::Error};
+    let bundle: Value = serde_saphyr::from_str_with_options(
+        &fs::read_to_string(root.join(source)).unwrap(),
+        options,
+    )
+    .unwrap();
+    assert_eq!(bundle["schema"], "viggobsidian.procedure-test-fixture.v1");
+    let files = bundle["files"].as_object().unwrap();
+    assert_eq!(
+        files.keys().cloned().collect::<BTreeSet<_>>(),
+        *procedure_surface::targets()
+    );
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    assert!(allowed(target));
+    assert_eq!(
+        rows(&distribution, "files")
+            .unwrap()
+            .iter()
+            .filter(|r| r["target"] == target && r["source"] == source)
+            .count(),
+        1
+    );
+    for (target, file) in files {
+        let entries: Vec<_> = rows(&distribution, "files")
+            .unwrap()
+            .iter()
+            .filter(|r| r["target"] == *target)
+            .collect();
+        assert_eq!(entries.len(), 1, "{target}");
+        assert_eq!(file["source"], entries[0]["source"], "{target}");
+        let actual = fs::read_to_string(root.join(file["source"].as_str().unwrap())).unwrap();
+        assert_eq!(
+            file["content"], actual,
+            "stale public procedure fixture: {target}"
+        );
+    }
+}
+
+#[test]
 fn installed_activity_tests_bind_a_distributed_crate_local_fixture() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let target = ".agents/tools/vault-layout/fixtures/activity-deliveries.md";
@@ -376,6 +419,51 @@ fn initial_rollback_removes_new_assets() {
     .unwrap();
     assert!(!f.vault.join(STATE).exists());
     assert!(!f.vault.join(".viggobsidian/core/policy.md").exists());
+}
+
+#[test]
+fn procedure_fixture_update_rejects_drift_and_rolls_back_exact_bytes() {
+    let f = Fixture::new();
+    let target = ".agents/tools/vault-layout/fixtures/procedure-assets.json";
+    let original = include_bytes!("../crates/vault-layout/fixtures/procedure-assets.json");
+    fs::write(f.vault.join("provider.txt"), "Unmanaged provider").unwrap();
+    let publish = |content: &[u8]| {
+        fs::write(f.package.join("fixture.json"), content).unwrap();
+        let manifest = json!({"schema":"viggobsidian.package.v1","version":"0.14.2","revision":"a".repeat(40),
+            "files":[{"source":"fixture.json","target":target,"sha256":hash(content)}]});
+        fs::write(f.package.join("package.json"), manifest.to_string()).unwrap();
+    };
+    publish(original);
+    let preview = f.plan();
+    assert!(!f.vault.join(target).exists());
+    let initial = apply(&f.vault, &preview).unwrap();
+    assert_eq!(fs::read(f.vault.join(target)).unwrap(), original);
+    publish(b"{\"fictional\":\"updated fixture\"}");
+    let update = f.plan();
+    fs::write(f.vault.join(target), "Local drift").unwrap();
+    assert!(apply(&f.vault, &update).is_err());
+    assert_eq!(
+        fs::read_to_string(f.vault.join(target)).unwrap(),
+        "Local drift"
+    );
+    fs::write(f.vault.join(target), original).unwrap();
+    let updated = apply(&f.vault, &f.plan()).unwrap();
+    rollback(
+        &f.vault,
+        &read_json(&f.vault.join(updated["receipt"].as_str().unwrap())).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(fs::read(f.vault.join(target)).unwrap(), original);
+    rollback(
+        &f.vault,
+        &read_json(&f.vault.join(initial["receipt"].as_str().unwrap())).unwrap(),
+    )
+    .unwrap();
+    assert!(!f.vault.join(target).exists());
+    assert_eq!(
+        fs::read_to_string(f.vault.join("provider.txt")).unwrap(),
+        "Unmanaged provider"
+    );
 }
 #[test]
 fn unmanaged_adoption_requires_exact_preimage_and_restores_it() {
