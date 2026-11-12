@@ -1,12 +1,22 @@
 {
   "files": [
     {
+      "sha256": "24be4462dca0a728e05d4f164dfe38ad6b9e0899de6aea0fbdd05f6b629afaa3",
+      "source": "crates/vault-layout/src/write_set.rs",
+      "target": ".agents/tools/vault-layout/src/write_set.rs"
+    },
+    {
+      "sha256": "753ffd866d546d4edc2f790a5b55e3708aa57dc882b3ce8581ba4fa131779fc2",
+      "source": "docs/write-validation.md",
+      "target": ".viggobsidian/core/write-validation.md"
+    },
+    {
       "sha256": "73aff68fcaec23db4596e736bb3cbaf07e9e51279ff1a652fe8162c7c6f44048",
       "source": "crates/vault-layout/src/activity_delivery.rs",
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "de2a1c0477337f5d371d80bce34ffde162783a5eb6fcb6a0fb20aa0188ff10b7",
+      "sha256": "aa5cb60a89b5d219d386869248885371393bd9977b22deff13559b6278acbdd3",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -262,7 +272,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "dab252db0c2ca7ec945a18814c53a6febcdf6bbde781e0cac7e508f335e72aff",
+      "sha256": "3cd5d439e13759cc48720b1dfee51a3725d5ccd03a2e1653b5f099e8328abf2d",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -287,7 +297,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "1e3c956a09aeb5f73cd055d2097ecba2124d758611fdf44af83e340b9cbb00da",
+      "sha256": "c87041bd5191efbbe3637b049a375a8deddaaea319d16484522922b3c4142dd9",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -297,7 +307,7 @@
       "target": ".viggobsidian/core/lucide-license.txt"
     }
   ],
-  "revision": "698013dc65ff3cdb13d32d7b52a0531fb5f9e762",
+  "revision": "912c357fd420ac650811a91bb4160f88291dc5fd",
   "schema": "viggobsidian.package.v1",
-  "version": "0.6.0"
+  "version": "0.7.0"
 }
