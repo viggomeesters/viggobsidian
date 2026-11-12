@@ -860,6 +860,121 @@ fn typed_handoff_preserves_old_owner_but_checks_destination_and_sibling_bytes() 
 }
 
 #[test]
+fn typed_locator_destinations_bind_to_the_selected_vault_without_waiving_legacy_checks() {
+    let f = Fixture::new("typed-locator-destinations");
+    f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
+    f.write(
+        "topics/topics.md",
+        nav(
+            &f,
+            "topics",
+            "HOME",
+            "> [!navigation]\n> - [[topics/old/old|Old]]\n> - [[topics/new/new|New]]\n",
+        ),
+    );
+    f.write(
+        "topics/new/new.md",
+        nav(&f, "topics/new", "topics/topics", ""),
+    );
+    f.write("topics/old/history.txt", "Immutable legacy sibling.");
+    let root = f.0.canonicalize().unwrap();
+    let vault_name = root.file_name().unwrap().to_str().unwrap();
+    // Absolute file URIs reject hidden components, including this shared .tmp
+    // fixture root. The pure destination test covers their positive binding.
+    let encoded_name = vault_name.replace('-', "%2D");
+    let obsidian_uri = format!("obsidian://open?vault={encoded_name}&file=topics%2Fnew%2Fnew");
+    let old_file = "file:///unavailable/original.md";
+    let old_obsidian = "obsidian://open?vault=previous&file=old/source.md";
+    let unavailable = "file:///unavailable/history.md";
+    let before = format!(
+        "---\ntype: reference\ncategory: legacy\nexternal-tasks:\n- path: topics/previous/task.md\n  task-id: task:fictional\nstatus: done\n---\n\n# Old\n\n[[old-note]]\n[File]({old_file})\n[Obsidian]({old_obsidian})\n[History]({unavailable})\n"
+    );
+    let proof = json!({"kind":"locator-rebind","before":before,"mapping":{
+        "old-note":"topics/new/new.md", "topics/previous/task.md":"topics/new/new.md",
+        old_file:obsidian_uri, old_obsidian:obsidian_uri, unavailable:null
+    }});
+    let changes = json!([{"path":"topics/old/old.md","expect":"present","proof":proof}]);
+    f.write("topics/old/old.md", &before);
+    // A planned extensionless URI may name a note created after baseline.
+    fs::remove_file(f.0.join("topics/new/new.md")).unwrap();
+    let (out, baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(baseline["changes"], changes);
+    assert!(!baseline["owned_findings"].as_array().unwrap().is_empty());
+    f.write(
+        "topics/new/new.md",
+        nav(&f, "topics/new", "topics/topics", ""),
+    );
+    let after = before.replace("path: topics/previous/task.md", "path: topics/new/new.md")
+        .replace("[[old-note]]", "[[topics/new/new]]")
+        .replace(old_file, &obsidian_uri).replace(old_obsidian, &obsidian_uri)
+        .replace(&format!("[History]({unavailable})"), &format!("History (historische verwijzing; oorspronkelijke lokale bron niet teruggevonden: `{unavailable}`)"));
+    assert!(after.contains("task-id: task:fictional\nstatus: done"));
+    f.write("topics/old/old.md", &after);
+    let (out, report) = write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(
+        out.status.success(),
+        "{report}: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(report["legacy_findings"], baseline["owned_findings"]);
+
+    // An exact proof and unchanged sibling inventory are still mandatory.
+    let mut altered = changes.clone();
+    altered[0]["proof"]["mapping"][unavailable] = json!(obsidian_uri);
+    f.write("topics/old/old.md", after.replace(&format!("History (historische verwijzing; oorspronkelijke lokale bron niet teruggevonden: `{unavailable}`)"), &format!("[History]({obsidian_uri})")));
+    let (out, _) = write_check(&f, "validate", altered, baseline.clone());
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("exact changes"));
+    f.write("topics/old/old.md", &after);
+    f.write("topics/old/history.txt", "Foreign edit.");
+    assert!(
+        !write_check(&f, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    f.write("topics/old/history.txt", "Immutable legacy sibling.");
+    fs::remove_file(f.0.join("topics/new/new.md")).unwrap();
+    let (out, _) = write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("missing target"));
+    f.write("topics/new/new.md", "<!-- viggobsidian:knowledge-owner -->");
+    let (out, _) = write_check(&f, "validate", changes, baseline);
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("handoff cycle"));
+
+    for target in [
+        "obsidian://open?vault=another-vault&file=topics%2Fnew%2Fnew.md".to_owned(),
+        format!("file://{}/../outside.md", root.display()),
+        format!("file://{}-other/topics/new/new.md", root.display()),
+        format!("obsidian://open?vault={vault_name}&file=topics%2F..%2Foutside.md"),
+    ] {
+        let proof = json!({"kind":"locator-rebind","before":before,"mapping":{old_file:target}});
+        let changes = json!([{"path":"topics/old/old.md","expect":"present","proof":proof}]);
+        f.write("topics/old/old.md", &before);
+        let (out, _) = write_check(&f, "baseline", changes, Value::Null);
+        assert!(!out.status.success(), "unbound target accepted: {target}");
+    }
+    // A URI cannot bypass the ordinary symlink guard either.
+    fs::remove_file(f.0.join("topics/new/new.md")).unwrap();
+    symlink(f.0.join("topics/old/old.md"), f.0.join("topics/new/new.md")).unwrap();
+    f.write("topics/old/old.md", &before);
+    let (out, _) = write_check(
+        &f,
+        "baseline",
+        json!([{"path":"topics/old/old.md","expect":"present","proof":proof}]),
+        Value::Null,
+    );
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("symbolic link"));
+}
+
+#[test]
 fn navigation_has_one_grid_and_respects_declared_dates() {
     let f = Fixture::new("navigation-grid-date");
     f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
