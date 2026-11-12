@@ -76,6 +76,43 @@ fn findings(rows: &[Finding]) -> Vec<Value> {
     rows
 }
 
+// Called only after the typed transform has validated every replacement token.
+// URI syntax alone does not grant access to another vault or filesystem root.
+fn checked_destination(vault: &Path, target: &str) -> Result<PathBuf> {
+    if let Some(absolute) = target.strip_prefix("file://") {
+        let absolute = crate::shortcut_links::decode_percent(absolute);
+        // The CLI canonicalizes the explicitly selected vault before entry.
+        let prefix = format!("{}/", vault.to_str().ok_or("invalid vault path")?);
+        let relative = absolute
+            .strip_prefix(&prefix)
+            .ok_or("file URI target is outside the selected vault")?;
+        checked_path(vault, relative)
+    } else if let Some(query) = target.strip_prefix("obsidian://open?") {
+        let fields: BTreeMap<_, _> = query.split('&').filter_map(|v| v.split_once('=')).collect();
+        let name = vault
+            .file_name()
+            .and_then(|n| n.to_str())
+            .ok_or("invalid vault name")?;
+        if fields
+            .get("vault")
+            .map(|v| crate::shortcut_links::decode_percent(v))
+            .as_deref()
+            != Some(name)
+        {
+            return Err("Obsidian URI target names another vault".into());
+        }
+        let mut relative =
+            crate::shortcut_links::decode_percent(fields.get("file").ok_or("missing URI file")?);
+        // Obsidian resolves extensionless file parameters as Markdown notes.
+        if Path::new(&relative).extension().is_none() {
+            relative.push_str(".md");
+        }
+        checked_path(vault, &relative)
+    } else {
+        checked_path(vault, target)
+    }
+}
+
 pub(crate) fn run(vault: &Path, request: Value) -> Result<u8> {
     let (report, code) = check(vault, request)?;
     println!("{}", serde_json::to_string_pretty(&report)?);
@@ -122,11 +159,12 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
                     .as_object()
                     .ok_or("missing mapping")?
                     .values()
+                    .filter(|v| !v.is_null())
                     .map(|v| v.as_str().ok_or("invalid target"))
                     .collect::<std::result::Result<Vec<_>, _>>()?
             };
             for target in targets {
-                let destination = checked_path(vault, target)?;
+                let destination = checked_destination(vault, target)?;
                 if phase == "validate"
                     && (!vault.join(&destination).is_file()
                         || fs::read_to_string(vault.join(&destination))
@@ -414,6 +452,48 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"legacy_findings":legacy_findings,"adoption":adoption,"findings":errors,"preservation":preservation}),
         code,
     ))
+}
+
+#[cfg(test)]
+mod destination_tests {
+    use super::*;
+
+    #[test]
+    fn local_uri_destinations_normalize_only_inside_the_selected_vault() {
+        let vault = Path::new("/fictional-vault");
+        let expected = PathBuf::from("topics/new/source.md");
+        for target in [
+            "topics/new/source.md",
+            "file:///fictional-vault/topics%2Fnew%2Fsource.md",
+            "obsidian://open?vault=fictional%2Dvault&file=topics%2Fnew%2Fsource.md",
+            "obsidian://open?vault=fictional%2Dvault&file=topics%2Fnew%2Fsource",
+        ] {
+            assert_eq!(checked_destination(vault, target).unwrap(), expected);
+        }
+        for extension in ["pdf", "eml"] {
+            let target =
+                format!("obsidian://open?vault=fictional-vault&file=topics/new/source.{extension}");
+            assert_eq!(
+                checked_destination(vault, &target).unwrap(),
+                PathBuf::from(format!("topics/new/source.{extension}"))
+            );
+        }
+        assert_eq!(
+            checked_destination(vault, "file:///fictional-vault/topics/new/source").unwrap(),
+            PathBuf::from("topics/new/source")
+        );
+        for target in [
+            "file:///fictional-vault-other/topics/new/source.md",
+            "file:///another-vault/topics/new/source.md",
+            "file:///fictional-vault/topics/%2e%2e/outside.md",
+            "file:///fictional-vault/topics//source.md",
+            "obsidian://open?vault=another-vault&file=topics/new/source.md",
+            "obsidian://open?vault=fictional-vault&file=%2Ftopics/new/source.md",
+            "obsidian://open?vault=fictional-vault&file=topics%2F..%2Foutside.md",
+        ] {
+            assert!(checked_destination(vault, target).is_err(), "{target}");
+        }
+    }
 }
 
 #[cfg(test)]
