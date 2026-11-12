@@ -1530,3 +1530,53 @@ fn strict_v11_source_rejects_loose_content_after_a_valid_bubble() {
         );
     }
 }
+
+#[test]
+fn immutable_export_payloads_require_typed_bytes_and_never_exempt_the_event() {
+    let fixture = Fixture::new("immutable-export");
+    let package = "topics/dossier/raw/20261111-export";
+    let note = format!("{package}/20261111-export.md");
+    let payload = "---\ntype: migration-collection\nmapping_version: fixture-v1\nsource_set: fictional\n---\n# Export\n\n## sample.1\n\nBron-ID: `sample.1` · accepted ^record-0123456789abcdef\n\n### Geïmporteerde velden\n\n```yaml\nid: sample.1\n```\n";
+    let head = format!(
+        "---\ntype: reference\ncategory: source\nwiki_status: pending\nexport_artifacts: source-export.json\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\n---\n\n# Export\n\n> [!navigation|shortcuts]\n> - [[topics/dossier/raw/raw|Back]]\n> - [Finder](file://{}/{package})\n\n> [!wiki-facts|dossier]\n> - Dossier **[[topics/dossier/dossier|Dossier]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> Immutable historical export; no current factual claim.\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 november 2026\n\n> [!activity-message|codex] Codex\n> Source reviewed.\n>\n> > [!info]- Meer\n> > Consumer data remains unchanged.\n>\n> *Codex*\n",
+        fixture.0.display()
+    );
+    fixture.write(&note, &head);
+    fixture.write(&format!("{package}/data.md"), payload);
+    fixture.write(&format!("{package}/source-export.json"),json!({"schema":"viggobsidian.source-export.v1","package_note":"20261111-export.md","consumer":"fictional-importer","artifacts":[{"path":"data.md","format":"migration-records-v1","bytes":payload.len(),"sha256":format!("{:x}",Sha256::digest(payload.as_bytes()))}]}).to_string());
+    let good = fixture.strict(package);
+    assert!(
+        good.status.success(),
+        "{}",
+        String::from_utf8_lossy(&good.stdout)
+    );
+    fixture.write(&note, head.replace("## Activity", "## Missing activity"));
+    let failed: Value = serde_json::from_slice(&fixture.strict(package).stdout).unwrap();
+    assert!(
+        failed["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|x| x["code"] == "strict-event-header")
+    );
+    fixture.write(&note, &head);
+    fixture.write(&format!("{package}/ordinary.md"), "# Ordinary note\n");
+    assert_eq!(fixture.strict(package).status.code(), Some(1));
+    fs::remove_file(fixture.0.join(format!("{package}/ordinary.md"))).unwrap();
+    fixture.write(&format!("{package}/data.md"), format!("{payload}\n"));
+    let failed: Value = serde_json::from_slice(&fixture.strict(package).stdout).unwrap();
+    assert!(
+        failed["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|x| x["code"] == "strict-export-artifacts")
+    );
+    assert!(
+        failed["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|x| x["code"] == "strict-raw-markdown")
+    );
+}

@@ -12,6 +12,7 @@ mod activity_layout;
 mod adoption;
 mod dossier_tables;
 mod event_header;
+mod export_artifacts;
 mod index_navigation;
 mod link_style;
 mod mail_draft;
@@ -769,6 +770,20 @@ impl Scan<'_> {
             );
         }
 
+        let export_payloads = if package && under_raw && self.strict {
+            match read_metadata(&entrance)? {
+                Some((data, _)) => {
+                    let (payloads, errors) = export_artifacts::check(folder, &data)?;
+                    for error in errors {
+                        self.issue(&entrance, "strict-export-artifacts", error);
+                    }
+                    payloads
+                }
+                None => BTreeSet::new(),
+            }
+        } else {
+            BTreeSet::new()
+        };
         let mut children = Vec::new();
         let mut entries = fs::read_dir(folder)?.collect::<Result<Vec<_>, _>>()?;
         entries.sort_by_key(fs::DirEntry::file_name);
@@ -788,7 +803,9 @@ impl Scan<'_> {
                     children.push(path);
                 }
             } else if package && under_raw && path != entrance && kind.is_file() {
-                self.raw_source_note(&path)?;
+                if !export_payloads.contains(&path) {
+                    self.raw_source_note(&path)?;
+                }
             } else if path != entrance
                 && self.vault_collection(folder)
                 && !(kind.is_file() && self.system_path("fixed_files", &path))

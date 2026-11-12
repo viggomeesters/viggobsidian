@@ -170,6 +170,7 @@ fn allowed(target: &str) -> bool {
         "raw_task",
         "shortcut_links",
         "source_inventory",
+        "export_artifacts",
         "wiki_layout",
         "work_intake",
         "work_package",
