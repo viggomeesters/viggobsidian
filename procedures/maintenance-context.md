@@ -24,6 +24,11 @@ wijzigingshistorie nodig hebben. Beoordeel eigenaar, exact doelpad en bestaand
 writercontract vóór opname in de lokale `strict_layout_exceptions.writer_files`.
 Registreer alleen dat concrete writerbestand met reden; geen directorydelegatie,
 glob of algemene loose-filevrijstelling. Dit verleent geen nieuwe writebevoegdheid.
+De canonieke planner controleert deze structurele binding vóór hij een plan voor
+een beoordeelde systeemeigenaar met gegenereerde siblinghistorie uitgeeft. Ontbreekt
+de exacte ondersteunde binding, weiger dan gericht tijdens planning, vóór writes.
+Registreer haar niet automatisch en maak geen alternatieve writer of historielocator.
+Bind de schemabytes aan het plan; configuratiedrift vereist herlezen en herplannen.
 Herstel dode bronlinks met een geverifieerde actuele locator of een exact
 historisch pad/revisie; verzin geen vervangende bron. Maak daarna een nieuw
 brongebonden plan en controleer eigenaar én behouden historie via dezelfde writer.
