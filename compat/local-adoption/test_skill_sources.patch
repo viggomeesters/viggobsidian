@@ -1,0 +1,30 @@
+diff --git a/.agents/tests/test_skill_sources.py b/.agents/tests/test_skill_sources.py
+index 6acd592dfa..1fb67fbd0d 100644
+--- a/.agents/tests/test_skill_sources.py
++++ b/.agents/tests/test_skill_sources.py
+@@ -32,11 +32,20 @@ class SourceAuditTests(unittest.TestCase):
+         p=self.home/'.claude/skills';p.parent.mkdir();p.symlink_to(self.home/'Dev/agent-brain/skills')
+         self.assertIn('retired_profile_root',[x['kind'] for x in audit.audit(self.home)['failures']])
+     def test_owned_copy_rejected_and_central_link_accepted(self):
+-        p=self.home/'.hermes/skills/note-taking/obsidian';p.mkdir(parents=True)
+-        (p/'SKILL.md').write_text('old standalone instructions')
+-        self.assertIn('independent_own_skill_copy',[x['kind'] for x in audit.audit(self.home)['failures']])
+-        (p/'SKILL.md').unlink();p.rmdir();p.symlink_to(audit.PACKAGE/'skills/obsidian')
+-        self.assertEqual(audit.audit(self.home)['failures'],[])
++        package=self.home/'package'
++        lock=package/'skills/_bundle/source-lock.json';lock.parent.mkdir(parents=True)
++        lock.write_text(json.dumps([{'name':'vault','management_role':'viggobsidian-release'}]))
++        source=package/'skills/vault';source.mkdir()
++        (source/'SKILL.md').write_text('Fictional central core instructions')
++        p=self.home/'.hermes/skills/note-taking/vault';p.mkdir(parents=True)
++        (p/'SKILL.md').write_text('Fictional standalone copy')
++        self.assertIn('independent_own_skill_copy',[x['kind'] for x in audit.audit(self.home,package)['failures']])
++        (p/'SKILL.md').unlink();p.rmdir();p.symlink_to(source)
++        self.assertEqual(audit.audit(self.home,package)['failures'],[])
++        self.assertEqual((p/'SKILL.md').read_text(),'Fictional central core instructions')
++        (source/'SKILL.md').unlink();source.rmdir()
++        self.assertIn('broken_link',[x['kind'] for x in audit.audit(self.home,package)['failures']])
++        self.assertTrue(p.is_symlink())
+     def test_retired_global_instruction_link_is_reported(self):
+         p=self.home/'AGENTS.md';p.symlink_to(self.home/'Dev/agent-brain/docs/AGENTS.md')
+         self.assertIn('retired_instruction_link',[x['kind'] for x in audit.audit(self.home)['failures']])
