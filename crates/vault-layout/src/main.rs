@@ -1591,7 +1591,16 @@ impl Scan<'_> {
             self.check_raw_summary_plugin();
         }
 
-        if direct || (name == "wiki" && in_wiki) {
+        if wiki_layout_core::is_wiki_layout_target(
+            &path
+                .strip_prefix(self.vault)
+                .expect("note inside vault")
+                .components()
+                .map(|part| part.as_os_str().to_string_lossy())
+                .collect::<Vec<_>>()
+                .join("/"),
+            strings(&data["cssclasses"]),
+        ) {
             if layer == "wiki" && !strings(&data["cssclasses"]).any(|class| class == "vault-wiki") {
                 self.issue(
                     path,

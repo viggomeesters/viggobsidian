@@ -444,22 +444,7 @@ pub(crate) fn transform(raw: &str, proof: &Value) -> Result<String> {
         _ => Err("unknown compatibility operation".into()),
     }
 }
-/// Preserve the original bytes for audits while allowing a fixed, visible notice.
-pub(crate) fn without_notice(body: &str) -> &str {
-    if let Some(rest) = body.trim_start_matches('\n').strip_prefix(START)
-        && let Some((notice, tail)) = rest.split_once(END)
-    {
-        let lines: Vec<_> = notice.lines().filter(|l| !l.is_empty()).collect();
-        if lines.len() == 2
-            && lines[0] == "> [!info] Actuele kennis"
-            && lines[1].starts_with("> [[")
-            && lines[1].ends_with("|Open actuele kennis]]")
-        {
-            return tail.strip_prefix('\n').unwrap_or(tail);
-        }
-    }
-    body
-}
+pub(crate) use wiki_layout_core::without_knowledge_owner_notice as without_notice;
 pub(crate) fn inventory(root: &Path, excluded: &[String]) -> Result<BTreeMap<String, String>> {
     fn visit(
         base: &Path,

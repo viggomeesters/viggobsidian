@@ -16,7 +16,7 @@
       "target": ".agents/tools/wiki-layout-core/Cargo.toml"
     },
     {
-      "sha256": "3587edbdb0869616f7eada5006e941be77dcd748e5b2dbf0b52e47e96ee9aa7c",
+      "sha256": "09937140d6966ea0ca1c825903079cfa0a5a210a437a97efecb9638d8cb9c7c6",
       "source": "crates/wiki-layout-core/src/lib.rs",
       "target": ".agents/tools/wiki-layout-core/src/lib.rs"
     },
@@ -26,7 +26,7 @@
       "target": ".agents/tools/wiki-layout-core/src/headings.rs"
     },
     {
-      "sha256": "d606cb6988dcc1fe68d5344fb2a0ca731da50b124e45febbefadd590d90447a2",
+      "sha256": "4593f54b3178b9988f62722f03cbdb61aa5c393eac405c5cebf420cefb50a75a",
       "source": "crates/wiki-layout-core/src/snapshot.rs",
       "target": ".agents/tools/wiki-layout-core/src/snapshot.rs"
     },
@@ -71,7 +71,7 @@
       "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
     },
     {
-      "sha256": "d56d9173338eea777ce4dc7e82576d6cbd794bf0c5daed9bce1c9db966904bea",
+      "sha256": "0dde16ef8e8b8d8610d0ef15c6f88e186987c5252469f6631d3a8bb71e9b3507",
       "source": "crates/vault-layout/src/maintenance.rs",
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
@@ -337,7 +337,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "f3120844ac1c491817436d60b1750699efefdb272fed54d62ddce765d8858912",
+      "sha256": "263027ad515ccbe0f237b5ccc16197e06e4d7543b9ed3a7f221ba5c239a9055c",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
