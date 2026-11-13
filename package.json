@@ -131,9 +131,14 @@
       "target": ".viggobsidian/core/policy.md"
     },
     {
-      "sha256": "e5fe78df018ac5ed3a70be006a8a2f95a3679a4c74d9e12152114156763586b3",
+      "sha256": "1d29087179b01b28d8b1add3db64ee3c128671fb738fbd6c80c709e365c5f68b",
       "source": "docs/skills.md",
       "target": ".viggobsidian/core/skills.md"
+    },
+    {
+      "sha256": "d86aa95e588926a0a30297d874da1fb0c82682f0c33a81b8adb95d2602ce3a70",
+      "source": "docs/plugin-check.md",
+      "target": ".viggobsidian/core/plugin-check.md"
     },
     {
       "sha256": "5997bc2b63f41ad29f524e2bd96fc2c1b39ec98af06b63c6020a431c2fe0e596",
@@ -377,7 +382,7 @@
       "target": ".agents/skills/github-work/SKILL.md"
     },
     {
-      "sha256": "da757c37451cb53d897936fbb476975ac166e4872ac6fe1154e7da54d9761132",
+      "sha256": "7c7f325b486d08d53cfaebc5a1f9b548cd7d94940a732e2d295a610d0ce17e54",
       "source": "skills/github-work/references/obsidian-plugins.md",
       "target": ".agents/skills/github-work/references/obsidian-plugins.md"
     },
@@ -452,7 +457,7 @@
       "target": ".viggobsidian/core/procedures/task.md"
     }
   ],
-  "revision": "c52970acdc331db77b811113e7e88fd12b8823bd",
+  "revision": "079ae65294d591954e3dc7cd8d0af932a2b2469d",
   "schema": "viggobsidian.package.v1",
-  "version": "0.22.0"
+  "version": "0.23.0"
 }
