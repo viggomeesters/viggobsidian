@@ -54,6 +54,56 @@ en gebruik daarna de gekozen vaults geautoriseerde writer met dezelfde preimage;
 redirect nooit stdout over het bronbestand. Geen automatische adoptie, bulkmutatie
 of wijziging van taakstatus. Bewaar de originele bytes voor herstel.
 
+Voor een afzonderlijk geautoriseerde migratie van oude Activity-opmaak bestaat
+ook een read-only preview:
+
+```sh
+cargo run --locked --bin activity-history-preview -- SOURCE EXPECTED_SHA256 < request.json
+```
+
+De request gebruikt `schema: viggobsidian.activity-history-migration.v1`, de
+1-gebaseerde regel `activity_line` van de enige oorspronkelijke buitenste
+`## Activity`, en de werkelijk uitgevoerde opmaakactie als `date` (`YYYY-MM-DD`),
+`time`, `author` en `channel`. Deze velden dateren de nieuwe opmaakbijdrage,
+nooit de historische bron. De helper stelt hun waarheid, eigenaarschap en
+schrijfautorisatie niet vast en schrijft uitsluitend kandidaattekst naar stdout.
+Redirect die uitvoer nooit over de bron.
+
+De bestaande YAML en header blijven bytegelijk, met uitsluitend de nieuwe
+`activity_contract: provenance-v1`-regel. Ongeldige/dubbele YAML, merge keys of
+een reeds bestaand Activity-contract vereisen afzonderlijke beoordeling. De
+volledige oude Activity-suffix blijft reversibel in één historische bubble;
+oorspronkelijke auteurs, tijden, taakstatus, IDs en brontekst worden niet geraden
+of vervangen. Headerregels gebruiken LF; historische CRLF en een ontbrekende
+slotnewline blijven behouden. De archiefmarker bewaart `final-newline` en de
+`literal-width` van toegevoegde inlinecode. Alleen oorspronkelijke controlcomment-
+regels worden letterlijk gecodeerd, zodat zij geen nieuwe agent-/mailactie
+activeren. Strip de toegevoegde quote-prefixes en die afgebakende inlinecode;
+verwijder alleen bij `final-newline=0` de extra laatste LF voor bytevergelijking.
+
+`processing_lines: [FIRST, LAST]` kiest desgewenst een volledige oorspronkelijke
+verwerkingssamenvatting met haar echte Wiki-link, zonder auteurskop of footer.
+De huidige presentatie noemt deze verwerking expliciet historisch; zij claimt
+geen herbeoordeling. Alle overige verwerkingstekst blijft in de volledige bron.
+
+Geciteerde koppen zijn geen betrouwbare native Obsidian-koplocators. Bewaar
+benodigde navigatie daarom expliciet met `passages`, maximaal 128 per note:
+`[{"first_line": FIRST, "last_line": LAST, "block_id": "historical-example"}]`.
+Iedere range begint bij één unieke, niet-geciteerde oorspronkelijke ATX-kop en
+eindigt vóór de volgende kop van gelijk of hoger niveau, inclusief alle kinderen.
+Zij krijgt een afzonderlijke huidige navigatiekopie met haar blok-ID vóór de
+echte footer. Kopsyntax wordt uitsluitend in die afgeleide kopie gewone vetgedrukte
+tekst; de volledige oorspronkelijke koppen blijven in de bronhistorie staan.
+Overlappende parent-/childkopieën bewaren ieder hun volledige bronbereik.
+
+De lokale writer bezit daarnaast de exacte inbound-locatorcorrecties, volledige
+preimages, bron-/configuratiepins, write-set, CAS en herstel. Controleer de echte
+Obsidian-blokcache, normale navigatie en embeds; de Rust-kopparser alleen bewijst
+geen native Obsidian-navigatie. De preview verleent geen rechten voor een nieuwe
+writer, bronoverdracht, registratie, taakafhandeling of vaultbrede write. Bron en
+volledige kandidaat zijn elk begrensd op 1 MiB; expansie wordt vóór encoding en
+iedere passagekopie gecontroleerd. De gewone strikte checks blijven ongewijzigd.
+
 Elke agentbubble krijgt precies één directe marker:
 `<!-- viggobsidian:activity:v1 kind=result goal=follow-up -->`.
 Gebruik een stabiel doel met kleine letters, cijfers en koppeltekens. Herhaalde

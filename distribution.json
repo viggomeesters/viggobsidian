@@ -422,6 +422,10 @@
       "target": ".agents/tools/activity-core/src/lib.rs"
     },
     {
+      "source": "crates/activity-core/src/history_migration.rs",
+      "target": ".agents/tools/activity-core/src/history_migration.rs"
+    },
+    {
       "source": "crates/activity-core/src/snapshot.rs",
       "target": ".agents/tools/activity-core/src/snapshot.rs"
     },

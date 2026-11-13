@@ -1,6 +1,7 @@
 //! Canonical Activity text checks. No identity, filesystem or execution claims.
 pub mod activity_delivery;
 pub mod activity_layout;
+pub mod history_migration;
 pub mod mail_draft;
 mod snapshot;
 pub use snapshot::{MAX_NOTE_BYTES, MAX_REQUEST_BYTES, respond};
