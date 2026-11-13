@@ -61,7 +61,7 @@
       "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
     },
     {
-      "sha256": "99fe770cd73144a48c5026576044898aaadcd1a3a1869a2c4bb4c872878b6c9f",
+      "sha256": "d56d9173338eea777ce4dc7e82576d6cbd794bf0c5daed9bce1c9db966904bea",
       "source": "crates/vault-layout/src/maintenance.rs",
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
@@ -487,7 +487,7 @@
       "target": ".viggobsidian/core/procedures/task.md"
     }
   ],
-  "revision": "fda319fd2bf2503795ef97d61b70d5deba920e42",
+  "revision": "f7c2df14c5af8a10e719d66cbb13bb0ada64dc0a",
   "schema": "viggobsidian.package.v1",
-  "version": "0.25.0"
+  "version": "0.25.1"
 }
