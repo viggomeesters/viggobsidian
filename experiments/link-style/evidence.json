@@ -7,6 +7,19 @@
   "wasmBytes": 1279332,
   "wasmImports": 0,
   "linearMemoryMaximumBytes": 268435456,
+  "validation": {
+    "workspaceRustTests": 195,
+    "javascriptPlatformTests": 5,
+    "nativeWasmParityCases": 6,
+    "fmt": "pass",
+    "clippyWarningsDenied": "pass",
+    "audit": "pass against locally available advisory database; no fetch",
+    "newRegistryDependencies": 0,
+    "sourcePackageVersion": "0.22.0",
+    "sourceRevision": "c52970acdc331db77b811113e7e88fd12b8823bd",
+    "syntheticGuardedInstall": "pass, 90 assets",
+    "installedStandaloneLockedBuild": "pass"
+  },
   "hostObservation": {
     "host": "Obsidian desktop",
     "fixtureScope": "fictional isolated fixture namespace",
