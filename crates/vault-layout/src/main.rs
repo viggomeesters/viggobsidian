@@ -1711,10 +1711,8 @@ impl Scan<'_> {
                 .strip_prefix(vault)
                 .expect("dossier inside vault")
                 .with_extension("")
-                .components()
-                .map(|part| part.as_os_str().to_string_lossy())
-                .collect::<Vec<_>>()
-                .join("/")
+                .to_string_lossy()
+                .replace('\\', "/")
         };
         let mut shortcuts = body
             .lines()
