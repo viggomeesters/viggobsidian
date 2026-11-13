@@ -42,3 +42,14 @@ vault contracts and current skill documentation; report historical release notes
 license/provenance, generated fixtures and runtime code separately rather than
 hiding instructions there. The shared-instruction target is 20,000 words; unique
 writer boundaries must not be dropped merely to improve the number.
+
+## v0.21.0 validation and review
+
+Local validation passed 96 vault unit tests, 34 CLI contract integration tests and
+59 package/plugin tests, plus workspace formatting, Clippy with warnings denied
+and validation of all ten skill entries. Independent content review found one
+transcript-evidence gap: the vault core now explicitly preserves session evidence,
+conflicting fragments/offsets and ASR uncertainty, and refuses inferred speakers
+or whole-meeting duration from fragments. Independent public-release review found
+no remaining blocker subject to exact final packing. Host-profile and provider
+adoption remain separate local checks; public review does not claim live writes.
