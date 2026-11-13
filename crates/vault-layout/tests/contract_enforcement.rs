@@ -10,6 +10,39 @@ use std::{
 };
 
 #[test]
+fn shared_source_preparation_goldens_pass_native_raw_gates() {
+    let fixture = Fixture::new("shared-source-preparation");
+    fixture.write(
+        "30-topics/example/example.md",
+        "---\ntype: note\ncategory: knowledge\n---\n# Example\n",
+    );
+    fixture.write(
+        "30-topics/example/raw/raw.md",
+        "---\ntype: collection\ncategory: index\n---\n# Raw\n",
+    );
+    fixture.write("30-topics/example/wiki/wiki.md", "---\ntype: note\ncategory: knowledge\n---\n# Wiki\n\n## Existing knowledge\n\nExisting knowledge remains here.\n");
+    let package = "30-topics/example/raw/20261102-source";
+    let path = format!("{package}/20261102-source.md");
+    for expected in [
+        include_str!("../../source-preparation-core/fixtures/prepared.md"),
+        include_str!("../../source-preparation-core/fixtures/processed.md"),
+    ] {
+        let rendered = expected.replace("/fictional/vault", fixture.0.to_str().unwrap());
+        fixture.write(&path, &rendered);
+        let out = fixture.strict(package);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stdout)
+        );
+        fixture.write(&path, rendered + "\nUnwrapped original source.\n");
+        let invalid = fixture.strict(package);
+        assert!(!invalid.status.success());
+        assert!(String::from_utf8_lossy(&invalid.stdout).contains("strict-event-header"));
+    }
+}
+
+#[test]
 fn adopted_engine_reads_shared_metadata_contract_and_refuses_missing_core() {
     let (fixture, raw) = intake_fixture("21-program", "shared-navigation-contract");
     let schema = fixture.0.join("99-system/contracts/vault-schema.yaml");

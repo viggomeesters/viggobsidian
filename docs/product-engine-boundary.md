@@ -6,6 +6,11 @@ ViggVault is het gebruikersproduct en de Obsidian-interface, met Community-ID `v
 
 Regels worden eenmaal upstream in Rust geïmplementeerd. De native filesystemadapter houdt selectie/classificatie, lokale configuratie, bronbestaan, pad-/symlinkgrenzen en schrijfrechten. Lokale writers blijven eigenaar van registraties, claims en domeintransacties. Een pure tekstcore kan die feiten niet bewijzen en verleent geen schrijfrecht.
 
+De [getypeerde bronvoorbereiding](source-preparation.md) levert uitsluitend een
+deterministische Raw-bronpostimage via een read-only native CLI. Lokale adapters
+blijven eigenaar van bestemming, claims, bronidentiteit, installatie en herstel.
+De plugin krijgt hierdoor geen schrijf- of bronplaatsingsfunctie.
+
 Het pakketprofiel `numbered-v1` is expliciet gekozen beleid. De Wiki-opbouwregels horen bij die conventie; willekeurige Markdown of een bestandsnaam maakt een note geen Wiki. Heading-/ankerhelpers zijn tekstmechaniek, geen automatische profielkeuze. De bestaande Work-linkstijl blijft een afzonderlijk gekozen regelset/contract.
 
 Product- en engineversies blijven onafhankelijk. Een pluginrelease pint de exacte gereviewde enginebron, schema/API, WASM-hash en licentie; zij haalt geen nieuwe engine of executable zelfstandig op. ViggVault 0.1.1 biedt alleen opt-in Work-linkstijl. Deze upstream-extractie voegt nog geen Wiki-commando aan de plugin toe en is geen volledige vaultcheck. De native CLI blijft onafhankelijk bruikbaar.
