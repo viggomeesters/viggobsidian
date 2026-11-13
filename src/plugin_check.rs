@@ -10,6 +10,27 @@ pub(crate) enum PreviewIntent {
     LocalPrivate,
 }
 impl PreviewIntent {
+    fn from_args(args: &[String], phase: &str) -> Result<Self> {
+        let mut selected = None;
+        for (index, arg) in args.iter().enumerate() {
+            let value = if arg == "--preview-intent" {
+                Some(
+                    args.get(index + 1)
+                        .filter(|value| !value.starts_with("--"))
+                        .map(String::as_str)
+                        .ok_or("missing value for --preview-intent")?,
+                )
+            } else {
+                arg.strip_prefix("--preview-intent=")
+            };
+            if let Some(value) = value
+                && selected.replace(value).is_some()
+            {
+                return Err("duplicate --preview-intent".into());
+            }
+        }
+        Self::parse(selected.unwrap_or("public-review"), phase)
+    }
     fn parse(value: &str, phase: &str) -> Result<Self> {
         match value {
             "public-review" => Ok(Self::PublicReview),
@@ -686,14 +707,7 @@ pub(crate) fn run(args: &[String]) -> Result<Value> {
     if !["source-preview", "public-release", "catalog-install"].contains(&phase) {
         return Err("invalid plugin-check phase".into());
     }
-    let intent = PreviewIntent::parse(
-        if args.iter().any(|a| a == "--preview-intent") {
-            get("--preview-intent")?
-        } else {
-            "public-review"
-        },
-        phase,
-    )?;
+    let intent = PreviewIntent::from_args(args, phase)?;
     let dir = super::root(Path::new(get("--repo-dir")?))?;
     let candidate = if args.iter().any(|a| a == "--candidate") {
         get("--candidate")?
@@ -877,6 +891,103 @@ mod tests {
             r["repo"]["value"]["private"] = json!(false);
         }
         assert!(PreviewIntent::parse("skip", "source-preview").is_err());
+    }
+    #[test]
+    fn cli_rejects_ambiguous_or_invalid_intent_before_collection() {
+        // This sentinel cannot pass root resolution: receiving the exact intent
+        // error proves collection never reaches filesystem or command access.
+        let prefix = [
+            "--github",
+            "example/plugin",
+            "--repo-dir",
+            "/nonexistent-plugin-check-collection-sentinel",
+            "--phase",
+            "source-preview",
+        ];
+        for (options, expected) in [
+            (
+                vec!["--preview-intent"],
+                "missing value for --preview-intent",
+            ),
+            (
+                vec!["--preview-intent", "--initial"],
+                "missing value for --preview-intent",
+            ),
+            (
+                vec!["--preview-intent=nonsense"],
+                "invalid --preview-intent; use public-review or local-private",
+            ),
+            (
+                vec!["--preview-intent="],
+                "invalid --preview-intent; use public-review or local-private",
+            ),
+            (
+                vec!["--preview-intent", "nonsense"],
+                "invalid --preview-intent; use public-review or local-private",
+            ),
+            (
+                vec![
+                    "--preview-intent",
+                    "local-private",
+                    "--preview-intent",
+                    "public-review",
+                ],
+                "duplicate --preview-intent",
+            ),
+            (
+                vec![
+                    "--preview-intent=local-private",
+                    "--preview-intent=public-review",
+                ],
+                "duplicate --preview-intent",
+            ),
+            (
+                vec![
+                    "--preview-intent=local-private",
+                    "--preview-intent",
+                    "local-private",
+                ],
+                "duplicate --preview-intent",
+            ),
+        ] {
+            let args: Vec<_> = prefix
+                .iter()
+                .copied()
+                .chain(options)
+                .map(String::from)
+                .collect();
+            assert_eq!(run(&args).unwrap_err().to_string(), expected);
+        }
+        let args: Vec<_> = [
+            "--github",
+            "example/plugin",
+            "--phase",
+            "public-release",
+            "--preview-intent=local-private",
+        ]
+        .iter()
+        .map(|s| String::from(*s))
+        .collect();
+        assert_eq!(
+            run(&args).unwrap_err().to_string(),
+            "local-private intent is only valid for source-preview"
+        );
+    }
+    #[test]
+    fn cli_intent_forms_and_default_are_unambiguous() {
+        assert!(
+            PreviewIntent::from_args(&[], "source-preview").unwrap() == PreviewIntent::PublicReview
+        );
+        for args in [
+            vec!["--preview-intent", "local-private"],
+            vec!["--preview-intent=local-private"],
+        ] {
+            let args: Vec<_> = args.into_iter().map(String::from).collect();
+            assert!(
+                PreviewIntent::from_args(&args, "source-preview").unwrap()
+                    == PreviewIntent::LocalPrivate
+            );
+        }
     }
     #[test]
     fn publication_claims_require_public_release_and_actual_catalog_install() {

@@ -16,6 +16,9 @@ defaults to `public-review`, preserving existing public-source requirements.
 `local-private` is accepted only with `source-preview`; it is an explicit scope
 choice, not a factual claim that a repository is private. Unknown intents and
 private intent on publication phases are errors before collection.
+Both `--preview-intent VALUE` and `--preview-intent=VALUE` are supported.
+Missing or unknown values and repeated intent options (including mixed forms
+or identical values) are errors before filesystem or remote collection.
 
 | Phase and intent | Required proof | Maximum claim |
 | --- | --- | --- |
