@@ -256,6 +256,14 @@ pub(crate) fn rebind(before: &str, mapping: &Value) -> Result<String> {
                 let (target, suffix) = inside
                     .find(['#', '|'])
                     .map_or((inside, ""), |i| inside.split_at(i));
+                // Table aliases escape their separator. Those bytes belong to
+                // the separator syntax, not the destination being rebound.
+                let (target, alias_escape) = if suffix.starts_with('|') {
+                    let destination = target.trim_end_matches('\\');
+                    (destination, &target[destination.len()..])
+                } else {
+                    (target, "")
+                };
                 let found = mapping.iter().find(|(old, _)| {
                     !local_uri(old)
                         && (old.strip_suffix(".md").unwrap_or(old) == target
@@ -268,6 +276,7 @@ pub(crate) fn rebind(before: &str, mapping: &Value) -> Result<String> {
                         .ok_or("WikiLink needs a complete replacement file locator")?;
                     output.push_str("[[");
                     output.push_str(new.strip_suffix(".md").unwrap_or(new));
+                    output.push_str(alias_escape);
                     output.push_str(suffix);
                     output.push_str("]]");
                     changed.insert(old.clone());
@@ -485,6 +494,35 @@ mod tests {
     use super::*;
     use serde_json::json;
     const NOTE: &str = "---\ntype: note\ncategory: knowledge\n---\n\n# Existing\n\nA fact.\n";
+    #[test]
+    fn escaped_alias_targets_rebind_without_changing_separator_or_source_bytes() {
+        for escape in ["", "\\", "\\\\"] {
+            let link = format!("[[old-note{escape}|Visible label]]");
+            let protected =
+                format!("`{link}`\n\n```md\n{link}\n```\n\n> Original source\n> {link}\n");
+            let before = NOTE.replace(
+                "A fact.",
+                &format!("| Link |\n|---|\n| {link} |\n\n{protected}"),
+            );
+            let proof = json!({"kind":"locator-rebind","before":before,
+                "mapping":{"old-note":"30-topics/new/source.md"}});
+            let after = transform("30-topics/case/case.md", &proof).unwrap();
+            assert!(after.contains(&format!(
+                "| [[30-topics/new/source{escape}|Visible label]] |"
+            )));
+            assert!(after.ends_with(&format!("{protected}\n")));
+        }
+        let before = NOTE.replace("A fact.", "[[old-note#Heading\\|Label]]");
+        let proof = json!({"kind":"locator-rebind","before":before,
+            "mapping":{"old-note":"30-topics/new/source.md"}});
+        assert!(
+            transform("30-topics/case/case.md", &proof)
+                .unwrap()
+                .ends_with("[[30-topics/new/source#Heading\\|Label]]\n")
+        );
+        let invalid = NOTE.replace("A fact.", "[[old-note\\]]");
+        assert!(transform("30-topics/case/case.md",&json!({"kind":"locator-rebind","before":invalid,"mapping":{"old-note":"30-topics/new/source.md"}})).is_err());
+    }
     #[test]
     fn locator_repairs_preserve_protected_markdown_source_contexts() {
         for source in [
