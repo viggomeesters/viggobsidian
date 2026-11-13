@@ -96,7 +96,7 @@
       "target": ".viggobsidian/core/write-validation.md"
     },
     {
-      "sha256": "6ca9146b4deec6300a69ae8b1309f6b2bba8231a791bd2da3b39177f59a79731",
+      "sha256": "58431281316066c854d9c29de15afb8a43dd52e705b6c9950dff4375d058fe44",
       "source": "crates/vault-layout/src/activity_delivery.rs",
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
@@ -161,7 +161,7 @@
       "target": ".viggobsidian/core/mail-draft.md"
     },
     {
-      "sha256": "3525695ff9b9388856baab12f1bf827a841a846330a50709ed58019a09617968",
+      "sha256": "d43ae0f2472f6d0e565757ac01593b105915cf5e82a3885cb79dd6f7c39cb03b",
       "source": "crates/vault-layout/src/mail_draft.rs",
       "target": ".agents/tools/vault-layout/src/mail_draft.rs"
     },
@@ -252,17 +252,17 @@
       "transform": "css-v1"
     },
     {
-      "sha256": "7f0a76ff7c780a5666ae21e53e3f83913f358a9ef05441f2e47e2a6c9c2c57cf",
+      "sha256": "a975ed261a8716b4b8d4608414ba73db66d5a1ec94d60b693aaa037f3397df3f",
       "source": "crates/vault-layout/Cargo.toml",
       "target": ".agents/tools/vault-layout/Cargo.toml"
     },
     {
-      "sha256": "c1be22a2ac3c070c648d3b32aa7b0319434e54cba356ce5728384159bab06e18",
+      "sha256": "a37c17bdf25cd94c2270c52cbefe9091798b9339124f5fe8a8402b45666fd41b",
       "source": "crates/vault-layout/Cargo.lock",
       "target": ".agents/tools/vault-layout/Cargo.lock"
     },
     {
-      "sha256": "9e0f228ca0d3a1001a7b1d4d766c30c454da26dea25bab5b7d989d5ffb3a13ef",
+      "sha256": "1da45e84e7567e1a5ff178d8f1db729ab96be3168207e2d84355219ac93f5c3b",
       "source": "crates/vault-layout/src/activity_layout.rs",
       "target": ".agents/tools/vault-layout/src/activity_layout.rs"
     },
@@ -282,7 +282,7 @@
       "target": ".agents/tools/vault-layout/src/wiki_layout.rs"
     },
     {
-      "sha256": "dc54849107c08c50fbf9716b3f03d7c5d130f8260a3ceb303a37753e806f811b",
+      "sha256": "20328cdf36e8fa95576f25e144ac471048a2579d7a9ecd4074f587f0caf763e3",
       "source": "crates/vault-layout/src/index_navigation.rs",
       "target": ".agents/tools/vault-layout/src/index_navigation.rs"
     },
@@ -495,9 +495,54 @@
       "sha256": "281fa6f1106b98cc780ffea785e19466cbebbc8ff04fe97fc8901a30590c3497",
       "source": "procedures/task.md",
       "target": ".viggobsidian/core/procedures/task.md"
+    },
+    {
+      "sha256": "6877e5af4ba927dfa965dbde6b6d7e1bab9ea5c93687bf8b4eceaf120c3aa4b7",
+      "source": "crates/activity-core/Cargo.toml",
+      "target": ".agents/tools/activity-core/Cargo.toml"
+    },
+    {
+      "sha256": "2e65c4ef4a70d50b7a35519ae5f2b10643f968d3a3623aea6ab178ff8a3922d4",
+      "source": "crates/activity-core/src/lib.rs",
+      "target": ".agents/tools/activity-core/src/lib.rs"
+    },
+    {
+      "sha256": "1b63edefe5e59ee17bdd3db9fe72ba6a7ebdb6b8ab6279600a62ff6dbb9b038c",
+      "source": "crates/activity-core/src/snapshot.rs",
+      "target": ".agents/tools/activity-core/src/snapshot.rs"
+    },
+    {
+      "sha256": "9bc2fca38072dabadf831a59f3be9f3f738ade29654b7a968ee35a60053f6254",
+      "source": "crates/activity-core/src/wasm.rs",
+      "target": ".agents/tools/activity-core/src/wasm.rs"
+    },
+    {
+      "sha256": "7f48fdf651aa887f21b40970c0e5ae138b2cce202769170d759139010c44d087",
+      "source": "crates/activity-core/src/activity_layout.rs",
+      "target": ".agents/tools/activity-core/src/activity_layout.rs"
+    },
+    {
+      "sha256": "ad7f7da2558308fc226cf760ef1d9cee9bc10d8d3a81108fc3b1f253b10dc309",
+      "source": "crates/activity-core/src/activity_delivery.rs",
+      "target": ".agents/tools/activity-core/src/activity_delivery.rs"
+    },
+    {
+      "sha256": "3b96855706b0cd609a5096923cfdb9954dd83256797ff0bacd5e5f4b6f225a47",
+      "source": "crates/activity-core/src/mail_draft.rs",
+      "target": ".agents/tools/activity-core/src/mail_draft.rs"
+    },
+    {
+      "sha256": "8789b503b4e629619b974b8280c34c6726b8b1d1823891b2426ec1e1581c16d3",
+      "source": "crates/activity-core/fixtures/activity-legacy.json",
+      "target": ".agents/tools/activity-core/fixtures/activity-legacy.json"
+    },
+    {
+      "sha256": "66f5d0720deb17f41bee12714e87f6c7452d4636e22b0c48a90e1c476e94c913",
+      "source": "crates/activity-core/fixtures/activity-deliveries.md",
+      "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "7e8bd022368554c72b62da733614b00fe95bf8b3",
+  "revision": "1d8aaf5f44e805c1e22793699d5db0478b3cf081",
   "schema": "viggobsidian.package.v1",
-  "version": "0.26.0"
+  "version": "0.27.0"
 }
