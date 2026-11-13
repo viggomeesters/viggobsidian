@@ -210,3 +210,47 @@ fn native_cli_matches_library_and_never_needs_a_vault() {
         "request_limit"
     );
 }
+
+#[test]
+fn parser_refuses_all_merge_key_styles_but_preserves_literal_data() {
+    for fragment in [
+        "<< : {extra: value}",
+        "meta: {<<: {extra: value}}",
+        "meta:\n  << : {extra: value}",
+        "meta: [{<<: {extra: value}}]",
+        "!!merge '<<': {extra: value}",
+        "base: &base {extra: value}\n<< : *base",
+    ] {
+        let mut v = request();
+        v["source_note"] = json!(ORIGINAL.replacen("\n---\n", &format!("\n{fragment}\n---\n"), 1));
+        let out = run(&v);
+        assert_eq!(out["status"], "incomplete", "{fragment}: {out}");
+        assert!(out.get("postimage").is_none());
+        let mut child = Command::new(env!("CARGO_BIN_EXE_source-note-transform"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(&serde_json::to_vec(&v).unwrap())
+            .unwrap();
+        let cli = child.wait_with_output().unwrap();
+        assert_eq!(cli.status.code(), Some(2), "{fragment}");
+        assert_eq!(serde_json::from_slice::<Value>(&cli.stdout).unwrap(), out);
+    }
+    for fragment in [
+        "'<<': {extra: value}",
+        "meta: {\"<<\": {extra: value}}",
+        "!!str <<: {extra: value}",
+        "literal: '<< : {extra: value}'",
+    ] {
+        let mut v = request();
+        v["source_note"] = json!(ORIGINAL.replacen("\n---\n", &format!("\n{fragment}\n---\n"), 1));
+        let out = run(&v);
+        assert_eq!(out["status"], "complete", "{fragment}: {out}");
+        assert!(out["postimage"].as_str().unwrap().contains(fragment));
+    }
+}

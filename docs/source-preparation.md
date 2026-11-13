@@ -46,6 +46,10 @@ Failures return `status: incomplete`, a reason and no postimage; the CLI exits 2
 Unknown fields/schema/format, duplicate JSON or YAML keys, YAML merge keys, unsafe
 paths, invalid calendar dates, source/owner mismatches and excessive input fail
 closed. Limits: 8 MiB JSON request, 1 MiB per source/original note, 2 MiB postimage.
+Merge refusal uses the parser's merge-key policy at every nesting level, including
+flow mappings, whitespace and explicitly merge-tagged keys. Quoted `<<` keys,
+explicitly string-tagged `<<` keys and quoted text containing `<<` remain ordinary
+source data; they are not merges and remain byte-preserved in the header.
 
 ## Local adapter and recovery
 

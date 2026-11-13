@@ -91,17 +91,19 @@ fn note(text: &str) -> Result<(&str, &str, Value)> {
     }
     let (header, body) = text.split_once("\n---\n").ok_or("frontmatter_required")?;
     let yaml = header.strip_prefix("---\n").ok_or("frontmatter_required")?;
-    // Merge keys obscure identity provenance; reject rather than normalize them.
-    if yaml
-        .lines()
-        .any(|line| line.trim_start().starts_with("<<:"))
-    {
-        return Err("metadata_merge_refused");
-    }
-    let options =
-        serde_saphyr::options! { duplicate_keys: serde_saphyr::DuplicateKeyPolicy::Error };
-    let metadata: Value =
-        serde_saphyr::from_str_with_options(yaml, options).map_err(|_| "metadata_invalid")?;
+    // Enforce merge semantics at the parser, including nested/flow/tagged keys.
+    // Quoted or explicitly string-tagged << keys remain ordinary source data.
+    let options = serde_saphyr::options! {
+        duplicate_keys: serde_saphyr::DuplicateKeyPolicy::Error,
+        merge_keys: serde_saphyr::MergeKeyPolicy::Error
+    };
+    let metadata: Value = serde_saphyr::from_str_with_options(yaml, options).map_err(|error| {
+        if matches!(error, serde_saphyr::Error::MergeKeyNotAllowed { .. }) {
+            "metadata_merge_refused"
+        } else {
+            "metadata_invalid"
+        }
+    })?;
     if !metadata.is_object() || metadata["type"] != "note" || metadata["category"] != "source" {
         return Err("plain_note_source_required");
     }
