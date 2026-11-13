@@ -1,0 +1,41 @@
+{
+  "schema": "viggobsidian.link-style-spike-evidence.v1",
+  "date": "2026-11-13",
+  "phase": "source-feasibility",
+  "communityInstall": false,
+  "wasmSha256": "c01ece9c55041e423625186d26e1c6ade5a92abc25e4c1a81a8c549b7fb507f0",
+  "wasmBytes": 1279332,
+  "wasmImports": 0,
+  "linearMemoryMaximumBytes": 268435456,
+  "validation": {
+    "workspaceRustTests": 195,
+    "javascriptPlatformTests": 5,
+    "nativeWasmParityCases": 6,
+    "fmt": "pass",
+    "clippyWarningsDenied": "pass",
+    "audit": "pass against locally available advisory database; no fetch",
+    "newRegistryDependencies": 0,
+    "sourcePackageVersion": "0.22.0",
+    "sourceRevision": "c52970acdc331db77b811113e7e88fd12b8823bd",
+    "syntheticGuardedInstall": "pass, 90 assets",
+    "installedStandaloneLockedBuild": "pass"
+  },
+  "hostObservation": {
+    "host": "Obsidian desktop",
+    "fixtureScope": "fictional isolated fixture namespace",
+    "realVaultReadInventoryAndEvents": true,
+    "realBrowserWorker": true,
+    "actualRustWasm": true,
+    "inventoried": 2,
+    "checked": 2,
+    "findings": [
+      {"kind": "wiki-source-style-class", "line": 2},
+      {"kind": "source-link-label", "line": 5}
+    ],
+    "fixtureContentUnchanged": true,
+    "activeNoteAndEnabledPluginsPreserved": true,
+    "fixturesRemoved": true,
+    "pluginInstalled": false,
+    "settingsChanged": false
+  }
+}

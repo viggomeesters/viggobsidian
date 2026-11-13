@@ -1,6 +1,26 @@
 {
   "files": [
     {
+      "sha256": "7e0bfa387f546c96c13c34d6d1dc66a250a1a4d086d6a327ed8132b07feff770",
+      "source": "crates/link-style-core/Cargo.toml",
+      "target": ".agents/tools/link-style-core/Cargo.toml"
+    },
+    {
+      "sha256": "cb48500679cbb02d9b47aa7a728bf8d77f0362ed1fe7e8aecdd19cedd28be836",
+      "source": "crates/link-style-core/src/lib.rs",
+      "target": ".agents/tools/link-style-core/src/lib.rs"
+    },
+    {
+      "sha256": "18c9e0c3523abde04ef8caca0f1d647693a6d99efb14567ac4809574fe31c65c",
+      "source": "crates/link-style-core/src/snapshot.rs",
+      "target": ".agents/tools/link-style-core/src/snapshot.rs"
+    },
+    {
+      "sha256": "989ab0fcf45d323de3932f901bdc115c8393f2a2054325d6bd4d3bc1c24e978e",
+      "source": "crates/link-style-core/src/wasm.rs",
+      "target": ".agents/tools/link-style-core/src/wasm.rs"
+    },
+    {
       "sha256": "68863e410adc8ef6d86eeea996af4c93a172bd6bf1706640d73776f90043d1af",
       "source": "crates/vault-layout/fixtures/procedure-assets.json",
       "target": ".agents/tools/vault-layout/fixtures/procedure-assets.json"
@@ -187,12 +207,12 @@
       "transform": "css-v1"
     },
     {
-      "sha256": "cf6abdbcc56c7cb4387c353ddfa2d376c3d6772915340e0abfc43b012bc44c22",
+      "sha256": "0ba04410a674d2a6be4ba05ae179097ac34de4dffe7e89fae526374458aff5fc",
       "source": "crates/vault-layout/Cargo.toml",
       "target": ".agents/tools/vault-layout/Cargo.toml"
     },
     {
-      "sha256": "87cc83d1ec075e7323aabcd6a64e19f40ed4692cb7cfbaee346f29b0c339bec5",
+      "sha256": "953662b1dcf9967fd7e89545befffb225278050498b699c744508cd1da95190b",
       "source": "crates/vault-layout/Cargo.lock",
       "target": ".agents/tools/vault-layout/Cargo.lock"
     },
@@ -207,7 +227,7 @@
       "target": ".agents/tools/vault-layout/src/work_package.rs"
     },
     {
-      "sha256": "15f7958ea8d9808ad0c5e9be25bd6f4887f0a43c459c4d286c4eb3b2b5640186",
+      "sha256": "b6a5ef1fa778e6e95a92f9ad618c63684ca3465d8c03dfce50c36f1428eaffed",
       "source": "crates/vault-layout/src/link_style.rs",
       "target": ".agents/tools/vault-layout/src/link_style.rs"
     },
@@ -217,7 +237,7 @@
       "target": ".agents/tools/vault-layout/src/wiki_layout.rs"
     },
     {
-      "sha256": "6e8b96cbbaa279c64de716aecbaeeb40c5813674359c3091346f90974351e25b",
+      "sha256": "dc54849107c08c50fbf9716b3f03d7c5d130f8260a3ceb303a37753e806f811b",
       "source": "crates/vault-layout/src/index_navigation.rs",
       "target": ".agents/tools/vault-layout/src/index_navigation.rs"
     },
@@ -432,7 +452,7 @@
       "target": ".viggobsidian/core/procedures/task.md"
     }
   ],
-  "revision": "c79dcdc5af604c0a28878389087e2707547c83a6",
+  "revision": "c52970acdc331db77b811113e7e88fd12b8823bd",
   "schema": "viggobsidian.package.v1",
-  "version": "0.21.0"
+  "version": "0.22.0"
 }
