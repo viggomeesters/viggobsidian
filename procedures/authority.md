@@ -8,7 +8,7 @@ selecteert nooit de doelvault. Geef iedere ondersteunde helper zijn expliciete
 
 Lees vóór de gekozen route `.viggobsidian/core/procedures.json` en
 `.viggobsidian/providers.json`. De read-only controle is
-`vault-layout --vault ROOT --skill-route ROUTE`. Zij toont de gedeelde procedure,
+`vault-layout --vault ROOT --skill-route vault --skill-capability EFFECT`. Zij toont de gedeelde procedure,
 benodigde referenties en lokale capability. `--skill-routes` controleert de hele
 dekking. Een beschikbare route is geen uitvoerautorisatie. Ontbrekende, ongeldige
 of unavailable providers blokkeren alleen hun afhankelijke effect. Installeer

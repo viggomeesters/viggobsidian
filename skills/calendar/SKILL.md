@@ -47,4 +47,4 @@ Resolve exact identity and recurrence scope. Delete only the authorized event/oc
 
 Reads can use a compact schedule table. After mutation, report calendar, event title, absolute date/time, relevant participants, the actual changed state and readback evidence. State whether invitations/notifications were sent or only an event was stored; do not imply direct provider mutation from an ICS artifact or draft.
 
-When an email-based invitation is requested, use [calendar-invite-email](../calendar-invite-email/PROCEDURE.md) with the same identity/authorization boundaries and the local delivery policy.
+When an email-based invitation is requested, compose it through draft with the same identity, timezone, recurrence and local delivery boundaries. An ICS artifact does not prove event persistence or attendee delivery.

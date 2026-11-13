@@ -18,9 +18,16 @@ cargo build --release --locked
 ./target/release/viggobsidian check --vault /path/to/vault
 ```
 
-Preview schrijft niets naar de vault. Apply controleert de hele preview opnieuw, weigert lokale drift en maakt een receipt met oude bytes vóór de eerste wijziging. De manifestallowlist beperkt de updater tot gedeelde instructies, skills, de actieve CSS, Bases en de expliciete Rust-cratebestanden met regressiefixtures. Hij verandert geen notities, projecten, registraties, runtimeproviders, Gitremotes, pluginconfig of root-AGENTS. Algemene verwijdering van eerder beheerde assets blijft geweigerd.
+Preview schrijft niets naar de vault. Apply controleert de hele preview opnieuw, weigert lokale drift en maakt een receipt met oude bytes vóór de eerste wijziging. De manifestallowlist beperkt de updater tot gedeelde instructies, skills, de actieve CSS, Bases en de expliciete Rust-cratebestanden met regressiefixtures. Hij verandert geen notities, projecten, registraties, runtimeproviders, Gitremotes, pluginconfig of root-AGENTS. Verwijdering buiten de eindige beoordeelde migratieset blijft geweigerd.
 
-Vanaf v0.19 is één eindige migratie ingebouwd: de voormalige `go`-ingang en zeven `go-*`-aliases worden vervangen door `github-work`. Alleen de negen exact bekende, beheerde en ongewijzigde bestanden mogen verdwijnen, en alleen als beide nieuwe `github-work`-bestanden in het gevalideerde pakket staan. Preview toont de verwijderingen als `after: null`; apply bewaart de oude bytes in het herstelreceipt. Rollback herstelt ook de oude installatiestatus en weigert later aangemaakte bestanden op de oude paden. Onbeheerde bestanden en profielsymlinks worden niet door de pakketupdater verwijderd. De lokale profielbeheerder werkt de publieke naam en metadata afzonderlijk met eigen preimages bij.
+De tien-kernenmigratie heeft een eindige, gecompileerde historische padinventaris.
+Oude manifesttargets blijven leesbaar en herstelbaar, maar kunnen niet door een
+nieuw pakket worden geschreven. Alleen ongewijzigde beheerde bestanden uit die
+inventaris mogen verdwijnen, en alleen bij aanwezigheid van alle tien nieuwe
+SKILL.md-kernen. Preview toont after: null; apply bewaart alle oude bytes vóór de
+eerste wijziging in een lokaal receipt. Onbeheerde bestanden, providers en
+profielsymlinks worden niet verwijderd. De lokale profielbeheerder gebruikt eigen
+preimages. Een later aangemaakt bestand op een oud pad blokkeert rollback.
 
 ## Stijlen en diepe layoutcontrole vanaf v0.2
 
@@ -32,14 +39,11 @@ Een opname van `css-split --input FILE` is uitsluitend lokaal voorwerk; inspecte
 
 ## Eerste adoptie
 
-Vanaf v0.10 bezit de release ook de generieke PROCEDURE.md-callerlocaties,
-actieve referentielocators, native-vaultbridge en de acht gedeelde
-procedurecontracten. `core/procedures.json` is de expliciete dekkingsmatrix;
-de updaterallowlist is daarvan gecompileerd, niet door een aangeboden pakket
-uit te breiden. Bestaande onbeheerde procedurebytes vragen beoordeelde
-adoptiehashes en blijven in de herstelreceipt behouden. De authoringhelper
-`cargo run --bin procedure-assets -- --adoption-map TARGET` maakt uitsluitend
-een read-only hashinventaris voor inspectie; zij geeft geen adoptietoestemming.
+De release bezit tien kernen en beperkte geselecteerde naslag, met een expliciete
+allowlist in skill-library.json. core/procedures.json v2 beschrijft effecten en
+echte bronadapters. De verwijderde naamroutes en proceduregenerator komen niet
+terug. `cargo run --bin procedure-assets -- --adoption-map TARGET` blijft uitsluitend
+een read-only hashinventaris; zonder dat argument genereert de tool niets.
 
 Maak vóór gebruik de lokale `.viggobsidian/providers.json` met exact gebonden
 doelroot en alle capabilities. Een beschikbare capability wijst naar een

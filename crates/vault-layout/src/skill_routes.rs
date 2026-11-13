@@ -136,21 +136,19 @@ fn verify_asset(vault: &Path, state: &Value, path: &str) -> Result<Value> {
 pub(crate) fn check(
     vault: &Path,
     route: Option<&str>,
+    effect: Option<&str>,
     source: Option<&str>,
 ) -> Result<(Value, u8)> {
+    if route.is_some_and(|name| name != "vault") {
+        return Err("unknown skill route; no fallback".into());
+    }
+    if effect.is_some() && route.is_none() {
+        return Err("capability selection requires --skill-route vault".into());
+    }
     if source.is_some()
         && !matches!(
-            route,
-            Some(
-                "vault"
-                    | "vault-log"
-                    | "vault-process"
-                    | "vault-inbox"
-                    | "inbox"
-                    | "bookmarks"
-                    | "vault-email"
-                    | "vault-email-process"
-            )
+            effect.unwrap_or("read"),
+            "capture" | "process" | "mail" | "document"
         )
     {
         return Err("source adapter is only an additional capture/process dependency".into());
@@ -163,7 +161,7 @@ pub(crate) fn check(
     }
     let descriptor = json!({"path":MAP,"sha256":descriptor_hash});
     let spec = decode(&descriptor_bytes)?;
-    if spec["schema"] != "viggobsidian.procedures.v1" {
+    if spec["schema"] != "viggobsidian.procedures.v2" {
         return Err("unknown procedure map schema".into());
     }
     let contracts = spec["contracts"]
@@ -173,21 +171,20 @@ pub(crate) fn check(
         .iter()
         .map(|v| v.as_str().ok_or("invalid contract name"))
         .collect::<std::result::Result<_, _>>()?;
-    let routes = spec["routes"]
-        .as_object()
-        .ok_or("procedure routes missing")?;
-    let references = spec["references"]
-        .as_object()
-        .ok_or("procedure references missing")?;
-    let selected: Vec<_> = if let Some(route) = route {
+    let effects = spec["effects"].as_object().ok_or("effects missing")?;
+    let selected: Vec<_> = if route.is_some() {
+        let capability = effect.unwrap_or("read");
         vec![(
-            route,
-            routes
-                .get(route)
-                .ok_or("unknown skill route; no fallback")?,
+            capability,
+            effects
+                .get(capability)
+                .ok_or("unknown capability; no fallback")?,
         )]
     } else {
-        routes.iter().map(|(n, v)| (n.as_str(), v)).collect()
+        effects
+            .iter()
+            .map(|(name, definition)| (name.as_str(), definition))
+            .collect()
     };
     let provider_bytes = fs::read(safe(vault, PROVIDERS)?)?;
     let providers = decode(&provider_bytes)?;
@@ -202,21 +199,8 @@ pub(crate) fn check(
     assets.insert(MAP.to_string(), descriptor);
     let mut results = Vec::new();
     for (name, definition) in selected {
-        let capability = definition["capability"]
-            .as_str()
-            .ok_or("route capability missing")?;
-        let entry = format!(
-            ".agents/skills/{name}/{}",
-            if definition["kind"] == "entry" {
-                "SKILL.md"
-            } else {
-                "PROCEDURE.md"
-            }
-        );
-        let mut paths = vec![
-            entry,
-            ".agents/skills/_bundle/contracts/native-vault.md".to_owned(),
-        ];
+        let capability = name;
+        let mut paths = vec![".agents/skills/vault/SKILL.md".to_owned()];
         for contract in definition["contracts"]
             .as_array()
             .ok_or("route contracts missing")?
@@ -226,21 +210,6 @@ pub(crate) fn check(
                 return Err("route references unknown contract".into());
             }
             paths.push(format!(".viggobsidian/core/procedures/{name}.md"));
-        }
-        for (reference, contract) in references {
-            let (owner, file) = reference
-                .split_once('/')
-                .ok_or("invalid reference mapping")?;
-            if !known.contains(contract.as_str().ok_or("invalid reference contract")?) {
-                return Err("reference uses unknown contract".into());
-            }
-            if route.is_none() || owner == name {
-                paths.push(format!(".agents/skills/{owner}/references/{file}.md"));
-                paths.push(format!(
-                    ".viggobsidian/core/procedures/{}.md",
-                    contract.as_str().unwrap()
-                ));
-            }
         }
         for path in &paths {
             if !assets.contains_key(path) {
@@ -365,8 +334,13 @@ fn provider(
     )
 }
 
-pub(crate) fn run(vault: &Path, route: Option<&str>, source: Option<&str>) -> Result<u8> {
-    let (report, code) = check(vault, route, source)?;
+pub(crate) fn run(
+    vault: &Path,
+    route: Option<&str>,
+    effect: Option<&str>,
+    source: Option<&str>,
+) -> Result<u8> {
+    let (report, code) = check(vault, route, effect, source)?;
     println!("{}", serde_json::to_string_pretty(&report)?);
     Ok(code)
 }

@@ -1,15 +1,18 @@
 ---
 name: output
-description: Create or improve a requested deliverable file with the appropriate maker, format validation and actual render/readback evidence.
-license: MIT
+description: "Create or improve a requested file or visual using an available format specialist, the selected template and actual render/readback evidence."
 ---
 
-# Make the requested output
+# Make the requested artifact
 
-Use [the output procedure](PROCEDURE.md). Ordinary answers stay in chat. A file request selects artifact production; a brand, template, export format or recipient-app requirement selects the matching specialist. Preserve the user's explicit format and the destination's writer authority.
+Ordinary answers stay in chat. Resolve the requested product, format, audience and explicit destination. A recipient or desire for polish does not imply HTML or public hosting. Read the proven target instructions and optional `.agents/skill-adapters/output.md` for template locators, assets, local plan/check commands and writer authority. This skill location never selects a target. Missing brand data blocks that dependency, not an authorized neutral artifact.
 
-Make suitable content visual when that improves reading: duration beside activity, a sequence as steps, or comparable options in a table. Put necessary explanation at the relevant part and avoid repeating the same content below a visual. A short message can stay short. Visualizing is not permission for public hosting.
+Use available official document, PDF, spreadsheet, presentation, image or site providers directly for their formats. Inspect an existing artifact or reference before editing it. Preserve source assets and required licenses. Templates are selected data: resolve the actual template catalog through the selected output adapter, then read the chosen template manifest, fill its actual fields and retain the intended brand examples; do not invent a template-specific skill. Provider capabilities and supported destination rules control writing.
 
-With an explicitly selected target root, optionally read `.agents/skill-adapters/output.md` there for brand/template locators, local plan/check commands, approved fonts and storage policy. Never infer the target from this skill's installation path. A missing brand or writer adapter blocks that dependency, not a neutral artifact the user authorized.
+Plan the content and information hierarchy before decoration. Make duration, sequence or comparisons visible where useful, with necessary explanation at the relevant item. Avoid duplicate prose beneath a visual. For interfaces apply [visual and copy verification](references/interface-check.md).
 
-For a requested email, coordinate with draft. Keep the usable content in the body, retain a full text fallback and supply images separately where needed. Apply the confirmed sender signature only through the selected work/private adapter. A mailbody, attachment and hosted link are different products; do not substitute one silently or assume browser interaction survives pasting.
+Run applicable local plan/check gates and format validation. Render the actual final file and inspect the result at its intended size or application; inspect formulas/recalculation for spreadsheets, pages for documents/PDF and slides for presentations. Correct clipping, bad pagination, unreadable labels, missing images and broken links. Source inspection or an exported file path alone does not prove successful rendering. Distinguish verified content from a blocked format/runtime check.
+
+A formatted email coordinates with draft: keep usable content in the body, a complete text fallback and required images separately; browser scripts and controls do not survive mail pasting. Apply only a confirmed sender signature from the chosen adapter.
+
+Public hosting, external delivery, purchases and publication remain separate effects requiring their actual authorization. Return the useful artifact link and material verification limits without creating another task register or opening a browser unnecessarily.
