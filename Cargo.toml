@@ -14,5 +14,5 @@ sha2 = "=0.10.9"
 serde-saphyr = { version = "=2.0.0", default-features = false, features = ["deserialize"] }
 
 [workspace]
-members = ["crates/vault-layout", "crates/link-style-core"]
+members = ["crates/vault-layout", "crates/link-style-core", "crates/wiki-layout-core"]
 resolver = "3"

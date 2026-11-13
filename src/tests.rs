@@ -1,6 +1,37 @@
 use super::*;
 
 #[test]
+fn installed_wiki_core_has_every_path_dependency_source() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    for name in [
+        "Cargo.toml",
+        "src/lib.rs",
+        "src/headings.rs",
+        "src/snapshot.rs",
+        "src/wasm.rs",
+        "fixtures/wiki-layout-legacy.json",
+    ] {
+        let source = format!("crates/wiki-layout-core/{name}");
+        let target = format!(".agents/tools/wiki-layout-core/{name}");
+        assert!(allowed(&target));
+        assert!(root.join(&source).is_file());
+        assert_eq!(
+            rows(&distribution, "files")
+                .unwrap()
+                .iter()
+                .filter(|row| row["source"] == source && row["target"] == target)
+                .count(),
+            1
+        );
+    }
+    assert!(!allowed(".agents/tools/wiki-layout-core/src/unreviewed.rs"));
+    assert!(!allowed(
+        ".agents/tools/wiki-layout-core/../../records/private.jsonl"
+    ));
+}
+
+#[test]
 fn installed_link_style_core_has_every_path_dependency_source() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let distribution = read_json(&root.join("distribution.json")).unwrap();

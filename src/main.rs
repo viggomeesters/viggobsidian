@@ -195,6 +195,19 @@ fn allowed(target: &str) -> bool {
         return true;
     }
     if [
+        "Cargo.toml",
+        "src/lib.rs",
+        "src/headings.rs",
+        "src/snapshot.rs",
+        "src/wasm.rs",
+        "fixtures/wiki-layout-legacy.json",
+    ]
+    .iter()
+    .any(|name| target == format!(".agents/tools/wiki-layout-core/{name}"))
+    {
+        return true;
+    }
+    if [
         "main",
         "activity_layout",
         "activity_delivery",

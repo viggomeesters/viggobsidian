@@ -1,6 +1,30 @@
 {
   "files": [
     {
+      "source": "crates/wiki-layout-core/Cargo.toml",
+      "target": ".agents/tools/wiki-layout-core/Cargo.toml"
+    },
+    {
+      "source": "crates/wiki-layout-core/src/lib.rs",
+      "target": ".agents/tools/wiki-layout-core/src/lib.rs"
+    },
+    {
+      "source": "crates/wiki-layout-core/src/headings.rs",
+      "target": ".agents/tools/wiki-layout-core/src/headings.rs"
+    },
+    {
+      "source": "crates/wiki-layout-core/src/snapshot.rs",
+      "target": ".agents/tools/wiki-layout-core/src/snapshot.rs"
+    },
+    {
+      "source": "crates/wiki-layout-core/src/wasm.rs",
+      "target": ".agents/tools/wiki-layout-core/src/wasm.rs"
+    },
+    {
+      "source": "crates/wiki-layout-core/fixtures/wiki-layout-legacy.json",
+      "target": ".agents/tools/wiki-layout-core/fixtures/wiki-layout-legacy.json"
+    },
+    {
       "source": "crates/link-style-core/Cargo.toml",
       "target": ".agents/tools/link-style-core/Cargo.toml"
     },

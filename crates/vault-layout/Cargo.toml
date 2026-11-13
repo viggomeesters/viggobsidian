@@ -8,6 +8,7 @@ publish = false
 
 [dependencies]
 link-style-core = { path = "../link-style-core" }
+wiki-layout-core = { path = "../wiki-layout-core" }
 serde-saphyr = { version = "=2.0.0", default-features = false, features = ["deserialize"] }
 serde_json = "1"
 sha2 = "=0.10.9"

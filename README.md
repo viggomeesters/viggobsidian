@@ -2,6 +2,8 @@
 
 Versiebeheer voor het beleid, de structuur, opmaak en agentvaardigheden van een Obsidian-vault.
 
+ViggObsidian blijft de canonieke Rust-engine, pakketbron en native CLI. [ViggVault](https://github.com/viggomeesters/obsidian-vigg-vault) is het gebruikersproduct en de Obsidian-interface. Beide blijven bestaan met hun eigen versies; zie het [product-/enginecontract](docs/product-engine-boundary.md). ViggVault 0.1.1 biedt alleen opt-in Work-linkstijl; de gedeelde Wiki-tekstcore levert nog geen extra plugincommando.
+
 Eén profiel: `20-projects` voor losse projecten, `21-programma` tot en met `29-programma` voor programma’s, `YYYY-MM-projectnaam` voor projecten en `code-NN-onderdeel` met Wiki en Raw. Deelnemers en rollen staan in het project-00. Daily’s tonen automatisch de die dag aangemaakte notes, nieuwste bovenaan.
 
 - [Beleid en Vault Navigation](docs/policy.md)

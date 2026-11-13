@@ -4,6 +4,10 @@ Use GitHub Issue → branch → PR → local validation and appropriate independ
 
 ## Product boundaries
 
+Read [the product/engine contract](docs/product-engine-boundary.md). ViggVault owns
+the Obsidian interface; ViggObsidian remains the canonical Rust engine, package
+source and native CLI. Preserve existing interfaces and local writer authority.
+
 Own code is Rust. Validate locally with locked tests, fmt and Clippy. Do not add
 GitHub Actions. Never import authentic vault content, history, credentials or
 local provider configuration. Publish only generic assets and fictional fixtures.

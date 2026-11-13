@@ -311,6 +311,7 @@ dependencies = [
  "serde-saphyr",
  "serde_json",
  "sha2",
+ "wiki-layout-core",
 ]
 
 [[package]]
@@ -326,6 +327,13 @@ dependencies = [
  "serde-saphyr",
  "serde_json",
  "sha2",
+]
+
+[[package]]
+name = "wiki-layout-core"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
