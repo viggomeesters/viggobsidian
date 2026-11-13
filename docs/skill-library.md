@@ -38,6 +38,7 @@ registers onder `.agents/skills/_bundle/` blijven onderhoudsdata; zij kiezen gee
 eigenaar en verlenen geen writerautoriteit. JSON/YAML met dubbele sleutels wordt
 afgekeurd. Exit 0 betekent geen bevindingen, 1 bevat `errors`, en 2 bevat een
 JSON-`error` voor een onleesbare of ongeldige installatie/registerstructuur.
+Het veld `vault` meldt de canonieke expliciet geselecteerde doelroot.
 Een lokale profielinstaller kan deze controle aanroepen zonder een tweede
 implementatie van hash- en identiteitsregels.
 

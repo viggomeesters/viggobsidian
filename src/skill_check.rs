@@ -188,7 +188,7 @@ pub(crate) fn run(vault: &Path) -> Result<Value> {
         }
     }
     Ok(
-        json!({"schema":"viggobsidian.skill-check.v1", "version":env!("CARGO_PKG_VERSION"),
+        json!({"schema":"viggobsidian.skill-check.v1", "version":env!("CARGO_PKG_VERSION"), "vault":vault.canonicalize()?,
         "sources":sources.len(), "native_skills":actual_names.len(), "entrypoints":entrypoints.len(),
         "modules":modules.len(), "checked_instruction_files":managed.len(), "errors":errors}),
     )
@@ -270,6 +270,7 @@ mod tests {
         assert_eq!(out["errors"], json!([]));
         assert_eq!(out["checked_instruction_files"], 13);
         assert_eq!(out["sources"], 10);
+        assert_eq!(out["vault"], json!(f.0.canonicalize().unwrap()));
         assert_eq!(fs::read(f.0.join(STATE)).unwrap(), before);
     }
     #[test]
