@@ -31,7 +31,7 @@ mod work_intake;
 mod work_package;
 mod write_set;
 
-const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json)";
+const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json | --skill-route vault [--skill-capability EFFECT] [--skill-source SOURCE] | --skill-routes)";
 const SCHEMA: &str = "99-system/contracts/vault-schema.yaml";
 const TILE_CSS: &str = ".obsidian/snippets/folder-note.css";
 const TASK_SUMMARY: &str = "```vault-task-summary";
