@@ -187,6 +187,12 @@ fn allowed(target: &str) -> bool {
     {
         return true;
     }
+    if ["Cargo.toml", "src/lib.rs", "src/snapshot.rs", "src/wasm.rs"]
+        .iter()
+        .any(|name| target == format!(".agents/tools/link-style-core/{name}"))
+    {
+        return true;
+    }
     if [
         "main",
         "activity_layout",

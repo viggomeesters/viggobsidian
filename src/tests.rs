@@ -1,6 +1,35 @@
 use super::*;
 
 #[test]
+fn installed_link_style_core_has_every_path_dependency_source() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    for name in ["Cargo.toml", "src/lib.rs", "src/snapshot.rs", "src/wasm.rs"] {
+        let source = format!("crates/link-style-core/{name}");
+        let target = format!(".agents/tools/link-style-core/{name}");
+        assert!(allowed(&target));
+        assert!(root.join(&source).is_file());
+        assert_eq!(
+            rows(&distribution, "files")
+                .unwrap()
+                .iter()
+                .filter(|row| row["source"] == source && row["target"] == target)
+                .count(),
+            1
+        );
+    }
+    assert!(
+        fs::read_to_string(root.join("crates/vault-layout/Cargo.toml"))
+            .unwrap()
+            .contains("link-style-core = { path = \"../link-style-core\" }")
+    );
+    assert!(!allowed(".agents/tools/link-style-core/src/unreviewed.rs"));
+    assert!(!allowed(
+        ".agents/tools/link-style-core/../../records/private.jsonl"
+    ));
+}
+
+#[test]
 fn bundled_procedure_assets_match_the_complete_current_public_surface() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let source = "crates/vault-layout/fixtures/procedure-assets.json";

@@ -1,6 +1,22 @@
 {
   "files": [
     {
+      "source": "crates/link-style-core/Cargo.toml",
+      "target": ".agents/tools/link-style-core/Cargo.toml"
+    },
+    {
+      "source": "crates/link-style-core/src/lib.rs",
+      "target": ".agents/tools/link-style-core/src/lib.rs"
+    },
+    {
+      "source": "crates/link-style-core/src/snapshot.rs",
+      "target": ".agents/tools/link-style-core/src/snapshot.rs"
+    },
+    {
+      "source": "crates/link-style-core/src/wasm.rs",
+      "target": ".agents/tools/link-style-core/src/wasm.rs"
+    },
+    {
       "source": "crates/vault-layout/fixtures/procedure-assets.json",
       "target": ".agents/tools/vault-layout/fixtures/procedure-assets.json"
     },
