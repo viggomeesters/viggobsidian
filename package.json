@@ -1,6 +1,16 @@
 {
   "files": [
     {
+      "sha256": "5effdf2158cab1c1890817ade2cb925057542696098512cb59f3db4cd0f4c3d8",
+      "source": "crates/vault-layout/fixtures/source-prepared-v1.json",
+      "target": ".agents/tools/vault-layout/fixtures/source-prepared-v1.json"
+    },
+    {
+      "sha256": "36d4eea929868249557c2f5bb65fd8c0117d3ff68779a604b5f33f8e8254668a",
+      "source": "crates/vault-layout/fixtures/source-processed-v1.json",
+      "target": ".agents/tools/vault-layout/fixtures/source-processed-v1.json"
+    },
+    {
       "sha256": "e3569e858df5866c6f3ad43ebd84d69414e307de735c8ede267f446f77751b88",
       "source": "crates/wiki-layout-core/Cargo.toml",
       "target": ".agents/tools/wiki-layout-core/Cargo.toml"
@@ -352,7 +362,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "f342e25b25b369fc401de7fa94fa5fdd976634c14c0e97510d609e841e632379",
+      "sha256": "47ab5a98ed33880d7a27a7740ae296ecf734636ba96cfc9826679f99d28eb18e",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -487,7 +497,7 @@
       "target": ".viggobsidian/core/procedures/task.md"
     }
   ],
-  "revision": "f7c2df14c5af8a10e719d66cbb13bb0ada64dc0a",
+  "revision": "25fec5057fba1d8242d03b0fd920d737a7d9b785",
   "schema": "viggobsidian.package.v1",
-  "version": "0.25.1"
+  "version": "0.26.0"
 }
