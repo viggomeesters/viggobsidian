@@ -199,6 +199,22 @@ fn allowed(target: &str) -> bool {
     if [
         "Cargo.toml",
         "src/lib.rs",
+        "src/snapshot.rs",
+        "src/wasm.rs",
+        "src/activity_layout.rs",
+        "src/activity_delivery.rs",
+        "src/mail_draft.rs",
+        "fixtures/activity-legacy.json",
+        "fixtures/activity-deliveries.md",
+    ]
+    .iter()
+    .any(|name| target == format!(".agents/tools/activity-core/{name}"))
+    {
+        return true;
+    }
+    if [
+        "Cargo.toml",
+        "src/lib.rs",
         "src/headings.rs",
         "src/snapshot.rs",
         "src/wasm.rs",

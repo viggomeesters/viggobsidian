@@ -1,6 +1,40 @@
 use super::*;
 
 #[test]
+fn installed_activity_core_has_all_exact_path_dependency_sources() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    for name in [
+        "Cargo.toml",
+        "src/lib.rs",
+        "src/snapshot.rs",
+        "src/wasm.rs",
+        "src/activity_layout.rs",
+        "src/activity_delivery.rs",
+        "src/mail_draft.rs",
+        "fixtures/activity-legacy.json",
+        "fixtures/activity-deliveries.md",
+    ] {
+        let source = format!("crates/activity-core/{name}");
+        let target = format!(".agents/tools/activity-core/{name}");
+        assert!(allowed(&target));
+        assert!(root.join(&source).is_file());
+        assert_eq!(
+            rows(&distribution, "files")
+                .unwrap()
+                .iter()
+                .filter(|r| r["source"] == source && r["target"] == target)
+                .count(),
+            1
+        );
+    }
+    assert!(!allowed(".agents/tools/activity-core/src/unreviewed.rs"));
+    assert!(!allowed(
+        ".agents/tools/activity-core/../../records/private.jsonl"
+    ));
+}
+
+#[test]
 fn installed_wiki_core_has_every_path_dependency_source() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let distribution = read_json(&root.join("distribution.json")).unwrap();
@@ -120,7 +154,7 @@ fn installed_activity_tests_bind_a_distributed_crate_local_fixture() {
         fs::read(root.join("fixtures/activity-deliveries.md")).unwrap()
     );
     assert!(
-        fs::read_to_string(root.join("crates/vault-layout/src/activity_delivery.rs"))
+        fs::read_to_string(root.join("crates/activity-core/src/activity_delivery.rs"))
             .unwrap()
             .contains("include_str!(\"../fixtures/activity-deliveries.md\")")
     );

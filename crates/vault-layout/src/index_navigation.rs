@@ -707,7 +707,7 @@ fn local_destination(root: &Path, file: &Path, url: &str) -> Option<PathBuf> {
     Some(file.parent()?.join(decode_percent(path)))
 }
 
-pub(crate) use link_style_core::{quote_content, visible_blocks, visible_body};
+pub(crate) use link_style_core::{visible_blocks, visible_body};
 
 fn tables(body: &str) -> (String, bool) {
     let mut rows = String::new();

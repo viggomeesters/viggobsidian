@@ -1,0 +1,215 @@
+{
+  "cases": [
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex Example\n> Original input.\n>\n> *12:00 · Alex Example · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "human",
+      "mail": [],
+      "provenance": [],
+      "raw_task": null
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|assistant] Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=example -->\n> Result.\n>\n> *12:00 · Assistant · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "agent",
+      "mail": [],
+      "provenance": [],
+      "raw_task": null
+    },
+    {
+      "body": "# Note\n\n## Activity\n\n# Result · 11 Nov 2026\n`12:00 · Assistant · Chat`\n\nDone.",
+      "chat": [],
+      "delivery": [],
+      "event": "after Activity use only dated message bubbles; put provenance, source content and archives inside bubbles",
+      "id": "legacy-chat",
+      "mail": [],
+      "provenance": [
+        "after Activity use only dated message bubbles; put provenance, source content and archives inside bubbles"
+      ],
+      "raw_task": "use Event Note v1 bubbles for Raw task Activity instead of legacy history"
+    },
+    {
+      "body": "# Ordinary\nHistory.",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": "Event Note v1.1 needs Activity",
+      "id": "ordinary",
+      "mail": [],
+      "provenance": [
+        "Event Note v1.1 needs Activity"
+      ],
+      "raw_task": "Raw tasks need an Activity section with Event Note v1 bubbles"
+    },
+    {
+      "body": "---\ntype: note\ncategory: source\nwiki_status: pending\nactivity_contract: provenance-v1\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\n---\n\n# Fictieve opleverversies\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alexandra van Voorbeeld\n> Een lange auteursnaam en kanaalnaam blijven leesbaar op een smal scherm.\n>\n> *Deze keuze blijft onzeker.*\n>\n> [Open source](https://example.org/message)\n>\n> > [!activity-more]- Meer\n> > *Gewone cursieve brontekst blijft zichtbaar in Details.*\n>\n> *09:42 · Alexandra van Voorbeeld · Workshop met een lange kanaalnaam*\n\n> [!activity-message|human] Alex\n> Bestaande input met onbekend tijdstip.\n>\n> *— · Alex · Codex-chat*\n\n> [!activity-message|assistant] Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->\n>\n> <!-- viggobsidian:mail-delivery:v1 id=follow-up version=1 -->\n> **Mailconcept v1**\n>\n> <!-- viggobsidian:mail-draft:v1 recipients=resolved -->\n> Mailstatus: concept\n> Bron: [[fictional-contact]] — fictief voorbeeld; team@example.org is geen echte ontvanger.\n>\n> **To**\n> ```text\n> team@example.org\n> ```\n>\n> **Onderwerp**\n> ```text\n> Afspraak bevestigen v1\n> ```\n>\n> **Body**\n> ```text\n> Hallo team,\n>\n> Kunnen jullie de afspraak bevestigen?\n>\n> Groet,\n> Alex\n> ```\n> <!-- /viggobsidian:mail-draft -->\n>\n> *12:00 · Assistant · draft*\n\n> [!activity-message|human] Alex\n> <!-- viggobsidian:input:v1 author=human -->\n> Maak hier versie 2 van.\n>\n> *12:01 · Alex · Codex-chat*\n\n> [!activity-message|assistant] Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->\n>\n> <!-- viggobsidian:mail-delivery:v1 id=follow-up version=2 -->\n> **Mailconcept v2**\n>\n> <!-- viggobsidian:mail-draft:v1 recipients=resolved -->\n> Mailstatus: concept\n> Bron: [[fictional-contact]] — fictief voorbeeld; team@example.org is geen echte ontvanger.\n>\n> **To**\n> ```text\n> team@example.org\n> ```\n>\n> **Onderwerp**\n> ```text\n> Afspraak bevestigen v2\n> ```\n>\n> **Body**\n> ```text\n> Hallo team,\n>\n> Kunnen jullie de afspraak bevestigen?\n>\n> Groet,\n> Alex\n> ```\n> <!-- /viggobsidian:mail-draft -->\n>\n> *12:02 · Assistant · draft*\n\n> [!activity-message|human] Alex\n> <!-- viggobsidian:input:v1 author=human -->\n> Maak hier versie 3 van.\n>\n> *12:03 · Alex · Codex-chat*\n\n> [!activity-message|assistant] Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=follow-up -->\n>\n> <!-- viggobsidian:mail-delivery:v1 id=follow-up version=3 -->\n> **Mailconcept v3**\n>\n> <!-- viggobsidian:mail-draft:v1 recipients=resolved -->\n> Mailstatus: concept\n> Bron: [[fictional-contact]] — fictief voorbeeld; team@example.org is geen echte ontvanger.\n>\n> **To**\n> ```text\n> team@example.org\n> ```\n>\n> **Onderwerp**\n> ```text\n> Afspraak bevestigen v3\n> ```\n>\n> **Body**\n> ```text\n> Hallo team,\n>\n> Kunnen jullie de afspraak bevestigen?\n>\n> Groet,\n> Alex\n> ```\n> <!-- /viggobsidian:mail-draft -->\n>\n> *12:04 · Assistant · draft*\n\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "mail-delivery",
+      "mail": [],
+      "provenance": [],
+      "raw_task": null
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] \n> Original input.\n>\n> *12:00 · Alex Example · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": "after Activity use only dated message bubbles; put provenance, source content and archives inside bubbles",
+      "id": "missing-author",
+      "mail": [],
+      "provenance": [
+        "after Activity use only dated message bubbles; put provenance, source content and archives inside bubbles"
+      ],
+      "raw_task": "use Event Note v1 bubbles for Raw task Activity instead of legacy history"
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-31] 11 Nov 2026\n\n> [!activity-message|human] Alex Example\n> Original input.\n>\n> *12:00 · Alex Example · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": "use a valid, standalone Activity day separator",
+      "id": "invalid-day",
+      "mail": [],
+      "provenance": [
+        "use a valid, standalone Activity day separator"
+      ],
+      "raw_task": "use a dated Event Note v1 Activity separator"
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex Example\n> Original input.\n>\n> *25:99 · Alex Example · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "invalid-time",
+      "mail": [],
+      "provenance": [
+        "Alex Example: end the outer bubble with a separate *HH:mm · Alex Example · channel* paragraph; use — for unknown time"
+      ],
+      "raw_task": null
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex Example\n> Original input.\n>\n> *— · Alex Example · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "unknown-time",
+      "mail": [],
+      "provenance": [],
+      "raw_task": null
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex Example\n> Original input.\n>\n> *12:00 · Other Example · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "wrong-author",
+      "mail": [],
+      "provenance": [
+        "Alex Example: end the outer bubble with a separate *HH:mm · Alex Example · channel* paragraph; use — for unknown time"
+      ],
+      "raw_task": null
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex Example\n> Original input.\n>\n> > *12:00 · Alex Example · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "nested-footer",
+      "mail": [],
+      "provenance": [
+        "Alex Example: end the bubble with *HH:mm · Alex Example · channel*, or use — for unknown time (legacy top stamps and headers remain supported)"
+      ],
+      "raw_task": null
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|assistant] Assistant\n> Result.\n>\n> *12:00 · Assistant · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "missing-goal",
+      "mail": [],
+      "provenance": [
+        "Assistant: bind one result bubble to a valid activity goal; merge standalone process messages into that result"
+      ],
+      "raw_task": null
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|assistant] Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=example -->\n> Result.\n>\n> *12:00 · Assistant · Chat*\n\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|assistant] Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=example -->\n> Result.\n>\n> *12:00 · Assistant · Chat*\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "duplicate-goal",
+      "mail": [],
+      "provenance": [
+        "goal example: group process history in one result bubble instead of repeating it"
+      ],
+      "raw_task": null
+    },
+    {
+      "body": "````markdown\n# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|assistant] Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=example -->\n> Result.\n>\n> *12:00 · Assistant · Chat*\n\n````\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": "after Activity use only dated message bubbles; put provenance, source content and archives inside bubbles",
+      "id": "code-example",
+      "mail": [],
+      "provenance": [
+        "after Activity use only dated message bubbles; put provenance, source content and archives inside bubbles"
+      ],
+      "raw_task": "Raw tasks need an Activity section with Event Note v1 bubbles"
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex Example\n> `12:00 · Alex Example · Chat`\n> Original input.\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "legacy-top",
+      "mail": [],
+      "provenance": [],
+      "raw_task": null
+    },
+    {
+      "body": "# Event\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 Nov 2026\n\n> [!activity-message|human] Alex Example <span class=\"activity-meta\">12:00 · Chat</span>\n> Original input.\n",
+      "chat": [
+        "chat-v1 requires an Activity section with at least one message"
+      ],
+      "delivery": [],
+      "event": null,
+      "id": "header",
+      "mail": [],
+      "provenance": [],
+      "raw_task": null
+    }
+  ],
+  "source": "10d288f8bc7ec055d6e14fa8988507327b3a717d"
+}

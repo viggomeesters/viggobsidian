@@ -7,6 +7,7 @@ rust-version = "1.89"
 publish = false
 
 [dependencies]
+activity-core = { path = "../activity-core" }
 link-style-core = { path = "../link-style-core" }
 wiki-layout-core = { path = "../wiki-layout-core" }
 serde-saphyr = { version = "=2.0.0", default-features = false, features = ["deserialize"] }
