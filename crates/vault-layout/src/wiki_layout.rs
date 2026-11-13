@@ -216,6 +216,25 @@ fn visible_line(line: &str, comment: &mut Option<&'static str>) -> String {
 mod tests {
     use super::*;
 
+    #[test]
+    fn frozen_legacy_corpus() {
+        let corpus: serde_json::Value =
+            serde_json::from_str(include_str!("../fixtures/wiki-layout-legacy.json")).unwrap();
+        for case in corpus["cases"].as_array().unwrap() {
+            let (facts, issues) = findings(case["body"].as_str().unwrap());
+            let issues = issues
+                .into_iter()
+                .map(|(code, message)| serde_json::json!({"code":code,"message":message}))
+                .collect::<Vec<_>>();
+            assert_eq!(
+                serde_json::json!({"has_facts":facts,"findings":issues}),
+                serde_json::json!({"has_facts":case["has_facts"],"findings":case["findings"]}),
+                "{}",
+                case["id"]
+            );
+        }
+    }
+
     const INTRO: &str = "# Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///vault/dossier/wiki)\n\n";
     const CARDS: &str = "> [!wiki-facts]\n> - Perceel **185 m²**\n> - Label **A++++**\n\n";
     const MARKER: &str = "```wiki-toc\n```\n\n";

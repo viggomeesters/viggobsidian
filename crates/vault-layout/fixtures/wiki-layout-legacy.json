@@ -1,0 +1,181 @@
+{
+  "cases": [
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n> [!wiki-facts]\n> - Type **Voorbeeld**\n> - Status **Open**\n\n```wiki-toc\n```\n\n## Eén\n## Twee\n## Drie\n## Vier\n",
+      "findings": [],
+      "has_facts": true,
+      "id": "valid-four"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n```wiki-toc\n```\n\n## Eén\n## Twee\n## Drie\n## Vier\n",
+      "findings": [],
+      "has_facts": false,
+      "id": "valid-no-facts"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n## Eén\n## Twee\n## Drie\n",
+      "findings": [],
+      "has_facts": false,
+      "id": "three-no-toc"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n## Eén\n## Twee\n## Drie\n## Vier\n",
+      "findings": [
+        {
+          "code": "wiki-toc",
+          "message": "from four H2 headings, put one empty wiki-toc code block after the shortcuts and optional facts, before the dossier text"
+        }
+      ],
+      "has_facts": false,
+      "id": "four-missing-toc"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n```wiki-toc\n```\n\n## Eén\n## Twee\n## Drie\n",
+      "findings": [
+        {
+          "code": "wiki-toc",
+          "message": "from four H2 headings, put one empty wiki-toc code block after the shortcuts and optional facts, before the dossier text"
+        }
+      ],
+      "has_facts": false,
+      "id": "three-with-toc"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n```wiki-toc\n```\n\n> [!wiki-facts]\n> - Type **Voorbeeld**\n> - Status **Open**\n\n## Eén\n## Twee\n## Drie\n## Vier\n",
+      "findings": [
+        {
+          "code": "wiki-facts-position",
+          "message": "put at most one wiki-facts block directly below the shortcuts"
+        }
+      ],
+      "has_facts": false,
+      "id": "facts-moved"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n> [!wiki-facts]\n> - Type **Voorbeeld**\n\n```wiki-toc\n```\n\n## Eén\n## Twee\n## Drie\n## Vier\n",
+      "findings": [
+        {
+          "code": "wiki-facts",
+          "message": "use two to four facts with a label and a bold value"
+        }
+      ],
+      "has_facts": true,
+      "id": "facts-malformed"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n```wiki-toc\n```\n\n## Eén\n## Twee\n## Drie\n## Vier\n## Eén\n",
+      "findings": [
+        {
+          "code": "wiki-toc-anchor",
+          "message": "give each contents entry a distinct heading target"
+        }
+      ],
+      "has_facts": false,
+      "id": "duplicate-anchor"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n```wiki-toc\n```\n\n## Caf%C3%A9\n## Café\n## Drie\n## Vier\n",
+      "findings": [],
+      "has_facts": false,
+      "id": "encoded-anchor"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n```wiki-toc\n```\n\n## Café ☕\n## 東京\n## naïef\n## 📚\n",
+      "findings": [],
+      "has_facts": false,
+      "id": "unicode"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\nEén\n---\nTwee\n---\nDrie\n---\n<!--\n## Verborgen\n-->\n%%\n## Ook verborgen\n%%\n````md\n## Voorbeeld\n```\n````\n",
+      "findings": [],
+      "has_facts": false,
+      "id": "setext-comments-fences"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n```md\n## Eén\n## Twee\n## Drie\n## Vier\n",
+      "findings": [],
+      "has_facts": false,
+      "id": "unclosed-fence"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n| Bronpad | Bytes | SHA-256 |\n|---|---|---|\n| fictief | 0 | abc |\n",
+      "findings": [
+        {
+          "code": "wiki-source-inventory",
+          "message": "keep source inventories, byte counts and hashes in a Raw source event; link there from readable Wiki prose"
+        }
+      ],
+      "has_facts": false,
+      "id": "source-inventory"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n| Datum | Waarde |\n|---|---|\n",
+      "findings": [],
+      "has_facts": false,
+      "id": "domain-table"
+    },
+    {
+      "body": "# Fictieve Wiki\r\n\r\n> [!navigation|shortcuts]\r\n> - [[dossier|Terug]]\r\n> - [[dossier/raw/raw|Raw]]\r\n> - [Finder](file:///fictional/wiki)\r\n\r\n> [!wiki-facts]\r\n> - Type **Voorbeeld**\r\n> - Status **Open**\r\n\r\n```wiki-toc\r\n```\r\n\r\n## Eén\r\n## Twee\r\n## Drie\r\n## Vier\r\n",
+      "findings": [],
+      "has_facts": true,
+      "id": "crlf"
+    },
+    {
+      "body": "",
+      "findings": [
+        {
+          "code": "wiki-preamble",
+          "message": "start Wiki with a title and the Back/Raw/Finder shortcuts"
+        }
+      ],
+      "has_facts": false,
+      "id": "empty"
+    },
+    {
+      "body": "\u0000#\n> [!wiki-facts]\n```wiki-toc\n## café%GG\n<!--",
+      "findings": [
+        {
+          "code": "wiki-preamble",
+          "message": "start Wiki with a title and the Back/Raw/Finder shortcuts"
+        },
+        {
+          "code": "wiki-facts-position",
+          "message": "put at most one wiki-facts block directly below the shortcuts"
+        },
+        {
+          "code": "wiki-toc",
+          "message": "from four H2 headings, put one empty wiki-toc code block after the shortcuts and optional facts, before the dossier text"
+        }
+      ],
+      "has_facts": false,
+      "id": "malformed"
+    },
+    {
+      "body": "# Fictieve Wiki\n\n> [!navigation|shortcuts]\n> - [[dossier|Terug]]\n> - [[dossier/raw/raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n> [!wiki-facts]\n> - Type **Voorbeeld**\n> - Status **Open**\n\n```wiki-toc\n```\n\n## Eén\n## Twee\n## Drie\n## Vier\n\n> [!wiki-facts]\n> - Type **Voorbeeld**\n> - Status **Open**\n\n",
+      "findings": [
+        {
+          "code": "wiki-facts-position",
+          "message": "put at most one wiki-facts block directly below the shortcuts"
+        }
+      ],
+      "has_facts": true,
+      "id": "duplicate-facts"
+    },
+    {
+      "body": "# Wiki\n\n```wiki-toc\n```\n\n## Eén\n## Twee\n## Drie\n## Vier\n",
+      "findings": [
+        {
+          "code": "wiki-preamble",
+          "message": "start Wiki with a title and the Back/Raw/Finder shortcuts"
+        },
+        {
+          "code": "wiki-toc",
+          "message": "from four H2 headings, put one empty wiki-toc code block after the shortcuts and optional facts, before the dossier text"
+        }
+      ],
+      "has_facts": false,
+      "id": "preamble-missing"
+    }
+  ],
+  "legacy_revision": "42ce85ebf7d1494cbe186190294ec24a2eed753c"
+}
