@@ -52,20 +52,24 @@ fn evaluate(input: &Value) -> Result<Value, &'static str> {
     if body.len() > MAX_NOTE_BYTES {
         return Err("content_limit");
     }
-    if let Some(classes) = classes {
-        if profile != "numbered-v1"
-            || !crate::is_wiki_layout_target(path, classes.iter().filter_map(Value::as_str))
-        {
-            return Ok(
-                json!({"schema":RESULT,"status":"not_applicable","reason":"profile_or_classification_not_selected"}),
-            );
-        }
+    if let Some(classes) = classes
+        && (profile != "numbered-v1"
+            || !crate::is_wiki_layout_target(path, classes.iter().filter_map(Value::as_str)))
+    {
+        return Ok(
+            json!({"schema":RESULT,"status":"not_applicable","reason":"profile_or_classification_not_selected"}),
+        );
     }
     // The native frontmatter adapter uses str::lines().join("\n") too.
     let normalized;
     let body = if portable {
         normalized = body.lines().collect::<Vec<_>>().join("\n");
         &normalized
+    } else {
+        body
+    };
+    let body = if portable {
+        crate::without_knowledge_owner_notice(body)
     } else {
         body
     };
@@ -120,6 +124,25 @@ mod portable_tests {
                 request["body"] = json!("# Example");
                 assert_eq!(response, respond(&serde_json::to_vec(&request).unwrap()));
             }
+        }
+    }
+    #[test]
+    fn portable_notice_preprocessing_matches_native() {
+        let notice = "<!-- viggobsidian:knowledge-owner -->\n> [!info] Actuele kennis\n> [[d/wiki/wiki|Open actuele kennis]]\n<!-- /viggobsidian:knowledge-owner -->\n";
+        let body = "# Wiki\n\n> [!navigation|shortcuts]\n> - [[d|Back]]\n> - [[d/raw/raw|Raw]]\n> - [Finder](file:///fiction/d/wiki)\n\n";
+        for (prefix, clean) in [
+            (notice.to_owned(), true),
+            (notice.replace("Actuele kennis", "Other"), false),
+        ] {
+            let input = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":"d/wiki/wiki.md","cssclasses":[],"body":format!("{prefix}{body}")});
+            let response = respond(&serde_json::to_vec(&input).unwrap());
+            assert_eq!(
+                response["report"]["findings"]
+                    .as_array()
+                    .unwrap()
+                    .is_empty(),
+                clean
+            );
         }
     }
     #[test]

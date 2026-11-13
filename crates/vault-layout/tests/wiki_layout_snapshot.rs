@@ -76,6 +76,25 @@ fn filesystem_cli_matches_frozen_text_corpus_without_changing_notes() {
         fs::read_to_string(root.join("ordinary/ordinary.md")).unwrap(),
         ordinary
     );
+    #[cfg(unix)]
+    {
+        // Backslashes are legal Unix filename bytes, never path separators.
+        let folder = "wiki\\wiki";
+        fs::create_dir_all(root.join(folder)).unwrap();
+        fs::write(root.join(folder).join("wiki\\wiki.md"), "---\ntype: reference\ncategory: knowledge\nlayer: wiki\ncssclasses: [vault-wiki]\n---\n# Example\n").unwrap();
+        let output = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+            .args(["--json", "--vault", root.to_str().unwrap(), folder])
+            .output()
+            .unwrap();
+        let report: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert!(
+            !report["findings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|i| i["code"] == "wiki-preamble")
+        );
+    }
     fs::remove_dir_all(root).unwrap();
 }
 

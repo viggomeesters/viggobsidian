@@ -1595,8 +1595,10 @@ impl Scan<'_> {
             &path
                 .strip_prefix(self.vault)
                 .expect("note inside vault")
-                .to_string_lossy()
-                .replace('\\', "/"),
+                .components()
+                .map(|part| part.as_os_str().to_string_lossy())
+                .collect::<Vec<_>>()
+                .join("/"),
             strings(&data["cssclasses"]),
         ) {
             if layer == "wiki" && !strings(&data["cssclasses"]).any(|class| class == "vault-wiki") {
@@ -1709,8 +1711,10 @@ impl Scan<'_> {
                 .strip_prefix(vault)
                 .expect("dossier inside vault")
                 .with_extension("")
-                .to_string_lossy()
-                .replace('\\', "/")
+                .components()
+                .map(|part| part.as_os_str().to_string_lossy())
+                .collect::<Vec<_>>()
+                .join("/")
         };
         let mut shortcuts = body
             .lines()

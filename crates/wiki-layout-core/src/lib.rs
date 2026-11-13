@@ -17,6 +17,25 @@ pub fn is_wiki_layout_target<'a>(
             && path.split('/').rev().skip(1).any(|part| part == "wiki"))
 }
 
+/// Preserve the original bytes for audits while allowing a fixed, visible notice.
+pub fn without_knowledge_owner_notice(body: &str) -> &str {
+    if let Some(rest) = body
+        .trim_start_matches('\n')
+        .strip_prefix("<!-- viggobsidian:knowledge-owner -->")
+        && let Some((notice, tail)) = rest.split_once("<!-- /viggobsidian:knowledge-owner -->")
+    {
+        let lines: Vec<_> = notice.lines().filter(|l| !l.is_empty()).collect();
+        if lines.len() == 2
+            && lines[0] == "> [!info] Actuele kennis"
+            && lines[1].starts_with("> [[")
+            && lines[1].ends_with("|Open actuele kennis]]")
+        {
+            return tail.strip_prefix('\n').unwrap_or(tail);
+        }
+    }
+    body
+}
+
 const FACTS: &str = "> [!wiki-facts]";
 const TOC: &str = "```wiki-toc";
 

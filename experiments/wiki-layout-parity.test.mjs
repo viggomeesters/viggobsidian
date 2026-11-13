@@ -42,6 +42,9 @@ test("actual import-free WASM and native CLI equal frozen legacy corpus and fail
   }
   for(const field of ["profile","path","cssclasses","body","complete","ruleset"]) {const missing={...portable};delete missing[field];cases.push(missing);}
   cases.push({...portable,profile:"none"},{...portable,schema:"viggobsidian.wiki-layout-snapshot.v3"});
+  const intro = corpus.cases.find(c=>c.findings.length===0).body;
+  const notice = '<!-- viggobsidian:knowledge-owner -->\n> [!info] Actuele kennis\n> [[d/wiki/wiki|Open actuele kennis]]\n<!-- /viggobsidian:knowledge-owner -->\n';
+  cases.push({...portable,body:notice+intro},{...portable,body:notice.replace('Actuele kennis','Other')+intro});
   const requests = [...cases.map(c => Buffer.from(JSON.stringify(c))), Buffer.from("{malformed"), Buffer.from([0xff])];
   for (const input of requests) {
     const result = spawnSync(native, { input, maxBuffer: 8 * 1024 * 1024 });
