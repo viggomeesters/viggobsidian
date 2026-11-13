@@ -6,6 +6,17 @@ pub use snapshot::{MAX_NOTE_BYTES, MAX_REQUEST_BYTES, respond};
 #[cfg(target_arch = "wasm32")]
 mod wasm;
 
+/// Canonical text-rule selection; lexical relative path only, no filesystem access.
+/// Metadata parsing and native eligibility remain adapter responsibilities.
+pub fn is_wiki_layout_target<'a>(
+    path: &str,
+    mut cssclasses: impl Iterator<Item = &'a str>,
+) -> bool {
+    cssclasses.any(|class| class == "vault-wiki-direct")
+        || (path.rsplit('/').next() == Some("wiki.md")
+            && path.split('/').rev().skip(1).any(|part| part == "wiki"))
+}
+
 const FACTS: &str = "> [!wiki-facts]";
 const TOC: &str = "```wiki-toc";
 

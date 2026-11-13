@@ -5,7 +5,8 @@ pub const MAX_REQUEST_BYTES: usize = 8 * 1024 * 1024;
 const RESULT: &str = "viggobsidian.wiki-layout-result.v1";
 
 fn evaluate(input: &Value) -> Result<Value, &'static str> {
-    if input["schema"] != "viggobsidian.wiki-layout-snapshot.v1" {
+    let portable = input["schema"] == "viggobsidian.wiki-layout-snapshot.v2";
+    if !portable && input["schema"] != "viggobsidian.wiki-layout-snapshot.v1" {
         return Err("unsupported_schema");
     }
     if input["ruleset"] != "wiki-layout.v1" {
@@ -15,10 +16,14 @@ fn evaluate(input: &Value) -> Result<Value, &'static str> {
         return Err("complete_snapshot_required");
     }
     let profile = input["profile"].as_str().ok_or("profile_required")?;
-    let classification = input["classification"]
-        .as_str()
-        .ok_or("classification_required")?;
-    if profile != "numbered-v1" || classification != "wiki" {
+    let classification = if portable {
+        "wiki"
+    } else {
+        input["classification"]
+            .as_str()
+            .ok_or("classification_required")?
+    };
+    if !portable && (profile != "numbered-v1" || classification != "wiki") {
         return Ok(
             json!({"schema":RESULT,"status":"not_applicable","reason":"profile_or_classification_not_selected"}),
         );
@@ -32,10 +37,38 @@ fn evaluate(input: &Value) -> Result<Value, &'static str> {
     {
         return Err("unsafe_note_path");
     }
+    let classes = if portable {
+        let classes = input["cssclasses"]
+            .as_array()
+            .ok_or("cssclasses_required")?;
+        if !classes.iter().all(Value::is_string) {
+            return Err("invalid_cssclasses");
+        }
+        Some(classes)
+    } else {
+        None
+    };
     let body = input["body"].as_str().ok_or("body_required")?;
     if body.len() > MAX_NOTE_BYTES {
         return Err("content_limit");
     }
+    if let Some(classes) = classes {
+        if profile != "numbered-v1"
+            || !crate::is_wiki_layout_target(path, classes.iter().filter_map(Value::as_str))
+        {
+            return Ok(
+                json!({"schema":RESULT,"status":"not_applicable","reason":"profile_or_classification_not_selected"}),
+            );
+        }
+    }
+    // The native frontmatter adapter uses str::lines().join("\n") too.
+    let normalized;
+    let body = if portable {
+        normalized = body.lines().collect::<Vec<_>>().join("\n");
+        &normalized
+    } else {
+        body
+    };
     let (has_facts, findings) = crate::findings(body);
     let findings = findings
         .into_iter()
@@ -57,4 +90,53 @@ pub fn respond(bytes: &[u8]) -> Value {
             .and_then(|input| evaluate(&input))
     };
     result.unwrap_or_else(|reason| json!({"schema":RESULT,"status":"incomplete","reason":reason}))
+}
+
+#[cfg(test)]
+mod portable_tests {
+    use super::*;
+    #[test]
+    fn canonical_selection_and_v1_compatibility() {
+        for (path, classes, selected) in [
+            ("d/wiki/wiki.md", vec![], true),
+            ("d/wiki/nested/wiki.md", vec![], true),
+            ("d/wiki/note.md", vec![], false),
+            ("d/d.md", vec!["vault-wiki-direct"], true),
+            ("d/wiki.md", vec![], false),
+        ] {
+            let mut request = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":path,"cssclasses":classes,"body":"# Example\r\n"});
+            let response = respond(&serde_json::to_vec(&request).unwrap());
+            assert_eq!(
+                response["status"],
+                if selected {
+                    "complete"
+                } else {
+                    "not_applicable"
+                }
+            );
+            if selected {
+                request["schema"] = json!("viggobsidian.wiki-layout-snapshot.v1");
+                request["classification"] = json!("wiki");
+                request["body"] = json!("# Example");
+                assert_eq!(response, respond(&serde_json::to_vec(&request).unwrap()));
+            }
+        }
+    }
+    #[test]
+    fn malformed_portable_inputs_cannot_be_clean() {
+        let base = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":"d/wiki/wiki.md","cssclasses":[],"body":""});
+        for (key, value) in [
+            ("cssclasses", json!("vault-wiki-direct")),
+            ("cssclasses", json!([1])),
+            ("path", json!("../wiki.md")),
+            ("body", json!(null)),
+        ] {
+            let mut request = base.clone();
+            request[key] = value;
+            assert_eq!(
+                respond(&serde_json::to_vec(&request).unwrap())["status"],
+                "incomplete"
+            );
+        }
+    }
 }

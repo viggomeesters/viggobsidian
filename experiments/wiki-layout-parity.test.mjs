@@ -36,6 +36,12 @@ test("actual import-free WASM and native CLI equal frozen legacy corpus and fail
   cases.push({ ...base, complete: false }, { ...base, schema: "future" }, { ...base, ruleset: "future" },
     { ...base, classification: "note" }, { ...base, profile: "none" }, { ...base, classification: null },
     { ...base, path: "../wiki.md" }, { ...base, body: "x".repeat(1024 * 1024 + 1) });
+  const portable = {...base,schema:"viggobsidian.wiki-layout-snapshot.v2",cssclasses:[]};
+  for(const path of ["d/wiki/wiki.md","d/wiki/nested/wiki.md","d/wiki/note.md","d/wiki.md","d/d.md"]) {
+    for(const cssclasses of [[],["vault-wiki-direct"],null,[1]]) cases.push({...portable,path,cssclasses,body:"# Example\r\n"});
+  }
+  for(const field of ["profile","path","cssclasses","body","complete","ruleset"]) {const missing={...portable};delete missing[field];cases.push(missing);}
+  cases.push({...portable,profile:"none"},{...portable,schema:"viggobsidian.wiki-layout-snapshot.v3"});
   const requests = [...cases.map(c => Buffer.from(JSON.stringify(c))), Buffer.from("{malformed"), Buffer.from([0xff])];
   for (const input of requests) {
     const result = spawnSync(native, { input, maxBuffer: 8 * 1024 * 1024 });
