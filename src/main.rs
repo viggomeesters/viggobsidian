@@ -214,6 +214,7 @@ fn allowed(target: &str) -> bool {
         "src/wasm.rs",
         "src/activity_layout.rs",
         "src/activity_delivery.rs",
+        "src/history_migration.rs",
         "src/mail_draft.rs",
         "fixtures/activity-legacy.json",
         "fixtures/activity-deliveries.md",
