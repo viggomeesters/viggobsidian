@@ -1,6 +1,36 @@
 {
   "files": [
     {
+      "sha256": "e3569e858df5866c6f3ad43ebd84d69414e307de735c8ede267f446f77751b88",
+      "source": "crates/wiki-layout-core/Cargo.toml",
+      "target": ".agents/tools/wiki-layout-core/Cargo.toml"
+    },
+    {
+      "sha256": "3587edbdb0869616f7eada5006e941be77dcd748e5b2dbf0b52e47e96ee9aa7c",
+      "source": "crates/wiki-layout-core/src/lib.rs",
+      "target": ".agents/tools/wiki-layout-core/src/lib.rs"
+    },
+    {
+      "sha256": "1de3cfd06cd1b7a3d575afb048edb2d5c83a3da3b4ad5e8b21b7084e4b5b1a02",
+      "source": "crates/wiki-layout-core/src/headings.rs",
+      "target": ".agents/tools/wiki-layout-core/src/headings.rs"
+    },
+    {
+      "sha256": "d606cb6988dcc1fe68d5344fb2a0ca731da50b124e45febbefadd590d90447a2",
+      "source": "crates/wiki-layout-core/src/snapshot.rs",
+      "target": ".agents/tools/wiki-layout-core/src/snapshot.rs"
+    },
+    {
+      "sha256": "989ab0fcf45d323de3932f901bdc115c8393f2a2054325d6bd4d3bc1c24e978e",
+      "source": "crates/wiki-layout-core/src/wasm.rs",
+      "target": ".agents/tools/wiki-layout-core/src/wasm.rs"
+    },
+    {
+      "sha256": "aaaddd16f1870acb2ab00f12a67915a893da1ba838ec8148589d6978bea55238",
+      "source": "crates/wiki-layout-core/fixtures/wiki-layout-legacy.json",
+      "target": ".agents/tools/wiki-layout-core/fixtures/wiki-layout-legacy.json"
+    },
+    {
       "sha256": "7e0bfa387f546c96c13c34d6d1dc66a250a1a4d086d6a327ed8132b07feff770",
       "source": "crates/link-style-core/Cargo.toml",
       "target": ".agents/tools/link-style-core/Cargo.toml"
@@ -212,12 +242,12 @@
       "transform": "css-v1"
     },
     {
-      "sha256": "0ba04410a674d2a6be4ba05ae179097ac34de4dffe7e89fae526374458aff5fc",
+      "sha256": "7f0a76ff7c780a5666ae21e53e3f83913f358a9ef05441f2e47e2a6c9c2c57cf",
       "source": "crates/vault-layout/Cargo.toml",
       "target": ".agents/tools/vault-layout/Cargo.toml"
     },
     {
-      "sha256": "953662b1dcf9967fd7e89545befffb225278050498b699c744508cd1da95190b",
+      "sha256": "c1be22a2ac3c070c648d3b32aa7b0319434e54cba356ce5728384159bab06e18",
       "source": "crates/vault-layout/Cargo.lock",
       "target": ".agents/tools/vault-layout/Cargo.lock"
     },
@@ -237,7 +267,7 @@
       "target": ".agents/tools/vault-layout/src/link_style.rs"
     },
     {
-      "sha256": "3d56ebec902c3922363b8b58d3a9e14450e7e190567eeb03e912e3c84078905e",
+      "sha256": "fca0ed0a96e4b20e47593d99e5e18142059f08316db62fd72c3ee9ef490cea2f",
       "source": "crates/vault-layout/src/wiki_layout.rs",
       "target": ".agents/tools/vault-layout/src/wiki_layout.rs"
     },
@@ -282,7 +312,7 @@
       "target": ".agents/tools/vault-layout/src/work_intake.rs"
     },
     {
-      "sha256": "ff00e22b1a4df7a2167216a26e165a08904753df1f427a0d0db7444c2e66af75",
+      "sha256": "e283f6b0d3ccf18692735e731e326e92d9ccfc990b924e574a1f6b9c58d0e8c0",
       "source": "crates/vault-layout/src/shortcut_links.rs",
       "target": ".agents/tools/vault-layout/src/shortcut_links.rs"
     },
@@ -457,7 +487,7 @@
       "target": ".viggobsidian/core/procedures/task.md"
     }
   ],
-  "revision": "d2da88fa3a251c07445dab903ce475f313fa84b9",
+  "revision": "fda319fd2bf2503795ef97d61b70d5deba920e42",
   "schema": "viggobsidian.package.v1",
-  "version": "0.24.0"
+  "version": "0.25.0"
 }
