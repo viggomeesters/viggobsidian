@@ -187,7 +187,7 @@ fn all_declared_procedure_assets_are_distributed_with_a_bounded_allowlist() {
 #[test]
 fn procedure_adoption_preserves_the_existing_provider_and_restores_original_text() {
     let f = Fixture::new();
-    let target = ".agents/skills/vault-read/PROCEDURE.md";
+    let target = ".agents/skills/vault/SKILL.md";
     atomic(&f.vault, target, b"Original local procedure").unwrap();
     atomic(
         &f.vault,
@@ -726,10 +726,10 @@ fn github_rename_fixture() -> Fixture {
     let bytes = serde_json::to_string(&old).unwrap();
     atomic(&f.vault, STATE, &serde_json::to_vec(&json!({"schema":"viggobsidian.installed.v1","version":old["version"],"revision":old["revision"],"manifest_sha256":hash(bytes.as_bytes()),"manifest_bytes":bytes,"files":files,"derived":{}})).unwrap()).unwrap();
     let mut next = read_json(&f.package.join("package.json")).unwrap();
-    for target in [
-        ".agents/skills/github-work/SKILL.md",
-        ".agents/skills/github-work/PROCEDURE.md",
-    ] {
+    for target in SKILLS
+        .iter()
+        .map(|name| format!(".agents/skills/{name}/SKILL.md"))
+    {
         next["files"]
             .as_array_mut()
             .unwrap()
@@ -818,11 +818,11 @@ fn interrupted_retirement_rolls_back_and_recreated_file_blocks_undo() {
         &serde_json::to_vec(&pending).unwrap(),
     )
     .unwrap();
-    for target in [
-        ".agents/skills/github-work/SKILL.md",
-        ".agents/skills/github-work/PROCEDURE.md",
-    ] {
-        atomic(&f.vault, target, b"one").unwrap();
+    for target in SKILLS
+        .iter()
+        .map(|name| format!(".agents/skills/{name}/SKILL.md"))
+    {
+        atomic(&f.vault, &target, b"one").unwrap();
     }
     fs::remove_file(f.vault.join(RETIRED_GO[0])).unwrap();
     rollback(&f.vault, &pending).unwrap();
@@ -861,5 +861,112 @@ fn finite_rename_does_not_remove_unmanaged_old_paths() {
             fs::read(f.vault.join(target)).unwrap(),
             b"old owned instruction"
         );
+    }
+}
+
+#[test]
+fn ten_core_surface_has_no_procedure_or_module_backdoor() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let names: BTreeSet<_> = fs::read_dir(root.join("skills"))
+        .unwrap()
+        .map(|p| p.unwrap().file_name().into_string().unwrap())
+        .collect();
+    assert_eq!(names, SKILLS.iter().map(|n| n.to_string()).collect());
+    for row in rows(
+        &read_json(&root.join("schemas/skill-library.json")).unwrap(),
+        "files",
+    )
+    .unwrap()
+    {
+        let target = field(row, "target").unwrap();
+        assert!(!target.ends_with("PROCEDURE.md"));
+        assert!(!target.contains("/_bundle/") && !target.contains("/modules/"));
+        if let Some(path) = target.strip_prefix(".agents/skills/") {
+            assert!(SKILLS.contains(&path.split('/').next().unwrap()));
+        }
+    }
+}
+
+#[test]
+fn full_reduction_retires_only_exact_managed_preimages_and_restores_them() {
+    let f = github_rename_fixture();
+    let mut previous = state(&f.vault).unwrap();
+    let mut manifest: Value =
+        serde_json::from_str(previous["manifest_bytes"].as_str().unwrap()).unwrap();
+    let historical: Vec<String> =
+        serde_json::from_str(include_str!("../schemas/retired-skill-targets.json")).unwrap();
+    let retired: Vec<_> = historical
+        .iter()
+        .filter(|target| !allowed(target))
+        .collect();
+    assert!(retired.len() > 200);
+    for target in &retired {
+        atomic(&f.vault, target, b"original managed content").unwrap();
+        previous["files"][*target] = json!(hash(b"original managed content"));
+        manifest["files"].as_array_mut().unwrap().push(
+            json!({"source":"old.md","target":target,"sha256":hash(b"original managed content")}),
+        );
+    }
+    let raw = serde_json::to_string(&manifest).unwrap();
+    previous["manifest_bytes"] = json!(raw);
+    previous["manifest_sha256"] = json!(hash(raw.as_bytes()));
+    atomic(&f.vault, STATE, &serde_json::to_vec(&previous).unwrap()).unwrap();
+    atomic(
+        &f.vault,
+        ".agents/skills/vault-read/scripts/provider.py",
+        b"local exclusive provider",
+    )
+    .unwrap();
+    atomic(
+        &f.vault,
+        ".agents/skills/unknown/PROCEDURE.md",
+        b"unmanaged owner",
+    )
+    .unwrap();
+    let before = fs::read(f.vault.join(STATE)).unwrap();
+    let plan = f.plan();
+    assert_eq!(
+        rows(&plan, "changes")
+            .unwrap()
+            .iter()
+            .filter(|c| c["after"].is_null())
+            .count(),
+        retired.len() + RETIRED_GO.len()
+    );
+    let applied = apply(&f.vault, &plan).unwrap();
+    assert!(retired.iter().all(|p| !f.vault.join(p).exists()));
+    assert_eq!(
+        fs::read(
+            f.vault
+                .join(".agents/skills/vault-read/scripts/provider.py")
+        )
+        .unwrap(),
+        b"local exclusive provider"
+    );
+    assert_eq!(
+        fs::read(f.vault.join(".agents/skills/unknown/PROCEDURE.md")).unwrap(),
+        b"unmanaged owner"
+    );
+    let receipt = read_json(&f.vault.join(field(&applied, "receipt").unwrap())).unwrap();
+    rollback(&f.vault, &receipt).unwrap();
+    assert_eq!(fs::read(f.vault.join(STATE)).unwrap(), before);
+    for target in retired {
+        assert_eq!(
+            fs::read(f.vault.join(target)).unwrap(),
+            b"original managed content"
+        );
+    }
+}
+
+#[test]
+fn complete_distribution_is_inside_current_package_write_allowlist() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    for row in rows(
+        &read_json(&root.join("distribution.json")).unwrap(),
+        "files",
+    )
+    .unwrap()
+    {
+        assert!(allowed(field(row, "target").unwrap()), "{}", row["target"]);
     }
 }

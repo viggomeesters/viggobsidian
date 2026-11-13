@@ -4,6 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Component, Path, PathBuf};
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -26,14 +27,34 @@ const RETIRED_GO: &[&str] = &[
 ];
 const STATE: &str = ".viggobsidian/installed.json";
 const SKILLS: &[&str] = &[
+    "github-work",
+    "brainstorm",
+    "audit",
+    "research",
+    "output",
+    "draft",
     "vault",
-    "vault-log",
-    "vault-process",
-    "vault-task",
-    "vault-tackle",
-    "vault-hub",
-    "vault-brief",
+    "calendar",
+    "coach",
+    "ops",
 ];
+fn historical(target: &str) -> bool {
+    static HISTORICAL: OnceLock<BTreeSet<String>> = OnceLock::new();
+    RETIRED_GO.contains(&target)
+        || HISTORICAL
+            .get_or_init(|| {
+                serde_json::from_str::<Vec<String>>(include_str!(
+                    "../schemas/retired-skill-targets.json"
+                ))
+                .expect("finite historical target inventory")
+                .into_iter()
+                .collect()
+            })
+            .contains(target)
+}
+fn state_allowed(target: &str) -> bool {
+    relative(target).is_ok() && (allowed(target) || historical(target))
+}
 
 fn fail<T>(message: impl Into<String>) -> Result<T> {
     Err(message.into().into())
@@ -105,9 +126,6 @@ fn root(path: &Path) -> Result<PathBuf> {
 fn allowed(target: &str) -> bool {
     if relative(target).is_err() {
         return false;
-    }
-    if RETIRED_GO.contains(&target) {
-        return true;
     }
     if procedure_surface::targets().contains(target) {
         return true;
@@ -300,7 +318,7 @@ fn package(package: &Path) -> Result<(Value, String)> {
         {
             return fail("unknown or misplaced package transform");
         }
-        if !allowed(target) || RETIRED_GO.contains(&target) || !targets.insert(target) {
+        if !allowed(target) || !targets.insert(target) {
             return fail(format!("forbidden or duplicate target: {target}"));
         }
         let source = checked(package, field(item, "source")?)?;
@@ -369,7 +387,7 @@ fn state(vault: &Path) -> Result<Value> {
                 } else {
                     return fail("unsupported installed transform");
                 };
-                if !allowed(target) || files.insert(target.to_string(), expected).is_some() {
+                if !state_allowed(target) || files.insert(target.to_string(), expected).is_some() {
                     return fail("invalid installed manifest target");
                 }
             }
@@ -385,7 +403,7 @@ fn state(vault: &Path) -> Result<Value> {
                 .as_object()
                 .ok_or("missing installed files")?
             {
-                if !allowed(path) || digest.as_str().is_none() {
+                if !state_allowed(path) || digest.as_str().is_none() {
                     return fail("unsafe installed entry");
                 }
             }
@@ -433,14 +451,15 @@ fn plan(vault: &Path, package_root: &Path, adoption: &Value) -> Result<Value> {
         }
         next.insert(target.to_string(), desired.clone());
     }
-    // Only this finite reviewed rename may retire managed files. Whole old-state
+    // Only the finite reviewed reduction may retire managed files. Whole old-state
     // drift was checked above; unmanaged files never enter this removal loop.
     if let Some(old) = installed["files"].as_object() {
         for target in old.keys() {
             if !next.contains_key(target) {
-                if RETIRED_GO.contains(&target.as_str())
-                    && next.contains_key(".agents/skills/github-work/SKILL.md")
-                    && next.contains_key(".agents/skills/github-work/PROCEDURE.md")
+                if historical(target)
+                    && SKILLS
+                        .iter()
+                        .all(|name| next.contains_key(&format!(".agents/skills/{name}/SKILL.md")))
                 {
                     changes.push(json!({"target":target,"before":old[target],"after":null}));
                 } else {
@@ -555,7 +574,10 @@ fn rollback(vault: &Path, receipt: &Value) -> Result<Value> {
     let mut restoring = BTreeSet::new();
     for item in rows(receipt, "entries")? {
         let target = field(item, "target")?;
-        if !allowed(target) || !restoring.insert(target) || next["files"][target] != item["after"] {
+        if !state_allowed(target)
+            || !restoring.insert(target)
+            || next["files"][target] != item["after"]
+        {
             return fail("unsafe receipt target");
         }
         let current = digest_at(vault, target)?;
@@ -573,7 +595,7 @@ fn rollback(vault: &Path, receipt: &Value) -> Result<Value> {
     // Verify the whole managed postimage, including assets that this transaction didn't change.
     if pending.is_none() {
         for (target, expected) in next["files"].as_object().ok_or("missing next files")? {
-            if !allowed(target)
+            if !state_allowed(target)
                 || (!restoring.contains(target.as_str()) && digest_at(vault, target)? != *expected)
             {
                 return fail(format!("rollback managed drift: {target}"));
@@ -914,7 +936,7 @@ fn run() -> Result<bool> {
             println!(concat!(
                 "viggobsidian ",
                 env!("CARGO_PKG_VERSION"),
-                "\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md and skills/obsidian-plugin-development/PROCEDURE.md."
+                "\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md and skills/github-work/references/obsidian-plugins.md."
             ));
             return Ok(true);
         }

@@ -1,0 +1,7 @@
+# Obsidian plugin release boundaries
+
+Detect a plugin from the explicit request or root manifest id/minAppVersion. Keep three phases separate: source preview, public release and actual catalog installation. Existing plugin development can proceed in source-preview phase without demanding an unreleased catalog entry. A build is not release evidence; a public exact-tag asset set is not an installation.
+
+Use the repository plugin-check preflight where available: bind exact repository, candidate commit and phase, and keep its evidence. For source preview verify manifest, build and runtime entry contract in the designated test vault. For public release verify matching version in manifest/package/versions mapping, complete built assets and public exact-tag URLs. First submission needs a verifiable public release before directing the owner to Submit. For catalog installation, verify actual catalog identity/version, installed files and working runtime at the intended vault; never silently substitute source files for the catalog result.
+
+Preserve existing plugin settings and unrelated test fixtures; verify the active candidate before each test. JavaScript remains the required Obsidian interface even where repository implementation uses Rust. User approval and marketplace registration are external effects, not consequences of compiling. Keep failed phases visible rather than claiming all phases from one successful build.

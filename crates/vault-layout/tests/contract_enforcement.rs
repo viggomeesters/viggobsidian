@@ -155,11 +155,11 @@ fn procedure_fixture(name: &str) -> Fixture {
     )
     .unwrap();
     let mut capabilities = serde_json::Map::new();
-    for name in spec["routes"]
+    for name in spec["effects"]
         .as_object()
         .unwrap()
-        .values()
-        .map(|v| v["capability"].as_str().unwrap())
+        .keys()
+        .map(String::as_str)
         .chain(
             spec["source_adapters"]
                 .as_object()
@@ -196,7 +196,7 @@ fn skill_check(fixture: &Fixture, args: &[&str]) -> (Output, Value) {
 fn procedure_preflight_reads_explicit_target_without_executing_or_mutating() {
     let fixture = procedure_fixture("procedures-explicit");
     let before = fs::read(fixture.0.join("provider/reader.txt")).unwrap();
-    let (output, report) = skill_check(&fixture, &["--skill-route", "vault-read"]);
+    let (output, report) = skill_check(&fixture, &["--skill-route", "vault"]);
     assert!(
         output.status.success(),
         "{}",
@@ -216,10 +216,13 @@ fn procedure_preflight_reads_explicit_target_without_executing_or_mutating() {
         )
     );
     assert_eq!(
-        skill_check(&fixture, &["--skill-route", "vault-hub"])
-            .0
-            .status
-            .code(),
+        skill_check(
+            &fixture,
+            &["--skill-route", "vault", "--skill-capability", "hub"]
+        )
+        .0
+        .status
+        .code(),
         Some(1)
     );
     let (output, report) = skill_check(&fixture, &["--skill-routes"]);
@@ -228,9 +231,9 @@ fn procedure_preflight_reads_explicit_target_without_executing_or_mutating() {
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
-    assert_eq!(report["routes"].as_array().unwrap().len(), 47);
+    assert_eq!(report["routes"].as_array().unwrap().len(), 31);
     let missing = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
-        .args(["--skill-route", "vault-read"])
+        .args(["--skill-route", "vault"])
         .output()
         .unwrap();
     assert_eq!(missing.status.code(), Some(2));
@@ -247,7 +250,9 @@ fn procedure_importer_is_additional_and_every_source_provider_is_validated() {
         &fixture,
         &[
             "--skill-route",
-            "vault-process",
+            "vault",
+            "--skill-capability",
+            "process",
             "--source-adapter",
             "imessage",
         ],
@@ -264,7 +269,14 @@ fn procedure_importer_is_additional_and_every_source_provider_is_validated() {
     assert_eq!(
         skill_check(
             &fixture,
-            &["--skill-route", "vault-task", "--source-adapter", "daily"]
+            &[
+                "--skill-route",
+                "vault",
+                "--skill-capability",
+                "task",
+                "--source-adapter",
+                "daily"
+            ]
         )
         .0
         .status
@@ -282,7 +294,7 @@ fn procedure_preflight_rejects_root_drift_missing_provider_and_release_drift() {
     value["vault"] = json!(fixture.0.join("other"));
     fs::write(&config, value.to_string()).unwrap();
     assert_eq!(
-        skill_check(&fixture, &["--skill-route", "vault-read"])
+        skill_check(&fixture, &["--skill-route", "vault"])
             .0
             .status
             .code(),
@@ -291,7 +303,7 @@ fn procedure_preflight_rejects_root_drift_missing_provider_and_release_drift() {
     fs::write(&config, &original).unwrap();
     fs::remove_file(fixture.0.join("provider/reader.txt")).unwrap();
     assert_eq!(
-        skill_check(&fixture, &["--skill-route", "vault-read"])
+        skill_check(&fixture, &["--skill-route", "vault"])
             .0
             .status
             .code(),
@@ -303,7 +315,7 @@ fn procedure_preflight_rejects_root_drift_missing_provider_and_release_drift() {
         "Locally changed contract",
     );
     assert_eq!(
-        skill_check(&fixture, &["--skill-route", "vault-read"])
+        skill_check(&fixture, &["--skill-route", "vault"])
             .0
             .status
             .code(),
@@ -320,7 +332,7 @@ fn procedure_preflight_refuses_alias_escape_symlinks_and_unknown_transforms() {
     value["capabilities"]["read"]["required_files"] = json!(["../escape"]);
     fs::write(&config, value.to_string()).unwrap();
     assert_eq!(
-        skill_check(&fixture, &["--skill-route", "vault-read"])
+        skill_check(&fixture, &["--skill-route", "vault"])
             .0
             .status
             .code(),
@@ -331,7 +343,7 @@ fn procedure_preflight_refuses_alias_escape_symlinks_and_unknown_transforms() {
     fs::remove_file(&reader).unwrap();
     symlink(fixture.0.join("provider/read.md"), &reader).unwrap();
     assert_eq!(
-        skill_check(&fixture, &["--skill-route", "vault-read"])
+        skill_check(&fixture, &["--skill-route", "vault"])
             .0
             .status
             .code(),
@@ -345,7 +357,7 @@ fn procedure_preflight_refuses_alias_escape_symlinks_and_unknown_transforms() {
         Some(2)
     );
     assert_eq!(
-        skill_check(&fixture, &["--skill-route", "vault-read", "--check-all"])
+        skill_check(&fixture, &["--skill-route", "vault", "--check-all"])
             .0
             .status
             .code(),
@@ -365,7 +377,7 @@ fn procedure_preflight_refuses_alias_escape_symlinks_and_unknown_transforms() {
     state["derived"][&target]["sha256"] = state["files"][&target].clone();
     fs::write(installed, state.to_string()).unwrap();
     assert_eq!(
-        skill_check(&fixture, &["--skill-route", "vault-read"])
+        skill_check(&fixture, &["--skill-route", "vault"])
             .0
             .status
             .code(),
@@ -1776,5 +1788,57 @@ fn frozen_reading_capture_is_payload_only_after_complete_native_validation() {
             .unwrap()
             .iter()
             .any(|f| f["code"] == "strict-raw-markdown")
+    );
+}
+
+#[test]
+fn deleted_skill_routes_are_unknown_and_effects_require_explicit_selection() {
+    let fixture = procedure_fixture("retired-routes");
+    for name in [
+        "vault-read",
+        "vault-log",
+        "vault-process",
+        "vault-task",
+        "inbox",
+        "obsidian",
+        "contacts",
+    ] {
+        let output = skill_check(&fixture, &["--skill-route", name]).0;
+        assert_eq!(output.status.code(), Some(2), "{name}");
+        assert!(String::from_utf8_lossy(&output.stderr).contains("unknown skill route"));
+    }
+    assert_eq!(
+        skill_check(&fixture, &["--skill-capability", "capture"])
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    assert_eq!(
+        skill_check(
+            &fixture,
+            &["--skill-route", "vault", "--skill-capability", "unknown"]
+        )
+        .0
+        .status
+        .code(),
+        Some(2)
+    );
+    assert_eq!(
+        skill_check(
+            &fixture,
+            &[
+                "--skill-route",
+                "vault",
+                "--skill-capability",
+                "capture",
+                "--skill-source",
+                "imessage"
+            ]
+        )
+        .0
+        .status
+        .code(),
+        Some(1)
     );
 }

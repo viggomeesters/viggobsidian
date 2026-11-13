@@ -1,10 +1,16 @@
 ---
 name: research
-description: Collect and evaluate sources to answer a question or compare options, including purchases, travel and public professional context.
+description: "Collect and evaluate sources to answer questions and compare purchases, travel, sales, professional context or financial scenarios."
 ---
 
-# Research and choose
+# Research from sources
 
-Read [the research procedure](PROCEDURE.md) for source method and evidence boundaries. Load only the branch the question needs: [shop](../shop/PROCEDURE.md) for buying choices, [reisplanner](../reisplanner/SKILL.md) for travel, or [public professional-context enrichment](public-person-background-check-to-vault/PROCEDURE.md) for explicitly requested person/contact research.
+Resolve the actual question, decision, constraints, timeframe and audience. Search connected sources when they may contain relevant context before asking for information already available. Use current primary sources for changing facts, exact claims and technical behavior. Keep publication date distinct from event date and source observation date. Read enough context to establish what a source supports.
 
-The requested effect controls execution. Advice does not authorize a purchase, application, contact, storage, publication or mandatory HTML report. User-specific criteria and provider bindings come only from the explicitly selected target's adapter and current owner. Resolve relative skill links after profile symlinks; this source location never chooses a data vault.
+Compare options against the user criteria with usable availability, costs, conditions and uncertainty. Distinguish verified fact, source claim, inference and recommendation. Cite the source close to the claim and retain exact useful links. An estimate needs stated inputs and reproducible calculations; unknown values are not zero. Do not present incompatible scope or stale prices as a precise comparison.
+
+Purchases, travel and sales research do not authorize buying, booking, applying, contacting people or publishing an advertisement. A requested advert can be composed through draft from verified condition, provenance and market evidence. Travel checks the actual dates, route constraints and total relevant costs rather than assuming a default departure point.
+
+Research about people stays within the requested public professional context. Avoid unsupported identity matches, sensitive inferences and unrelated private information. Readability of a private source does not make it shareable.
+
+For finances read [reconciliation and coverage](references/financial-evidence.md); actual accounts, confidential sources, model commands and writer bindings stay with the selected local owner. Do not create a competing ledger or perform transactions. A standalone report is created through output only when requested. Store evidence through the supported owner, not a fallback vault.

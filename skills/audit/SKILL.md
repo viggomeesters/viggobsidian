@@ -1,20 +1,16 @@
 ---
 name: audit
-description: "Onderzoek een gekozen app, repository, proces, document of ander onderwerp; rapporteer onderbouwde bevindingen, zonder impliciet reparaties uit te voeren. Voor net geleverd werk gebruik recheck."
+description: "Investigate or recheck code, products, documents or processes using evidence; report findings and repair only within explicit authorization."
 ---
 
-# Audit — zelfstandig onderzoeken
+# Investigate and verify
 
-Resolve the links below relative to this `SKILL.md` file's own directory after symlink resolution. `../_bundle` is under `.agents/skills/`, not `.agents/`.
+Resolve the chosen subject and scope from the current request. A recheck targets the original request and just-delivered result; an audit does not automatically select the last thing the agent did. Read the actual sources and operating instructions. Default investigation is read-only: recommendations are not repair, task creation or publication authority.
 
-Read only the matching module and procedure. Use the links below; the full catalog and alias registry are maintenance inventories, not prerequisite reading for a normal request. Honor the exact owner and requested effect.
+Define the behavior or acceptance being tested, inspect current evidence and try meaningful counterexamples. Separate confirmed failures, plausible risks and missing evidence. A reviewer should be able to reproduce an actionable finding from its trigger, location, consequence and expected behavior. Prioritise material correctness, data integrity and user impact over preference. A clean scanner or passing build does not establish semantic correctness or a usable interface.
 
-Audit staat los van wat de agent zojuist heeft gedaan. Onderzoek het expliciet gekozen onderwerp; neem niet automatisch het laatste resultaat als doel. Vraag alleen naar doel of scope als die niet uit de opdracht/context blijken. Een audit levert bevindingen en aanbevelingen, geen impliciete reparaties, taakaanmaak of publicatie.
+Recheck with the original constraints and final artifacts. Repair safe gaps only where the current request authorizes repair. Re-run the relevant checks after a correction, preserve unrelated changes, and state complete or incomplete from actual evidence. Independent review is useful for risky changes; it is not another authority to widen scope.
 
-Een verzoek om het net geleverde werk opnieuw te controleren gaat rechtstreeks naar [recheck](../recheck/SKILL.md), ook als alleen-lezen gevraagd is. Dat is een andere ingang, geen verplichte tweede auditronde.
+For feedback about agent behavior, preserve the exact observed event and distinguish failure to apply an existing rule from a missing or contradictory rule. Fix application first. Do not infer a permanent personal preference from one incident or write another policy for every mistake. An authorized process correction goes to its actual maintained source, through the available skill authoring tool when appropriate, with behavioral verification. Diagnosis alone changes no skills or configuration.
 
-- [quality.inspect](../_bundle/modules/quality.inspect.md): audit, quality-audit, pr, impeccable.
-
-- Alleen bij expliciet gevraagde reparatie/afronding: [quality.finish](../_bundle/modules/quality.finish.md). Die aanvullende opdracht bepaalt de toegestane scope; audit zelf geeft geen schrijfrecht.
-
-- [quality.challenge](../_bundle/modules/quality.challenge.md): devil-review, devil.
+Return the material findings with direct evidence and practical implications. State a real limitation when a required source or runtime is unavailable; do not substitute invented proof. For requested interface review use [visual and copy verification](../output/references/interface-check.md).

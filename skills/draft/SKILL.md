@@ -15,7 +15,7 @@ Choose one communication objective. Test every request, sensitive detail and exp
 
 Check information sensitivity against the intended audience. An internal or personal source is not automatically shareable because it was readable. Consider both the information and its provenance, named people and foreseeable consequences. Keep routine checking invisible. If a material disclosure permission is missing, ask only about that uncertainty and continue independent drafting that does not depend on it. Never invent consent or omit a material fact merely to make a draft more persuasive.
 
-Before the final version, make a proportional tactical pass: correct recipient and identity, truthful facts, no unnecessary commitments, no avoidable misunderstanding, preserved voice. Read `master-tactician` when that maintained procedure is available and relevant. Negotiation, employment, HR and legal commitments deserve deeper review than a routine reply.
+Before the final version, make a proportional tactical pass: correct recipient and identity, truthful facts, no unnecessary commitments, no avoidable misunderstanding, preserved voice. Negotiation, employment, HR and legal commitments deserve deeper review than a routine reply.
 
 ## Channel and form
 

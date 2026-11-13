@@ -31,7 +31,7 @@ mod work_intake;
 mod work_package;
 mod write_set;
 
-const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json)";
+const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json | --skill-route vault [--skill-capability EFFECT] [--skill-source SOURCE] | --skill-routes)";
 const SCHEMA: &str = "99-system/contracts/vault-schema.yaml";
 const TILE_CSS: &str = ".obsidian/snippets/folder-note.css";
 const TASK_SUMMARY: &str = "```vault-task-summary";
@@ -79,6 +79,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut maintenance_transform = false;
     let mut skill_route = None;
     let mut skill_routes = false;
+    let mut skill_capability = None;
     let mut source_adapter = None;
     let mut explicit_vault = false;
     while let Some(arg) = args.next() {
@@ -92,7 +93,10 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
                 skill_route = Some(args.next().ok_or(USAGE)?.into_string().map_err(|_| USAGE)?)
             }
             Some("--skill-routes") if !skill_routes => skill_routes = true,
-            Some("--source-adapter") if source_adapter.is_none() => {
+            Some("--skill-capability") if skill_capability.is_none() => {
+                skill_capability = Some(args.next().ok_or(USAGE)?.into_string().map_err(|_| USAGE)?)
+            }
+            Some("--source-adapter" | "--skill-source") if source_adapter.is_none() => {
                 source_adapter = Some(args.next().ok_or(USAGE)?.into_string().map_err(|_| USAGE)?)
             }
             Some("--tiles-only") => tiles_only = true,
@@ -138,10 +142,14 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             _ => return Err(USAGE.into()),
         }
     }
-    if skill_route.is_some() || skill_routes || source_adapter.is_some() {
+    if skill_route.is_some()
+        || skill_routes
+        || source_adapter.is_some()
+        || skill_capability.is_some()
+    {
         if !explicit_vault
             || skill_route.is_some() && skill_routes
-            || source_adapter.is_some() && skill_route.is_none()
+            || (source_adapter.is_some() || skill_capability.is_some()) && skill_route.is_none()
             || folder.is_some()
             || tiles_only
             || indexes
@@ -165,6 +173,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         return skill_routes::run(
             &vault.canonicalize()?,
             skill_route.as_deref(),
+            skill_capability.as_deref(),
             source_adapter.as_deref(),
         );
     }

@@ -1,37 +1,36 @@
-# Vaultskills
+# Vault-effecten en lokale providers
 
-De publieke ingangen zijn `vault`, `vault-log`, `vault-process`, `vault-task`, `vault-tackle`, `vault-hub` en `vault-brief`. Elke ingang verwijst naar hetzelfde expliciete-doelcontract. Ze worden uit een gepinde release op stabiele `.agents/skills/<naam>/SKILL.md`-paden geïnstalleerd; hostprofielen kunnen naar die geïnstalleerde paden blijven verwijzen. De repositorycheckout wordt geen vault en krijgt geen brondata.
+De ingang vault kiest een expliciet effect uit core/procedures.json v2. Oude
+skillnamen zijn geen routes meer. De map bevat effects en echte bronadapters;
+geen metadata voor de verwijderde procedurebibliotheek.
 
-Vanaf v0.10 zijn ook de generieke interne procedures, actieve bronreferenties en
-compatibilityaliases release-assets. `.viggobsidian/core/procedures.json` is de
-volledige machineleesbare dekkingsmatrix; `core/procedures/*.md` bezit de gedeelde
-gedragscontracten. De bestaande callerpaden blijven behouden. De zeven publieke
-ingangen blijven het native menu; PROCEDURE.md maakt geen nieuwe slashcommand.
+```sh
+vault-layout --vault ROOT --skill-route vault
+vault-layout --vault ROOT --skill-route vault --skill-capability process
+vault-layout --vault ROOT --skill-route vault --skill-capability capture --skill-source imessage
+vault-layout --vault ROOT --skill-routes
+```
 
-Een lokale adapter beschrijft de echte reader/writer, registratie-/claimprovider,
-intake, domeingates, Gitregels en strikte checker. `.viggobsidian/providers.json`
-bindt de expliciete doelroot en elke capability aan werkelijk aanwezige bestanden
-en een lokale instructiesectie, of aan `unavailable` met een concrete reden.
-Writer-/registratiescripts, tests, eigen brondata, persoonlijke modellen/domeinen
-en eindige herstelregels blijven lokaal. Zes oude JSONL-recepten en een eindige
-verhuisreferentie blijven inerte lokale historie; geen actieve gedeelde norm.
+Zonder capability kiest vault read. --source-adapter blijft een ondersteunde
+spelling van --skill-source voor bestaande CLI-callers; het is geen oude
+skillalias. Een bronadapter is een aanvullende afhankelijkheid van capture,
+process, document of mail en vervangt hun basisprovider niet. De volledige
+controle leest alle effecten en bronproviders; unavailable is daar een zichtbare
+grens. Een gekozen unavailable effect geeft exit 1; ongeldige metadata,
+rootmismatch, ontbrekende bestanden, onbekende oude routenaam of hashdrift exit 2.
+Exit 0 geeft geen claim, schrijfbevoegdheid of bewijs van live gedrag.
 
-`vault-layout --vault ROOT --skill-route ROUTE` controleert uitsluitend de gekozen
-gedeelde assets en afhankelijke lokale capability, zonder provideruitvoering.
-Een source-import gebruikt daarnaast `--source-adapter imessage|reading-list|daily`.
-`--skill-routes` controleert de gehele gedeelde dekking en expliciete providers;
-een bekende unavailable provider is daar een zichtbare capabilitygrens. Een
-gekozen unavailable route geeft exit 1; ongeldige metadata, rootmismatch, ontbrekende
-files of hashdrift exit 2. Exit 0 bewijst geen claim, writeautoriteit of live gedrag.
+providers.json blijft lokaal, met exact doelpad, capability en beschikbare
+instructiesectie/bestanden of unavailable met reden. De checker controleert
+release-assets, dependencies, symlinkgrenzen en tijdens de controle gewijzigde
+bindings; hij voert geen provider uit. Productwriters, claims en stricte lokale
+gates blijven leidend. Een aanwezige guided provider is geen generieke writer.
 
-Per wijziging: lees de ingang, gedeeld beleid, doelroot en lokale adapter; zoek de huidige eigenaar; respecteer registratieclaims en preimagecontroles; schrijf alleen geautoriseerde inhoud via de aangewezen provider; lees het resultaat terug en voer de toepasselijke lokale eindcontrole uit. Bronopslag, verwerking en uitvoering zijn afzonderlijke effecten. Een gecombineerd expliciet verzoek kan ze samen autoriseren.
+Lees alleen de inhoudelijke contracten die het effect nodig heeft. Bronopslag,
+kennisverwerking en uitvoering houden hun afzonderlijke autorisatie; een gecombineerd
+expliciet verzoek kan ze samen autoriseren. Na schrijven volgt semantische readback
+bij de bestaande eigenaar. De publieke pakket-CLI is geen bron-/taakwriter.
 
-Een ontbrekende adapter is geen permissie om een generieke writer te verzinnen. De publieke CLI beheert pakketbestanden; hij is geen capture-, taak- of registratiewriter.
-
-Obsidian-pluginwerk laadt conditioneel de interne specialist
-`skills/obsidian-plugin-development/PROCEDURE.md` via de GitHub-aanpak en release. Die bundelt
-architectuur, fixtures, hostbewijs, publicatiefasen en bekende fouten; lokale
-paden en bevoegdheden blijven in de doeladapter. `viggobsidian plugin-check`
-leest kandidaat, exacte release/tag/downloadbytes en optioneel de echte
-installatie. De drie fasen voorkomen dat een bronpreview als catalogusinstallatie
-wordt gepresenteerd. Zie de procedure voor de CLI en het expliciete bewijsformat.
+Obsidian-pluginwerk gebruikt github-work/references/obsidian-plugins.md voor de
+grenzen van source-preview, public-release en catalog-install. plugin-check toetst
+kandidaat, exacte releasebytes en optioneel echte installatie afzonderlijk.
