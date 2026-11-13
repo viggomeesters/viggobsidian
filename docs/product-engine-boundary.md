@@ -40,3 +40,5 @@ WIKI_LAYOUT_WASM="$CARGO_TARGET_DIR/wasm32-unknown-unknown/release/wiki_layout_c
 Geen release, pakketrollout, notewrites of nieuwe pluginfunctie volgt alleen uit deze extractie. Integratie en distributie vereisen hun eigen beoordeelde bronrevision en controles.
 
 Wiki capture protocol v2 adds portable canonical target selection: `vault-wiki-direct` in a string-array cssclasses, or a `wiki.md` note beneath any relative `wiki` folder component. The native adapter calls the same pure Rust helper. Protocol v1 remains unchanged. The host supplies body text after frontmatter and parsed cssclasses; v2 validates required fields and normalizes body line endings like the native adapter. Obsidian YAML parsing is a platform boundary, not a claim of native YAML or filesystem eligibility parity. No link target or folder fact is checked by this text slice.
+
+Portable Wiki v2 requires typed `frontmatter_present`; selected Wiki targets without frontmatter return Incomplete, matching native Scan::note eligibility. Ordinary non-target notes remain not applicable. Missing or malformed presence input cannot pass as clean.

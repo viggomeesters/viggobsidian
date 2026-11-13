@@ -48,6 +48,13 @@ fn evaluate(input: &Value) -> Result<Value, &'static str> {
     } else {
         None
     };
+    let frontmatter_present = if portable {
+        input["frontmatter_present"]
+            .as_bool()
+            .ok_or("frontmatter_presence_required")?
+    } else {
+        true
+    };
     let body = input["body"].as_str().ok_or("body_required")?;
     if body.len() > MAX_NOTE_BYTES {
         return Err("content_limit");
@@ -59,6 +66,9 @@ fn evaluate(input: &Value) -> Result<Value, &'static str> {
         return Ok(
             json!({"schema":RESULT,"status":"not_applicable","reason":"profile_or_classification_not_selected"}),
         );
+    }
+    if portable && !frontmatter_present {
+        return Err("frontmatter_required");
     }
     // The native frontmatter adapter uses str::lines().join("\n") too.
     let normalized;
@@ -108,7 +118,7 @@ mod portable_tests {
             ("d/d.md", vec!["vault-wiki-direct"], true),
             ("d/wiki.md", vec![], false),
         ] {
-            let mut request = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":path,"cssclasses":classes,"body":"# Example\r\n"});
+            let mut request = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","frontmatter_present":true,"ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":path,"cssclasses":classes,"body":"# Example\r\n"});
             let response = respond(&serde_json::to_vec(&request).unwrap());
             assert_eq!(
                 response["status"],
@@ -134,7 +144,7 @@ mod portable_tests {
             (notice.to_owned(), true),
             (notice.replace("Actuele kennis", "Other"), false),
         ] {
-            let input = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":"d/wiki/wiki.md","cssclasses":[],"body":format!("{prefix}{body}")});
+            let input = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","frontmatter_present":true,"ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":"d/wiki/wiki.md","cssclasses":[],"body":format!("{prefix}{body}")});
             let response = respond(&serde_json::to_vec(&input).unwrap());
             assert_eq!(
                 response["report"]["findings"]
@@ -146,13 +156,38 @@ mod portable_tests {
         }
     }
     #[test]
+    fn absent_frontmatter_is_incomplete_only_for_selected_targets() {
+        for (path, status) in [
+            ("d/wiki/wiki.md", "incomplete"),
+            ("d/note.md", "not_applicable"),
+        ] {
+            let request = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":path,"cssclasses":[],"body":"# Example","frontmatter_present":false});
+            let response = respond(&serde_json::to_vec(&request).unwrap());
+            assert_eq!(response["status"], status);
+            if status == "incomplete" {
+                assert_eq!(response["reason"], "frontmatter_required");
+            }
+            let mut missing = request.clone();
+            missing
+                .as_object_mut()
+                .unwrap()
+                .remove("frontmatter_present");
+            assert_eq!(
+                respond(&serde_json::to_vec(&missing).unwrap())["status"],
+                "incomplete"
+            );
+        }
+    }
+    #[test]
     fn malformed_portable_inputs_cannot_be_clean() {
-        let base = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":"d/wiki/wiki.md","cssclasses":[],"body":""});
+        let base = json!({"schema":"viggobsidian.wiki-layout-snapshot.v2","frontmatter_present":true,"ruleset":"wiki-layout.v1","complete":true,"profile":"numbered-v1","path":"d/wiki/wiki.md","cssclasses":[],"body":""});
         for (key, value) in [
             ("cssclasses", json!("vault-wiki-direct")),
             ("cssclasses", json!([1])),
             ("path", json!("../wiki.md")),
             ("body", json!(null)),
+            ("frontmatter_present", json!(null)),
+            ("frontmatter_present", json!("true")),
         ] {
             let mut request = base.clone();
             request[key] = value;
