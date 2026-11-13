@@ -1,0 +1,51 @@
+diff --git a/99-system/contracts/test_vault_terminal.py b/99-system/contracts/test_vault_terminal.py
+index 68f33c91cd..dabaab14d2 100644
+--- a/99-system/contracts/test_vault_terminal.py
++++ b/99-system/contracts/test_vault_terminal.py
+@@ -22,11 +22,12 @@ class DoctorTests(unittest.TestCase):
+         self.base = Path(self.temp.name)
+         self.root = self.base/'vault'
+         self.home = self.base/'home'
+-        for directory in ['.agents/skills/example', '99-system/agents', '99-system/contracts']:
++        for directory in ['.agents/skills/example', '.agents/scripts', '99-system/agents', '99-system/contracts']:
+             (self.root/directory).mkdir(parents=True)
+         (self.root/'AGENTS.md').write_text('Fixture')
+         (self.root/'.agents/skills/example/SKILL.md').write_text('---\nname: example\ndescription: Example fixture\n---\n')
+         shutil.copyfile(ROOT/'99-system/agents/install-vault-skills.py', self.root/'99-system/agents/install-vault-skills.py')
++        shutil.copyfile(ROOT/'.agents/scripts/source_assets.py', self.root/'.agents/scripts/source_assets.py')
+         for path in (ROOT/'99-system/contracts').glob('*'):
+             if path.suffix in ('.yaml', '.py'):
+                 shutil.copyfile(path, self.root/'99-system/contracts'/path.name)
+@@ -35,12 +36,15 @@ class DoctorTests(unittest.TestCase):
+         shutil.copyfile(ROOT/'99-system/agents/vault-skill-uitvoering.md', self.root/'99-system/agents/vault-skill-uitvoering.md')
+         for profile in ['claude', 'hermes']:
+             folder = self.home/('.'+profile)/'skills'
++            if profile == 'hermes':
++                folder = folder/'viggo'
+             folder.mkdir(parents=True)
+             (folder/'example').symlink_to(self.root/'.agents/skills/example')
+
+     def test_healthy_and_read_only(self):
+         before = snapshot(self.base)
+-        self.assertEqual(doctor.doctor(self.root, self.home)['status'], 'healthy')
++        result = doctor.doctor(self.root, self.home)
++        self.assertEqual(result['status'], 'healthy', result['checks'])
+         self.assertEqual(snapshot(self.base), before)
+
+     def test_missing_links_are_reported_without_installing(self):
+@@ -108,8 +112,13 @@ class TaskStateTests(unittest.TestCase):
+
+     def test_conflicting_active_ids_reported(self):
+         self.note.write_text(self.note.read_text().replace('Status T01:** done', 'Status T01:** in_progress'))
+-        with self.assertRaisesRegex(ValueError, 'multiple_active_ids'):
+-            self.module.task(self.root, self.note)
++        before = snapshot(self.root)
++        record = self.module.task(self.root, self.note)
++        self.assertEqual(record['active_ids'], ['T01', 'T02'])
++        self.assertIsNone(record['active_id'])
++        self.assertIsNone(record['next_id'])
++        self.assertIn('T01, T02', record['next_step'])
++        self.assertEqual(snapshot(self.root), before)
+
+     def test_resume_preserves_round_and_full_source(self):
+         before = snapshot(self.root)
