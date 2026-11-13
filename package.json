@@ -497,7 +497,7 @@
       "target": ".viggobsidian/core/procedures/task.md"
     }
   ],
-  "revision": "db17e404b60640bba27e50695e91f3caba9082e8",
+  "revision": "7e8bd022368554c72b62da733614b00fe95bf8b3",
   "schema": "viggobsidian.package.v1",
   "version": "0.26.0"
 }
