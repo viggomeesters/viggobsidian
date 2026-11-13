@@ -24,9 +24,10 @@ fn shared_source_preparation_goldens_pass_native_raw_gates() {
     let package = "30-topics/example/raw/20261102-source";
     let path = format!("{package}/20261102-source.md");
     for expected in [
-        include_str!("../../source-preparation-core/fixtures/prepared.md"),
-        include_str!("../../source-preparation-core/fixtures/processed.md"),
+        include_str!("../../source-preparation-core/fixtures/prepared.json"),
+        include_str!("../../source-preparation-core/fixtures/processed.json"),
     ] {
+        let expected: String = serde_json::from_str(expected).unwrap();
         let rendered = expected.replace("/fictional/vault", fixture.0.to_str().unwrap());
         fixture.write(&path, &rendered);
         let out = fixture.strict(package);

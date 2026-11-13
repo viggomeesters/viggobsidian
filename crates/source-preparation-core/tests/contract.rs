@@ -19,7 +19,10 @@ fn run(v: &Value) -> Value {
 fn fictional_prepare_matches_frozen_postimage_and_preserves_original() {
     let result = run(&request());
     assert_eq!(result["status"], "complete", "{result}");
-    assert_eq!(result["postimage"], include_str!("../fixtures/prepared.md"));
+    assert_eq!(
+        result["postimage"],
+        serde_json::from_str::<String>(include_str!("../fixtures/prepared.json")).unwrap()
+    );
     assert_eq!(result["before_sha256"], hash(ORIGINAL));
     assert_eq!(result["original_sha256"], hash(ORIGINAL));
     let quoted = result["postimage"]
@@ -53,7 +56,10 @@ fn marking_is_exact_and_rejects_changed_original_or_native_header() {
     let v = marking();
     let out = run(&v);
     assert_eq!(out["status"], "complete", "{out}");
-    assert_eq!(out["postimage"], include_str!("../fixtures/processed.md"));
+    assert_eq!(
+        out["postimage"],
+        serde_json::from_str::<String>(include_str!("../fixtures/processed.json")).unwrap()
+    );
     for (field, value) in [
         (
             "source_note",
