@@ -5,6 +5,8 @@ description: "Sharpen an idea, design or decision through focused conversation, 
 
 # Clarify a decision
 
+When a target owner or repository is selected, read its optional `.agents/skill-adapters/brainstorm.md` for relevant local criteria and sources. The skill installation does not select that owner; load only context needed for this request and never fall back to another vault.
+
 Start from the actual idea, desired outcome and constraints. Help with the information already available. Ask one discriminating question at a time when the user requests an interview; an ordinary design question can receive a concrete proposal directly. Do not turn a technical interview or plan into execution.
 
 Identify the decision that changes the next step, the assumptions behind it and the evidence that would change the recommendation. Distinguish facts, interpretations, options and decisions. Compare credible alternatives on criteria derived from the user goal, including doing less where relevant. Explain the recommended direction and its practical tradeoffs. Challenge unsupported assumptions with concrete counterexamples, without manufacturing disagreement.

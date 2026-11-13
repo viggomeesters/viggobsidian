@@ -29,3 +29,20 @@ Pakketinstallatie en lokale profielmigratie zijn verschillende transacties. De
 updater verwijdert uitsluitend exact bekende, ongewijzigde, beheerde oude assets;
 profiel- en lokale eigenaarbestanden blijven bij hun eigen migrator. Historische
 padinventaris is rollbackdata zonder bodies, native ingangen of aliaswerking.
+
+`viggobsidian skill-check --vault ROOT` controleert read-only alle dertien
+manifestbeheerde skillinstructies en referenties, onafhankelijk van source-lock.
+Het controleert exact dezelfde tien unieke kernidentiteiten in manifest, actuele
+ingangen, native-surface, source-lock, catalogus en identiteitsroutes. De bestaande
+registers onder `.agents/skills/_bundle/` blijven onderhoudsdata; zij kiezen geen
+eigenaar en verlenen geen writerautoriteit. JSON/YAML met dubbele sleutels wordt
+afgekeurd. Exit 0 betekent geen bevindingen, 1 bevat `errors`, en 2 bevat een
+JSON-`error` voor een onleesbare of ongeldige installatie/registerstructuur.
+Het veld `vault` meldt de canonieke expliciet geselecteerde doelroot.
+Een lokale profielinstaller kan deze controle aanroepen zonder een tweede
+implementatie van hash- en identiteitsregels.
+
+De effectkaart is een read-only capabilitycontrole, geen verplichte intake van
+alle genoemde contracttekst. Laad inhoudelijke contracten effectafhankelijk zoals
+voorgeschreven door vault/SKILL.md; concrete providers behouden hun volledige
+writer- en herstelgrenzen.

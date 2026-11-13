@@ -5,6 +5,8 @@ description: "Investigate or recheck code, products, documents or processes usin
 
 # Investigate and verify
 
+When a target owner or repository is selected, read its optional `.agents/skill-adapters/audit.md` for relevant local criteria and sources. The skill installation does not select that owner; load only context needed for this request and never fall back to another vault.
+
 Resolve the chosen subject and scope from the current request. A recheck targets the original request and just-delivered result; an audit does not automatically select the last thing the agent did. Read the actual sources and operating instructions. Default investigation is read-only: recommendations are not repair, task creation or publication authority.
 
 Define the behavior or acceptance being tested, inspect current evidence and try meaningful counterexamples. Separate confirmed failures, plausible risks and missing evidence. A reviewer should be able to reproduce an actionable finding from its trigger, location, consequence and expected behavior. Prioritise material correctness, data integrity and user impact over preference. A clean scanner or passing build does not establish semantic correctness or a usable interface.

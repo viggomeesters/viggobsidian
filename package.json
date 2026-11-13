@@ -347,17 +347,17 @@
       "target": ".viggobsidian/core/skill-library.json"
     },
     {
-      "sha256": "b8d1aa04b1367a619ad45a5c070bb56e10a1a62b5d5e09a93de0bd370d3e8bde",
+      "sha256": "bcb3c583abc83b5a048a7ee752a716655aead9f404a371fb7db118779abb2117",
       "source": "docs/skill-library.md",
       "target": ".viggobsidian/core/skill-library.md"
     },
     {
-      "sha256": "9a766c0504c34b5b9aee7f5d0fe0c5ad1d8e7cf2aaca289daa34ead12fd7860c",
+      "sha256": "5d0f16d8651281cf98b151450a3286c7c91293246fc90461bf9cb82ac227b4a7",
       "source": "skills/audit/SKILL.md",
       "target": ".agents/skills/audit/SKILL.md"
     },
     {
-      "sha256": "84487d621383d70a277e673f86693b8e9b82410da979af19e67788a82c93fe5d",
+      "sha256": "203687b33fd203641d683a5b7c88097853ceef440fb44823ca84a997f81ab0ed",
       "source": "skills/brainstorm/SKILL.md",
       "target": ".agents/skills/brainstorm/SKILL.md"
     },
@@ -402,7 +402,7 @@
       "target": ".agents/skills/output/references/interface-check.md"
     },
     {
-      "sha256": "32815c44a0c8d2a756634392f599773adea74c86924d05f1e9aed6a1b44fe29b",
+      "sha256": "c0d41b11588b3ccb014bfe6143daec2d6dbe69b22e901b4f48a2271049d36712",
       "source": "skills/research/SKILL.md",
       "target": ".agents/skills/research/SKILL.md"
     },
@@ -457,7 +457,7 @@
       "target": ".viggobsidian/core/procedures/task.md"
     }
   ],
-  "revision": "079ae65294d591954e3dc7cd8d0af932a2b2469d",
+  "revision": "d2da88fa3a251c07445dab903ce475f313fa84b9",
   "schema": "viggobsidian.package.v1",
-  "version": "0.23.0"
+  "version": "0.24.0"
 }
