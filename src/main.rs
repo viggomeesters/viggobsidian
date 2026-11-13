@@ -231,6 +231,7 @@ fn allowed(target: &str) -> bool {
         "mail-format.md",
         "mail-draft.md",
         "skills.md",
+        "plugin-check.md",
         "updates.md",
         "numbered-v1.yaml",
         "vault-schema.yaml",

@@ -999,3 +999,27 @@ fn complete_distribution_is_inside_current_package_write_allowlist() {
         assert!(allowed(field(row, "target").unwrap()), "{}", row["target"]);
     }
 }
+
+#[test]
+fn installed_skills_reference_has_its_exact_plugin_check_contract() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    let source = "docs/plugin-check.md";
+    let target = ".viggobsidian/core/plugin-check.md";
+    assert!(allowed(target));
+    assert!(!allowed(".viggobsidian/core/unreviewed-plugin-contract.md"));
+    assert!(root.join(source).is_file());
+    assert_eq!(
+        rows(&distribution, "files")
+            .unwrap()
+            .iter()
+            .filter(|row| row["source"] == source && row["target"] == target)
+            .count(),
+        1
+    );
+    assert!(
+        fs::read_to_string(root.join("docs/skills.md"))
+            .unwrap()
+            .contains("[plugin-check](plugin-check.md)")
+    );
+}
