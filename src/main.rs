@@ -12,6 +12,7 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod css;
 mod plugin_check;
 mod procedure_surface;
+mod skill_check;
 mod skill_library;
 // Historical targets remain readable/restorable; new packages cannot write them.
 const RETIRED_GO: &[&str] = &[
@@ -909,6 +910,11 @@ fn run() -> Result<bool> {
             ok = out["phasePassed"] == true;
             out
         }
+        "skill-check" => {
+            let out = skill_check::run(&root(Path::new(get("--vault")?))?)?;
+            ok = rows(&out, "errors")?.is_empty();
+            out
+        }
         "css-split" => {
             let (shared, routes) = css::split(&fs::read_to_string(get("--input")?)?)?;
             json!({"shared":shared,"appearance":{"schema":"viggobsidian.appearance.v1","routes":routes}})
@@ -943,7 +949,7 @@ fn run() -> Result<bool> {
             println!(concat!(
                 "viggobsidian ",
                 env!("CARGO_PKG_VERSION"),
-                "\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--preview-intent public-review|local-private] [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nPreview intent defaults to public-review; local-private is only valid for source-preview.\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md, docs/plugin-check.md and skills/github-work/references/obsidian-plugins.md."
+                "\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nskill-check --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--preview-intent public-review|local-private] [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nPreview intent defaults to public-review; local-private is only valid for source-preview.\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md, docs/plugin-check.md and skills/github-work/references/obsidian-plugins.md."
             ));
             return Ok(true);
         }
@@ -957,7 +963,14 @@ fn main() {
         Ok(true) => {}
         Ok(false) => std::process::exit(1),
         Err(e) => {
-            eprintln!("{e}");
+            if std::env::args().nth(1).as_deref() == Some("skill-check") {
+                println!(
+                    "{}",
+                    json!({"schema":"viggobsidian.skill-check.v1","error":e.to_string()})
+                );
+            } else {
+                eprintln!("{e}");
+            }
             std::process::exit(2);
         }
     }

@@ -5,6 +5,8 @@ description: "Collect and evaluate sources to answer questions and compare purch
 
 # Research from sources
 
+When a target owner or repository is selected, read its optional `.agents/skill-adapters/research.md` for relevant local criteria and sources. The skill installation does not select that owner; load only context needed for this request and never fall back to another vault.
+
 Resolve the actual question, decision, constraints, timeframe and audience. Search connected sources when they may contain relevant context before asking for information already available. Use current primary sources for changing facts, exact claims and technical behavior. Keep publication date distinct from event date and source observation date. Read enough context to establish what a source supports.
 
 Compare options against the user criteria with usable availability, costs, conditions and uncertainty. Distinguish verified fact, source claim, inference and recommendation. Cite the source close to the claim and retain exact useful links. An estimate needs stated inputs and reproducible calculations; unknown values are not zero. Do not present incompatible scope or stale prices as a precise comparison.
