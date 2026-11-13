@@ -231,6 +231,7 @@ fn allowed(target: &str) -> bool {
         "mail-format.md",
         "mail-draft.md",
         "skills.md",
+        "plugin-check.md",
         "updates.md",
         "numbered-v1.yaml",
         "vault-schema.yaml",
@@ -942,7 +943,7 @@ fn run() -> Result<bool> {
             println!(concat!(
                 "viggobsidian ",
                 env!("CARGO_PKG_VERSION"),
-                "\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md and skills/github-work/references/obsidian-plugins.md."
+                "\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--preview-intent public-review|local-private] [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nPreview intent defaults to public-review; local-private is only valid for source-preview.\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md, docs/plugin-check.md and skills/github-work/references/obsidian-plugins.md."
             ));
             return Ok(true);
         }

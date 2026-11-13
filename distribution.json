@@ -109,6 +109,10 @@
       "target": ".viggobsidian/core/skills.md"
     },
     {
+      "source": "docs/plugin-check.md",
+      "target": ".viggobsidian/core/plugin-check.md"
+    },
+    {
       "source": "docs/updates.md",
       "target": ".viggobsidian/core/updates.md"
     },

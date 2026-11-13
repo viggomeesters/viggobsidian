@@ -4,6 +4,48 @@ use sha2::{Digest, Sha256};
 use std::{collections::BTreeMap, fs, path::Path, process::Command};
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const SUFFIX: &[u8] = b"\n/* nosourcemap */";
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum PreviewIntent {
+    PublicReview,
+    LocalPrivate,
+}
+impl PreviewIntent {
+    fn from_args(args: &[String], phase: &str) -> Result<Self> {
+        let mut selected = None;
+        for (index, arg) in args.iter().enumerate() {
+            let value = if arg == "--preview-intent" {
+                Some(
+                    args.get(index + 1)
+                        .filter(|value| !value.starts_with("--"))
+                        .map(String::as_str)
+                        .ok_or("missing value for --preview-intent")?,
+                )
+            } else {
+                arg.strip_prefix("--preview-intent=")
+            };
+            if let Some(value) = value
+                && selected.replace(value).is_some()
+            {
+                return Err("duplicate --preview-intent".into());
+            }
+        }
+        Self::parse(selected.unwrap_or("public-review"), phase)
+    }
+    fn parse(value: &str, phase: &str) -> Result<Self> {
+        match value {
+            "public-review" => Ok(Self::PublicReview),
+            "local-private" if phase == "source-preview" => Ok(Self::LocalPrivate),
+            "local-private" => Err("local-private intent is only valid for source-preview".into()),
+            _ => Err("invalid --preview-intent; use public-review or local-private".into()),
+        }
+    }
+    fn name(self) -> &'static str {
+        match self {
+            Self::PublicReview => "public-review",
+            Self::LocalPrivate => "local-private",
+        }
+    }
+}
 fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
@@ -289,8 +331,18 @@ pub(crate) fn evaluate(
     phase: &str,
     initial: bool,
     repo: &str,
+    intent: PreviewIntent,
 ) -> Value {
     let mut checks = Vec::new();
+    // The scope is checked again here so non-CLI callers cannot use a private
+    // preview intent to weaken a publication phase.
+    let private_preview = intent == PreviewIntent::LocalPrivate && phase == "source-preview";
+    boolean(
+        &mut checks,
+        "preview-intent-scope",
+        intent != PreviewIntent::LocalPrivate || private_preview,
+        "Local-private acceptance is limited to source-preview; publication requires public source and release/catalog evidence.",
+    );
     let m = &local["manifest"];
     let version = m["version"].as_str().unwrap_or("");
     let id = m["id"].as_str().unwrap_or("");
@@ -374,7 +426,14 @@ pub(crate) fn evaluate(
             .is_some_and(|s| s.trim_start().starts_with("NODE_ENV=")),
         "Use a portable build command, not a shell-specific environment prefix.",
     );
-    if remote["repo"]["state"] != "ok" {
+    if private_preview {
+        check(
+            &mut checks,
+            "public-repository",
+            "expected",
+            "Explicit local-private preview: public source is not asserted or verified. Official review still requires public-review intent.",
+        );
+    } else if remote["repo"]["state"] != "ok" {
         check(
             &mut checks,
             "public-repository",
@@ -451,12 +510,12 @@ pub(crate) fn evaluate(
         check(
             &mut checks,
             "public-release",
-            if remote["release"]["state"] == "error" {
+            if !private_preview && remote["release"]["state"] == "error" {
                 "pending"
             } else {
                 "expected"
             },
-            "A missing/draft candidate is permitted before an existing-plugin source preview; this is not permission to submit a new plugin yet.",
+            "A release is not required for source preview; preview acceptance does not establish a public release or permission to submit a new plugin.",
         );
     } else {
         check(
@@ -546,6 +605,17 @@ pub(crate) fn evaluate(
                 "expected",
                 "For a first submission publish/check the GitHub release before registration. Do not require an unavailable pre-registration dashboard preview.",
             );
+        } else if evidence["sourcePreview"]["previewIntent"]
+            .as_str()
+            .is_some_and(|intent| intent != "public-review")
+            || evidence["sourcePreview"]["claimCeiling"] == "private-local-preview-only"
+        {
+            check(
+                &mut checks,
+                "sourcePreview",
+                "pending",
+                "Private local preview evidence cannot establish official public source review.",
+            );
         } else {
             proof(&mut checks, evidence, "sourcePreview", &local["commit"]);
         }
@@ -609,7 +679,7 @@ pub(crate) fn evaluate(
     let passed = checks
         .iter()
         .all(|c| c["status"] == "pass" || c["status"] == "expected");
-    json!({"schema":"viggobsidian.obsidian-plugin-preflight.v1","phase":phase,"initialSubmission":initial,"repository":repo,"version":m["version"],"candidateCommit":local["commit"],"bundleSHA256":local["assets"]["main.js"],"phasePassed":passed,"deliveryComplete":passed&&phase=="catalog-install","claimCeiling":match phase{"source-preview"=>"ready-for-source-preview-only","public-release"=>"public-GitHub-release-only",_=>"catalog-installation-acceptance"},"evidenceAuthority":"Local/host/review/channel statuses are supplied evidence, not newly executed or independently certified by this checker.","readOnly":true,"checks":checks})
+    json!({"schema":"viggobsidian.obsidian-plugin-preflight.v1","phase":phase,"previewIntent":intent.name(),"initialSubmission":initial,"repository":repo,"version":m["version"],"candidateCommit":local["commit"],"bundleSHA256":local["assets"]["main.js"],"phasePassed":passed,"deliveryComplete":passed&&phase=="catalog-install","publicAvailabilityVerified":passed&&matches!(phase,"public-release"|"catalog-install"),"claimCeiling":if private_preview{"private-local-preview-only"}else{match phase{"source-preview"=>"ready-for-source-preview-only","public-release"=>"public-GitHub-release-only",_=>"catalog-installation-acceptance"}},"evidenceAuthority":"Local/host/review/channel statuses are supplied evidence, not newly executed or independently certified by this checker.","readOnly":true,"checks":checks})
 }
 pub(crate) fn run(args: &[String]) -> Result<Value> {
     let get = |key: &str| -> Result<&str> {
@@ -637,6 +707,7 @@ pub(crate) fn run(args: &[String]) -> Result<Value> {
     if !["source-preview", "public-release", "catalog-install"].contains(&phase) {
         return Err("invalid plugin-check phase".into());
     }
+    let intent = PreviewIntent::from_args(args, phase)?;
     let dir = super::root(Path::new(get("--repo-dir")?))?;
     let candidate = if args.iter().any(|a| a == "--candidate") {
         get("--candidate")?
@@ -654,7 +725,11 @@ pub(crate) fn run(args: &[String]) -> Result<Value> {
         json!({})
     };
     let local = local(&dir, candidate, installed)?;
-    let remote = remote(repo, &local, phase);
+    let remote = if intent == PreviewIntent::LocalPrivate {
+        json!({"state":"not-requested","reason":"explicit local-private preview"})
+    } else {
+        remote(repo, &local, phase)
+    };
     Ok(evaluate(
         &local,
         &remote,
@@ -662,6 +737,7 @@ pub(crate) fn run(args: &[String]) -> Result<Value> {
         phase,
         args.iter().any(|a| a == "--initial"),
         repo,
+        intent,
     ))
 }
 
@@ -696,7 +772,15 @@ mod tests {
         (local, remote, evidence)
     }
     fn result(l: &Value, r: &Value, e: &Value, phase: &str, initial: bool) -> Value {
-        evaluate(l, r, e, phase, initial, "example/plugin")
+        evaluate(
+            l,
+            r,
+            e,
+            phase,
+            initial,
+            "example/plugin",
+            PreviewIntent::PublicReview,
+        )
     }
     fn status(out: &Value, id: &str) -> String {
         out["checks"]
@@ -717,6 +801,223 @@ mod tests {
         assert_eq!(out["phasePassed"], true);
         assert_eq!(out["deliveryComplete"], false);
         assert_eq!(status(&out, "public-release"), "expected");
+    }
+    #[test]
+    fn private_preview_accepts_local_proof_without_asserting_visibility_or_delivery() {
+        let (l, mut r, e) = fixture();
+        for metadata in [
+            json!({"state":"ok","value":{"private":true}}),
+            json!({"state":"error","detail":"HTTP 403"}),
+            Value::Null,
+        ] {
+            r["repo"] = metadata;
+            r["release"] = json!({"state":"error"});
+            let out = evaluate(
+                &l,
+                &r,
+                &e,
+                "source-preview",
+                false,
+                "example/plugin",
+                PreviewIntent::LocalPrivate,
+            );
+            assert_eq!(out["phasePassed"], true);
+            assert_eq!(out["previewIntent"], "local-private");
+            assert_eq!(out["claimCeiling"], "private-local-preview-only");
+            assert_eq!(out["deliveryComplete"], false);
+            assert_eq!(out["publicAvailabilityVerified"], false);
+            assert_eq!(status(&out, "public-repository"), "expected");
+        }
+    }
+    #[test]
+    fn official_preview_still_requires_public_source_and_exact_local_proof() {
+        let (l, mut r, e) = fixture();
+        r["repo"]["value"]["private"] = json!(true);
+        let out = result(&l, &r, &e, "source-preview", false);
+        assert_eq!(status(&out, "public-repository"), "fail");
+        assert_eq!(out["phasePassed"], false);
+        r["repo"]["value"]["private"] = json!(false);
+        let out = result(&l, &r, &e, "source-preview", false);
+        assert_eq!(out["phasePassed"], true);
+        assert_eq!(out["previewIntent"], "public-review");
+        assert_eq!(out["publicAvailabilityVerified"], false);
+    }
+    #[test]
+    fn private_preview_does_not_bypass_candidate_hash_host_or_review_checks() {
+        let (l, r, e) = fixture();
+        for defect in ["candidate", "hash", "host", "review"] {
+            let mut local = l.clone();
+            let mut evidence = e.clone();
+            match defect {
+                "candidate" => local["candidateBound"] = json!(false),
+                "hash" => evidence["candidate"]["bundleSHA256"] = json!("other"),
+                "host" => evidence["hostValidation"]["unloadPassed"] = json!(false),
+                _ => evidence["independentReview"]["commit"] = json!("old"),
+            }
+            let out = evaluate(
+                &local,
+                &r,
+                &evidence,
+                "source-preview",
+                false,
+                "example/plugin",
+                PreviewIntent::LocalPrivate,
+            );
+            assert_eq!(out["phasePassed"], false, "{defect}");
+        }
+    }
+    #[test]
+    fn private_intent_cannot_weaken_publication_even_outside_cli() {
+        let (l, mut r, e) = fixture();
+        for phase in ["public-release", "catalog-install"] {
+            assert!(PreviewIntent::parse("local-private", phase).is_err());
+            let out = evaluate(
+                &l,
+                &r,
+                &e,
+                phase,
+                true,
+                "example/plugin",
+                PreviewIntent::LocalPrivate,
+            );
+            assert_eq!(status(&out, "preview-intent-scope"), "fail");
+            assert_eq!(out["phasePassed"], false);
+            assert_eq!(out["deliveryComplete"], false);
+            assert_eq!(out["publicAvailabilityVerified"], false);
+            r["repo"]["value"]["private"] = json!(true);
+            let out = result(&l, &r, &e, phase, true);
+            assert_eq!(status(&out, "public-repository"), "fail");
+            assert_eq!(out["phasePassed"], false);
+            r["repo"]["value"]["private"] = json!(false);
+        }
+        assert!(PreviewIntent::parse("skip", "source-preview").is_err());
+    }
+    #[test]
+    fn cli_rejects_ambiguous_or_invalid_intent_before_collection() {
+        // This sentinel cannot pass root resolution: receiving the exact intent
+        // error proves collection never reaches filesystem or command access.
+        let prefix = [
+            "--github",
+            "example/plugin",
+            "--repo-dir",
+            "/nonexistent-plugin-check-collection-sentinel",
+            "--phase",
+            "source-preview",
+        ];
+        for (options, expected) in [
+            (
+                vec!["--preview-intent"],
+                "missing value for --preview-intent",
+            ),
+            (
+                vec!["--preview-intent", "--initial"],
+                "missing value for --preview-intent",
+            ),
+            (
+                vec!["--preview-intent=nonsense"],
+                "invalid --preview-intent; use public-review or local-private",
+            ),
+            (
+                vec!["--preview-intent="],
+                "invalid --preview-intent; use public-review or local-private",
+            ),
+            (
+                vec!["--preview-intent", "nonsense"],
+                "invalid --preview-intent; use public-review or local-private",
+            ),
+            (
+                vec![
+                    "--preview-intent",
+                    "local-private",
+                    "--preview-intent",
+                    "public-review",
+                ],
+                "duplicate --preview-intent",
+            ),
+            (
+                vec![
+                    "--preview-intent=local-private",
+                    "--preview-intent=public-review",
+                ],
+                "duplicate --preview-intent",
+            ),
+            (
+                vec![
+                    "--preview-intent=local-private",
+                    "--preview-intent",
+                    "local-private",
+                ],
+                "duplicate --preview-intent",
+            ),
+        ] {
+            let args: Vec<_> = prefix
+                .iter()
+                .copied()
+                .chain(options)
+                .map(String::from)
+                .collect();
+            assert_eq!(run(&args).unwrap_err().to_string(), expected);
+        }
+        let args: Vec<_> = [
+            "--github",
+            "example/plugin",
+            "--phase",
+            "public-release",
+            "--preview-intent=local-private",
+        ]
+        .iter()
+        .map(|s| String::from(*s))
+        .collect();
+        assert_eq!(
+            run(&args).unwrap_err().to_string(),
+            "local-private intent is only valid for source-preview"
+        );
+    }
+    #[test]
+    fn cli_intent_forms_and_default_are_unambiguous() {
+        assert!(
+            PreviewIntent::from_args(&[], "source-preview").unwrap() == PreviewIntent::PublicReview
+        );
+        for args in [
+            vec!["--preview-intent", "local-private"],
+            vec!["--preview-intent=local-private"],
+        ] {
+            let args: Vec<_> = args.into_iter().map(String::from).collect();
+            assert!(
+                PreviewIntent::from_args(&args, "source-preview").unwrap()
+                    == PreviewIntent::LocalPrivate
+            );
+        }
+    }
+    #[test]
+    fn publication_claims_require_public_release_and_actual_catalog_install() {
+        let (l, r, mut e) = fixture();
+        let release = result(&l, &r, &e, "public-release", true);
+        assert_eq!(release["publicAvailabilityVerified"], true);
+        assert_eq!(release["deliveryComplete"], false);
+        let catalog = result(&l, &r, &e, "catalog-install", true);
+        assert_eq!(catalog["publicAvailabilityVerified"], true);
+        assert_eq!(catalog["deliveryComplete"], true);
+        e["catalogInstall"]["channel"] = json!("manual");
+        let manual = result(&l, &r, &e, "catalog-install", true);
+        assert_eq!(manual["deliveryComplete"], false);
+        assert_eq!(manual["publicAvailabilityVerified"], false);
+    }
+    #[test]
+    fn private_preview_evidence_cannot_substitute_for_official_source_review() {
+        let (l, r, e) = fixture();
+        for (field, value) in [
+            ("previewIntent", "local-private"),
+            ("claimCeiling", "private-local-preview-only"),
+        ] {
+            let mut evidence = e.clone();
+            evidence["sourcePreview"][field] = json!(value);
+            for phase in ["public-release", "catalog-install"] {
+                let out = result(&l, &r, &evidence, phase, false);
+                assert_eq!(status(&out, "sourcePreview"), "pending");
+                assert_eq!(out["phasePassed"], false);
+            }
+        }
     }
     #[test]
     fn initial_submission_requires_public_release_without_impossible_preview() {
@@ -1162,5 +1463,34 @@ mod collector_tests {
             dereference_tag(first, |_| json!({"state":"error","detail":"HTTP403"}))["state"],
             "error"
         );
+    }
+    #[test]
+    fn private_cli_collects_local_candidate_without_remote_metadata() {
+        let fixture = Fixture::new();
+        let output = run(&[
+            "--github".into(),
+            "example/not-a-published-plugin".into(),
+            "--repo-dir".into(),
+            fixture
+                .repo()
+                .canonicalize()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .into(),
+            "--phase".into(),
+            "source-preview".into(),
+            "--preview-intent".into(),
+            "local-private".into(),
+        ])
+        .unwrap();
+        assert_eq!(output["previewIntent"], "local-private");
+        assert_eq!(
+            output["candidateCommit"],
+            git(&fixture.repo(), &["rev-parse", "HEAD"]).unwrap()
+        );
+        assert_eq!(output["phasePassed"], false); // Run/review proof was not supplied.
+        assert_eq!(output["publicAvailabilityVerified"], false);
+        assert_eq!(output["deliveryComplete"], false);
     }
 }

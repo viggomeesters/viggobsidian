@@ -34,3 +34,7 @@ bij de bestaande eigenaar. De publieke pakket-CLI is geen bron-/taakwriter.
 Obsidian-pluginwerk gebruikt github-work/references/obsidian-plugins.md voor de
 grenzen van source-preview, public-release en catalog-install. plugin-check toetst
 kandidaat, exacte releasebytes en optioneel echte installatie afzonderlijk.
+Een lokale privépreview vraagt expliciet `--preview-intent local-private` bij
+`source-preview`; standaard blijft `public-review` met publieke bron verplicht.
+Privépreviewacceptatie bewijst geen zichtbaarheid, publicatie of catalogusinstallatie.
+CLI- en bewijssemantiek staan in [plugin-check](plugin-check.md).
