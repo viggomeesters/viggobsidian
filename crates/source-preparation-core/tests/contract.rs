@@ -21,7 +21,10 @@ fn fictional_prepare_matches_frozen_postimage_and_preserves_original() {
     assert_eq!(result["status"], "complete", "{result}");
     assert_eq!(
         result["postimage"],
-        serde_json::from_str::<String>(include_str!("../fixtures/prepared.json")).unwrap()
+        serde_json::from_str::<String>(include_str!(
+            "../../vault-layout/fixtures/source-prepared-v1.json"
+        ))
+        .unwrap()
     );
     assert_eq!(result["before_sha256"], hash(ORIGINAL));
     assert_eq!(result["original_sha256"], hash(ORIGINAL));
@@ -58,7 +61,10 @@ fn marking_is_exact_and_rejects_changed_original_or_native_header() {
     assert_eq!(out["status"], "complete", "{out}");
     assert_eq!(
         out["postimage"],
-        serde_json::from_str::<String>(include_str!("../fixtures/processed.json")).unwrap()
+        serde_json::from_str::<String>(include_str!(
+            "../../vault-layout/fixtures/source-processed-v1.json"
+        ))
+        .unwrap()
     );
     for (field, value) in [
         (

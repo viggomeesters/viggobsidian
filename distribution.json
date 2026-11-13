@@ -1,6 +1,14 @@
 {
   "files": [
     {
+      "source": "crates/vault-layout/fixtures/source-prepared-v1.json",
+      "target": ".agents/tools/vault-layout/fixtures/source-prepared-v1.json"
+    },
+    {
+      "source": "crates/vault-layout/fixtures/source-processed-v1.json",
+      "target": ".agents/tools/vault-layout/fixtures/source-processed-v1.json"
+    },
+    {
       "source": "crates/wiki-layout-core/Cargo.toml",
       "target": ".agents/tools/wiki-layout-core/Cargo.toml"
     },

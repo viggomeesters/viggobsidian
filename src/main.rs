@@ -173,6 +173,8 @@ fn allowed(target: &str) -> bool {
         "activity-deliveries.md",
         "procedure-assets.json",
         "navigation-contract.yaml",
+        "source-prepared-v1.json",
+        "source-processed-v1.json",
         "vault-raw.base",
         "vault-dossier.base",
     ]
