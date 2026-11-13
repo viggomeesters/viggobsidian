@@ -62,14 +62,14 @@ fn instruction_files(vault: &Path, path: &str, found: &mut BTreeSet<String>) -> 
         if kind.is_symlink() {
             // Code/assets may retain provider-owned links. Never traverse them;
             // manifest-owned instruction links are rejected by digest_at above.
-            if child.ends_with(".md") {
+            if path == ".agents/skills" || child.ends_with(".md") {
                 return fail(format!("symlink refused: {child}"));
             }
             continue;
         }
         if kind.is_dir() {
             instruction_files(vault, &child, found)?;
-        } else if child.ends_with(".md") {
+        } else if path == ".agents/skills" || child.ends_with(".md") {
             found.insert(child);
         }
     }
@@ -376,6 +376,16 @@ mod tests {
             f.0.join(".agents/skills/vendor/SKILL.md"),
         )
         .unwrap();
+        assert!(run(&f.0).is_err());
+    }
+    #[cfg(unix)]
+    #[test]
+    fn top_level_discovery_links_cannot_hide_an_extra_skill() {
+        let f = Fixture::new();
+        let external = f.0.join("external");
+        fs::create_dir_all(&external).unwrap();
+        fs::write(external.join("SKILL.md"), b"extra skill").unwrap();
+        std::os::unix::fs::symlink(&external, f.0.join(".agents/skills/retired")).unwrap();
         assert!(run(&f.0).is_err());
     }
     #[test]
