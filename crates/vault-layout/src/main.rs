@@ -1164,15 +1164,15 @@ impl Scan<'_> {
         match fs::symlink_metadata(path) {
             Ok(metadata) if metadata.is_file() => {}
             Ok(_) => {
-                self.issue(
-                    path,
-                    "folder-note",
-                    "entrance must be a regular Markdown file",
-                );
+                let (code, message) =
+                    structure_core::entrance_finding(structure_core::Entrance::NotFile).unwrap();
+                self.issue(path, code, message);
                 return Ok(None);
             }
             Err(error) if error.kind() == io::ErrorKind::NotFound => {
-                self.issue(path, "folder-note", "missing matching folder note");
+                let (code, message) =
+                    structure_core::entrance_finding(structure_core::Entrance::Missing).unwrap();
+                self.issue(path, code, message);
                 return Ok(None);
             }
             Err(error) => return Err(error),
@@ -2472,6 +2472,64 @@ fn test_root() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fictional_visible_entrances_match_native_filesystem_findings() {
+        let fixture: Value =
+            serde_json::from_str(include_str!("../../structure-core/fixtures/dossier.json"))
+                .unwrap();
+        let root = std::env::temp_dir().join(format!("structure-proof-{}", std::process::id()));
+        fs::create_dir_all(&root).unwrap();
+        for entry in fixture["input"]["entries"].as_array().unwrap() {
+            let target = root.join(entry["path"].as_str().unwrap());
+            if entry["kind"] == "folder" {
+                fs::create_dir_all(target).unwrap();
+            } else {
+                fs::write(target, "---\ntype: note\n---\n# Fiction\n").unwrap();
+            }
+        }
+        let mut scan = Scan {
+            vault: &root,
+            schema: &Value::Null,
+            tile_styles: Vec::new(),
+            findings: Vec::new(),
+            folders: 0,
+            tiles: 0,
+            shortcuts: 0,
+            notes: OnceCell::new(),
+            dossier_tables_checked: BTreeSet::new(),
+            raw_summary_checked: false,
+            strict: false,
+        };
+        for folder in fixture["input"]["folders"].as_array().unwrap() {
+            let folder = folder.as_str().unwrap();
+            let name = folder.rsplit('/').next().unwrap();
+            scan.note(&root.join(folder).join(format!("{name}.md")))
+                .unwrap();
+        }
+        let mut actual: Vec<_> = scan.findings.iter().map(|finding| json!({"path":finding.path.to_string_lossy().replace('\\',"/"),"code":finding.code,"message":finding.message})).collect();
+        actual.sort_by_key(|finding| finding["path"].as_str().unwrap().to_owned());
+        assert_eq!(json!(actual), fixture["expected"]["findings"]);
+        assert_eq!(
+            structure_core::respond(&serde_json::to_vec(&fixture["input"]).unwrap()),
+            fixture["expected"]
+        );
+        // A visible file inventory cannot certify the native symlink boundary.
+        #[cfg(unix)]
+        {
+            std::os::unix::fs::symlink(
+                root.join("fiction/fiction.md"),
+                root.join("fiction/link.md"),
+            )
+            .unwrap();
+            scan.note(&root.join("fiction/link.md")).unwrap();
+            assert_eq!(
+                scan.findings.last().unwrap().message,
+                "entrance must be a regular Markdown file"
+            );
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn collection_shortcuts_require_the_parent_and_current_folder() {

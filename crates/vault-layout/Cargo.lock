@@ -283,6 +283,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0d5d4b1981b8bbbb7aed204cae5726d683d5d6ac7e74ec54122ea28f315e7c8"
 
 [[package]]
+name = "structure-core"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "syn"
 version = "3.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -320,6 +327,7 @@ dependencies = [
  "serde-saphyr",
  "serde_json",
  "sha2",
+ "structure-core",
  "wiki-layout-core",
 ]
 

@@ -1,6 +1,22 @@
 {
   "files": [
     {
+      "source": "crates/structure-core/Cargo.toml",
+      "target": ".agents/tools/structure-core/Cargo.toml"
+    },
+    {
+      "source": "crates/structure-core/src/lib.rs",
+      "target": ".agents/tools/structure-core/src/lib.rs"
+    },
+    {
+      "source": "crates/structure-core/src/wasm.rs",
+      "target": ".agents/tools/structure-core/src/wasm.rs"
+    },
+    {
+      "source": "crates/structure-core/fixtures/dossier.json",
+      "target": ".agents/tools/structure-core/fixtures/dossier.json"
+    },
+    {
       "source": "crates/vault-layout/fixtures/source-prepared-v1.json",
       "target": ".agents/tools/vault-layout/fixtures/source-prepared-v1.json"
     },

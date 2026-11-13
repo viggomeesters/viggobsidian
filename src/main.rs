@@ -199,6 +199,17 @@ fn allowed(target: &str) -> bool {
     if [
         "Cargo.toml",
         "src/lib.rs",
+        "src/wasm.rs",
+        "fixtures/dossier.json",
+    ]
+    .iter()
+    .any(|name| target == format!(".agents/tools/structure-core/{name}"))
+    {
+        return true;
+    }
+    if [
+        "Cargo.toml",
+        "src/lib.rs",
         "src/snapshot.rs",
         "src/wasm.rs",
         "src/activity_layout.rs",

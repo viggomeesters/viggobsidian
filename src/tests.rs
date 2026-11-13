@@ -1,6 +1,38 @@
 use super::*;
 
 #[test]
+fn installed_structure_core_has_exact_required_path_dependency_sources() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    for name in [
+        "Cargo.toml",
+        "src/lib.rs",
+        "src/wasm.rs",
+        "fixtures/dossier.json",
+    ] {
+        let source = format!("crates/structure-core/{name}");
+        let target = format!(".agents/tools/structure-core/{name}");
+        assert!(allowed(&target));
+        assert!(root.join(&source).is_file());
+        assert_eq!(
+            rows(&distribution, "files")
+                .unwrap()
+                .iter()
+                .filter(|row| row["source"] == source && row["target"] == target)
+                .count(),
+            1
+        );
+    }
+    assert!(!allowed(".agents/tools/structure-core/src/unreviewed.rs"));
+    assert!(!allowed(
+        ".agents/tools/structure-core/../../records/private.jsonl"
+    ));
+    assert!(!allowed(
+        ".agents/tools/structure-core/src/bin/structure-snapshot-check.rs"
+    ));
+}
+
+#[test]
 fn installed_activity_core_has_all_exact_path_dependency_sources() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let distribution = read_json(&root.join("distribution.json")).unwrap();

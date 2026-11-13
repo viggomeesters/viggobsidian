@@ -1,6 +1,6 @@
 [package]
 name = "viggobsidian"
-version = "0.27.0"
+version = "0.27.1"
 default-run = "viggobsidian"
 edition = "2024"
 rust-version = "1.89"
@@ -14,5 +14,5 @@ sha2 = "=0.10.9"
 serde-saphyr = { version = "=2.0.0", default-features = false, features = ["deserialize"] }
 
 [workspace]
-members = ["crates/vault-layout", "crates/link-style-core", "crates/wiki-layout-core", "crates/source-preparation-core", "crates/activity-core"]
+members = ["crates/vault-layout", "crates/link-style-core", "crates/wiki-layout-core", "crates/source-preparation-core", "crates/activity-core", "crates/structure-core"]
 resolver = "3"

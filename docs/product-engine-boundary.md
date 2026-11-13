@@ -50,6 +50,12 @@ Portable Wiki v2 requires typed `frontmatter_present`; selected Wiki targets wit
 
 ## Activity text v1
 
+The separate [structure capability experiment](structure-capabilities.md)
+documents the next bounded slice: existing matching-entrance diagnostics shared
+with explicit visible-inventory input. It does not transfer native regular-file,
+symlink, profile discovery or package guarantees to Obsidian, and adds no plugin
+command. Engine #92 and ViggVault #7 own its proof and capability design.
+
 Engine [#86](https://github.com/viggomeesters/viggobsidian/issues/86) owns `activity-core`; product [#6](https://github.com/viggomeesters/obsidian-vigg-vault/issues/6) owns its Obsidian interface. The existing Activity layout, provenance/result-goal, delivery chronology and mail-draft text checks now live once in this Rust crate. Native modules reexport them; native strict/metadata selection, messages, writer paths and historical exceptions remain unchanged. `link-style-core` supplies the existing visible-body/quote helpers without changing its bytes.
 
 The portable input is `schema: viggobsidian.activity-snapshot.v1`, `ruleset: activity-text.v1`, `complete: true`, `profile: numbered-v1`, visible relative Markdown `path`, typed `frontmatter_present`, mapping `metadata` containing only `cssclasses`, `activity_format`, `activity_contract`, and `body` after metadata. Missing capture fields, invalid metadata shapes and absent frontmatter under the selected profile return Incomplete. Host YAML parsing is an explicit platform boundary; this mapping protocol does not claim byte-level native YAML-parser parity. Line endings normalize like the native frontmatter adapter. The fixed leading knowledge-owner notice contains no Activity tokens; its presence cannot change these text results, covered by fixtures.

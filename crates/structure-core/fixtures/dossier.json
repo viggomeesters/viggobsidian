@@ -1,0 +1,31 @@
+{
+  "origin": "Frozen from Scan::note at engine 52d5dd2780ab539aa0ad87cd9f4aa1d92959e530; fictional visible kinds only; no native symlink claim",
+  "input": {
+    "schema": "viggobsidian.structure-snapshot.v1",
+    "ruleset": "visible-folder-entrance.v1",
+    "profile": "numbered-v1",
+    "complete": true,
+    "capabilities": ["visible-folder-entrance.v1"],
+    "capture": {"before":"fixture-1", "after":"fixture-1"},
+    "scope": "fiction",
+    "folders": ["fiction", "fiction/wiki", "fiction/raw"],
+    "entries": [
+      {"path":"fiction", "kind":"folder"},
+      {"path":"fiction/fiction.md", "kind":"file"},
+      {"path":"fiction/wiki", "kind":"folder"},
+      {"path":"fiction/wiki/wiki.md", "kind":"folder"},
+      {"path":"fiction/raw", "kind":"folder"}
+    ]
+  },
+  "expected": {
+    "schema":"viggobsidian.structure-result.v1",
+    "status":"complete",
+    "capabilities":["visible-folder-entrance.v1"],
+    "scope":"fiction",
+    "checked_folders":3,
+    "findings":[
+      {"path":"fiction/raw/raw.md", "code":"folder-note", "message":"missing matching folder note"},
+      {"path":"fiction/wiki/wiki.md", "code":"folder-note", "message":"entrance must be a regular Markdown file"}
+    ]
+  }
+}
