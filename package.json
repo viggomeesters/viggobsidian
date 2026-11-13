@@ -1,6 +1,26 @@
 {
   "files": [
     {
+      "sha256": "76de130db690b867483ea20d135ccbd5fb78a3d46114f580e7989350866272f6",
+      "source": "crates/structure-core/Cargo.toml",
+      "target": ".agents/tools/structure-core/Cargo.toml"
+    },
+    {
+      "sha256": "b5091f8faf5071b4c8128cc0a51040bad5ddec6e81f44706b567ab4186513669",
+      "source": "crates/structure-core/src/lib.rs",
+      "target": ".agents/tools/structure-core/src/lib.rs"
+    },
+    {
+      "sha256": "08eb74c002d2387640f3ef428f3560b84bff6d4835cf8e3082f206c2f80edf58",
+      "source": "crates/structure-core/src/wasm.rs",
+      "target": ".agents/tools/structure-core/src/wasm.rs"
+    },
+    {
+      "sha256": "893551b5604b6d36176649e5ce56ebb767c6c2884de06ad4678213888f0d94d5",
+      "source": "crates/structure-core/fixtures/dossier.json",
+      "target": ".agents/tools/structure-core/fixtures/dossier.json"
+    },
+    {
       "sha256": "5effdf2158cab1c1890817ade2cb925057542696098512cb59f3db4cd0f4c3d8",
       "source": "crates/vault-layout/fixtures/source-prepared-v1.json",
       "target": ".agents/tools/vault-layout/fixtures/source-prepared-v1.json"
@@ -252,12 +272,12 @@
       "transform": "css-v1"
     },
     {
-      "sha256": "a975ed261a8716b4b8d4608414ba73db66d5a1ec94d60b693aaa037f3397df3f",
+      "sha256": "d1f98da5d0cc2a4dbf738f65e730ba3bf70896f7339d1afe03df290e3b860a37",
       "source": "crates/vault-layout/Cargo.toml",
       "target": ".agents/tools/vault-layout/Cargo.toml"
     },
     {
-      "sha256": "a37c17bdf25cd94c2270c52cbefe9091798b9339124f5fe8a8402b45666fd41b",
+      "sha256": "9e85b07941520fdcbc6c60de32a4c35357a51384861b61651cd787137becabef",
       "source": "crates/vault-layout/Cargo.lock",
       "target": ".agents/tools/vault-layout/Cargo.lock"
     },
@@ -337,7 +357,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "263027ad515ccbe0f237b5ccc16197e06e4d7543b9ed3a7f221ba5c239a9055c",
+      "sha256": "6137da98a935cba6ea6eefdb8e9968545cc920a3a21967017c688f8d932d12a8",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -542,7 +562,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "1d8aaf5f44e805c1e22793699d5db0478b3cf081",
+  "revision": "fad6dd1e8c55bc327a73c7fa5e8fc9e86d836af3",
   "schema": "viggobsidian.package.v1",
-  "version": "0.27.0"
+  "version": "0.27.1"
 }
