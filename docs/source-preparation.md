@@ -74,3 +74,20 @@ apply the actual strict Raw/Event Note gates to both golden postimages and rejec
 malformed variants. Local provider tests remain responsible for real authority,
 Git, claims, executable/config drift and interrupted recovery. This separation
 does not weaken existing validation.
+
+## Heading references after preparation
+
+The preserved original source may contain headings inside nested blockquotes.
+These are live Markdown heading targets; quoted fenced examples and HTML comments
+are excluded. Check actual cross-note references through the shared native
+filesystem adapter with `vault-layout --vault ROOT --indexes --paths NOTE ...`
+(anchors are enabled by default). Missing and duplicate targets remain errors.
+Do not edit original source bytes or flatten its quotes to satisfy a stale local
+checker. Existing local checker adapters need their own reviewed compatibility
+repair and regression tests; this text-core behavior grants no writer authority.
+
+A mixed-owner processing fixture must use an ordinary writable owner for its
+general topic. One reviewed system owner does not authorize another system
+owner. Keep a negative transaction test proving that the second system write is
+refused without changing source, task or owner bytes. Provider-specific fixtures
+and bindings remain local; public tests use fictional source material only.
