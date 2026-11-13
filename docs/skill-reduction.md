@@ -37,6 +37,38 @@ interrupted-apply and rollback-conflict tests continue exercising recovery.
 Public checks do not claim host-profile migration, real live calendar mutation,
 private writer behavior or fresh-session discovery: those belong to local adoption.
 
+## Local-adoption evidence and limits
+
+Issue #72 rechecks the boundary between package integrity and local adoption.
+`viggobsidian skill-check --vault ROOT` verifies the released instruction surface
+and core registers. It does not inspect every vendor resource, global host profile,
+external template source or instruction reached through a local asset locator.
+A clean result therefore cannot establish that a host has no old instruction
+copies or that every local binding has the right owner.
+
+Local adoption distinguishes the ten owned core entries from official third-party
+specialists and independent product source trees. Profile directories are views,
+not another library: an old work-specific global entry must not survive merely
+because it is outside the core registers. A branded template or asset binding
+supplies style, data and concrete provider interfaces; it must not reactivate an
+old skill body or replace the selected format provider's render/readback gate.
+Product source and distribution assets retain their own owner and are not deleted
+as a side effect of retiring a host entry.
+
+There is one guarded profile mutation path. Secondary discovery/readback helpers
+stay read-only; they cannot offer an alternative apply path around source
+verification, preimages or recovery. An adoption check distinguishes a
+manifest-integrity result, profile readback and observed fresh-session loading.
+Before removing residual local instruction copies, inspect their actual callers
+and preserve exact private preimages and license obligations. Retain authentic
+sources and provider code without keeping obsolete prompt bodies in active
+maintenance trees. Historical evidence is not loaded as an instruction fallback.
+
+Only generic criteria and sanitized results belong in this public review record.
+Actual local bindings, templates, private resources and their repair evidence stay
+with their owner. Local-only repairs and this repository review record do not
+change released assets and do not require a new package version.
+
 Word-count scope: count SKILL bodies, retained reference Markdown, substantive
 vault contracts and current skill documentation; report historical release notes,
 license/provenance, generated fixtures and runtime code separately rather than
