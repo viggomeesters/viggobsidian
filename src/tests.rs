@@ -881,13 +881,9 @@ fn ten_core_surface_has_no_procedure_or_module_backdoor() {
         let target = field(row, "target").unwrap();
         assert!(!target.ends_with("PROCEDURE.md"));
         assert!(!target.contains("/_bundle/") && !target.contains("/modules/"));
-        let owner = target
-            .strip_prefix(".agents/skills/")
-            .unwrap()
-            .split('/')
-            .next()
-            .unwrap();
-        assert!(SKILLS.contains(&owner));
+        if let Some(path) = target.strip_prefix(".agents/skills/") {
+            assert!(SKILLS.contains(&path.split('/').next().unwrap()));
+        }
     }
 }
 
@@ -959,5 +955,18 @@ fn full_reduction_retires_only_exact_managed_preimages_and_restores_them() {
             fs::read(f.vault.join(target)).unwrap(),
             b"original managed content"
         );
+    }
+}
+
+#[test]
+fn complete_distribution_is_inside_current_package_write_allowlist() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    for row in rows(
+        &read_json(&root.join("distribution.json")).unwrap(),
+        "files",
+    )
+    .unwrap()
+    {
+        assert!(allowed(field(row, "target").unwrap()), "{}", row["target"]);
     }
 }

@@ -52,6 +52,18 @@
     {
       "source": "skills/vault/SKILL.md",
       "target": ".agents/skills/vault/SKILL.md"
+    },
+    {
+      "source": "LICENSES/matt-pocock-skills.txt",
+      "target": ".agents/licenses/matt-pocock-skills.txt"
+    },
+    {
+      "source": "schemas/skill-library.json",
+      "target": ".viggobsidian/core/skill-library.json"
+    },
+    {
+      "source": "docs/skill-library.md",
+      "target": ".viggobsidian/core/skill-library.md"
     }
   ]
 }
