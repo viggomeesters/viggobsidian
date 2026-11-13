@@ -16,7 +16,7 @@
       "target": ".agents/tools/wiki-layout-core/src/headings.rs"
     },
     {
-      "sha256": "e408f79da0229a19f03c94b883e5de262d2ca366b6d28234e60fe013b3a25b51",
+      "sha256": "4593f54b3178b9988f62722f03cbdb61aa5c393eac405c5cebf420cefb50a75a",
       "source": "crates/wiki-layout-core/src/snapshot.rs",
       "target": ".agents/tools/wiki-layout-core/src/snapshot.rs"
     },
@@ -487,7 +487,7 @@
       "target": ".viggobsidian/core/procedures/task.md"
     }
   ],
-  "revision": "0daa6affb0373112f452ed6d6b5399129dd529ad",
+  "revision": "f371aec7672a18943f6d86b3e3b3b6146ab1494a",
   "schema": "viggobsidian.package.v1",
   "version": "0.25.2"
 }
