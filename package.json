@@ -171,7 +171,7 @@
       "target": ".agents/tools/vault-layout/src/navigation_contract.rs"
     },
     {
-      "sha256": "939f2614ff4fe6a3843740072d1bbb26576ae6b480a3e29dccf75859b6ac02e9",
+      "sha256": "7821389a0bfdd77335e6e506bfa4db6bf7057cb91b2a97ebf20402430f7f0701",
       "source": "docs/mail-format.md",
       "target": ".viggobsidian/core/mail-format.md"
     },
@@ -277,7 +277,7 @@
       "target": ".agents/tools/vault-layout/Cargo.toml"
     },
     {
-      "sha256": "9e85b07941520fdcbc6c60de32a4c35357a51384861b61651cd787137becabef",
+      "sha256": "f2513df2559026f8c7979e58d073dc815691dab7768c4db18525f8b5212ff138",
       "source": "crates/vault-layout/Cargo.lock",
       "target": ".agents/tools/vault-layout/Cargo.lock"
     },
@@ -517,14 +517,19 @@
       "target": ".viggobsidian/core/procedures/task.md"
     },
     {
-      "sha256": "6877e5af4ba927dfa965dbde6b6d7e1bab9ea5c93687bf8b4eceaf120c3aa4b7",
+      "sha256": "d08164d9a51afc896bc47ff7a90c4fededa678d2dc563650690453ce36ca40f0",
       "source": "crates/activity-core/Cargo.toml",
       "target": ".agents/tools/activity-core/Cargo.toml"
     },
     {
-      "sha256": "2e65c4ef4a70d50b7a35519ae5f2b10643f968d3a3623aea6ab178ff8a3922d4",
+      "sha256": "e2db06c9606062132dc2ad111161de0322d562fbf68c9cf43e4b8191c2971caf",
       "source": "crates/activity-core/src/lib.rs",
       "target": ".agents/tools/activity-core/src/lib.rs"
+    },
+    {
+      "sha256": "eb9d877ee52bca840a3ea286cfe97bd8431aa8c603da964d4aa21a479099a9ef",
+      "source": "crates/activity-core/src/history_migration.rs",
+      "target": ".agents/tools/activity-core/src/history_migration.rs"
     },
     {
       "sha256": "1b63edefe5e59ee17bdd3db9fe72ba6a7ebdb6b8ab6279600a62ff6dbb9b038c",
@@ -562,7 +567,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "fad6dd1e8c55bc327a73c7fa5e8fc9e86d836af3",
+  "revision": "67cbb9f17e62483d2ebb5017c1652a940389ad88",
   "schema": "viggobsidian.package.v1",
-  "version": "0.27.1"
+  "version": "0.28.0"
 }
