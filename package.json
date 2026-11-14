@@ -302,7 +302,7 @@
       "target": ".agents/tools/vault-layout/src/wiki_layout.rs"
     },
     {
-      "sha256": "20328cdf36e8fa95576f25e144ac471048a2579d7a9ecd4074f587f0caf763e3",
+      "sha256": "a8af65627a900d2a86c125383d09357ff02120ba1b707aec5c033938fb30cc6d",
       "source": "crates/vault-layout/src/index_navigation.rs",
       "target": ".agents/tools/vault-layout/src/index_navigation.rs"
     },
@@ -567,7 +567,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "c530444b0a7ebd9ae21b1d926e734758ac136e42",
+  "revision": "eb547a45802455e9fd363f297b004e3fb489e9c9",
   "schema": "viggobsidian.package.v1",
-  "version": "0.28.2"
+  "version": "0.28.3"
 }
