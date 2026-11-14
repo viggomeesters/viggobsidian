@@ -4,6 +4,8 @@ Besluit van 13 november 2026, uitgewerkt in [ViggVault-plan #3](https://github.c
 
 ViggVault is het gebruikersproduct en de Obsidian-interface, met Community-ID `vigg-vault`. [Het productcontract](https://github.com/viggomeesters/obsidian-vigg-vault/blob/main/docs/product-engine-boundary.md) bezit de beschikbare commando’s, snapshotcapture, Worker/WASM en presentatie. ViggObsidian blijft de canonieke Rust-engine, pakketbron en native CLI. Beide blijven bestaan; ViggObsidian wordt niet deprecated. Bestaande CLI-, pakket-, provider-, writer- en installed-ID-contracten worden niet hernoemd of verwijderd.
 
+De versiegebonden [capabilitycatalogus](../schemas/product-capabilities.v1.json) en het [uitvoerings-/evidencecontract](product-execution.md) maken de gedeclareerde grens expliciet. Een declaratie is geen runtimebeschikbaarheid, authorisatie of geslaagde uitvoering.
+
 Regels worden eenmaal upstream in Rust geïmplementeerd. De native filesystemadapter houdt selectie/classificatie, lokale configuratie, bronbestaan, pad-/symlinkgrenzen en schrijfrechten. Lokale writers blijven eigenaar van registraties, claims en domeintransacties. Een pure tekstcore kan die feiten niet bewijzen en verleent geen schrijfrecht.
 
 De [getypeerde bronvoorbereiding](source-preparation.md) levert uitsluitend een
