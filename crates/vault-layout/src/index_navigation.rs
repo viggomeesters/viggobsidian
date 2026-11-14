@@ -125,7 +125,7 @@ struct Scan<'a> {
 
 struct Inventory {
     files: Vec<PathBuf>,
-    visible: BTreeSet<PathBuf>,
+    visible: Option<BTreeSet<PathBuf>>,
     names: BTreeMap<std::ffi::OsString, Vec<usize>>,
     filenames: BTreeMap<std::ffi::OsString, Vec<usize>>,
 }
@@ -138,10 +138,7 @@ impl Scan<'_> {
         let mut files = Vec::new();
         inventory(self.root, &mut files)?;
         files.sort();
-        let visible = files
-            .iter()
-            .filter_map(|path| path.canonicalize().ok())
-            .collect();
+
         let mut names = BTreeMap::<_, Vec<_>>::new();
         let mut filenames = BTreeMap::<_, Vec<_>>::new();
         for (index, file) in files.iter().enumerate() {
@@ -158,7 +155,7 @@ impl Scan<'_> {
         }
         self.inventory = Some(Inventory {
             files,
-            visible,
+            visible: None,
             names,
             filenames,
         });
@@ -250,43 +247,85 @@ impl Scan<'_> {
                 }))
     }
 
-    fn wiki(&self, file: &Path, target: &str) -> Vec<PathBuf> {
-        let inventory = self
-            .inventory
-            .as_ref()
-            .expect("wikilinks require the inventory");
+    fn wiki(&mut self, file: &Path, target: &str) -> io::Result<Vec<PathBuf>> {
         let target = target.strip_suffix(".md").unwrap_or(target);
         if !target.contains('/') {
+            self.load_inventory()?;
+            let inventory = self
+                .inventory
+                .as_ref()
+                .expect("wikilinks require the inventory");
             let name = std::ffi::OsStr::new(target);
-            return inventory
+            return Ok(inventory
                 .names
                 .get(name)
                 .or_else(|| inventory.filenames.get(name))
                 .into_iter()
                 .flatten()
                 .map(|&index| inventory.files[index].clone())
-                .collect();
+                .collect());
         }
         let filename = format!("{target}.md");
         let mut exact = BTreeSet::new();
+        let mut non_direct_file = false;
+        for base in [self.root, file.parent().unwrap_or(self.root)] {
+            for path in [base.join(target), base.join(&filename)] {
+                if let Ok(resolved) = path.canonicalize() {
+                    if direct_visible(self.root, &path) {
+                        exact.insert(resolved);
+                    } else if resolved.is_file() {
+                        // Another exact spelling can reach a globally visible
+                        // target through an alias. Preserve its contribution
+                        // before deciding whether the direct match is unique.
+                        non_direct_file = true;
+                    }
+                }
+            }
+        }
+        if !exact.is_empty() && !non_direct_file {
+            return Ok(exact.into_iter().collect());
+        }
+        // Path-qualified links ordinarily resolve at one of the two exact
+        // locations above.  Retain the old whole-vault alias and suffix lookup
+        // only when those guarded direct locations do not resolve.
+        self.load_inventory()?;
         for base in [self.root, file.parent().unwrap_or(self.root)] {
             for path in [base.join(target), base.join(&filename)] {
                 if let Ok(path) = path.canonicalize()
-                    && inventory.visible.contains(&path)
+                    && self.visible_target(&path)
                 {
                     exact.insert(path);
                 }
             }
         }
         if !exact.is_empty() {
-            return exact.into_iter().collect();
+            return Ok(exact.into_iter().collect());
         }
-        inventory
+        let inventory = self
+            .inventory
+            .as_ref()
+            .expect("wikilinks require the inventory");
+        Ok(inventory
             .files
             .iter()
             .filter(|path| path.ends_with(target) || path.ends_with(&filename))
             .cloned()
-            .collect()
+            .collect())
+    }
+
+    fn visible_target(&mut self, target: &Path) -> bool {
+        let inventory = self
+            .inventory
+            .as_mut()
+            .expect("visible targets require the inventory");
+        let visible = inventory.visible.get_or_insert_with(|| {
+            inventory
+                .files
+                .iter()
+                .filter_map(|path| path.canonicalize().ok())
+                .collect()
+        });
+        visible.contains(target)
     }
 
     fn issue(&mut self, file: &Path, kind: &str, target: &str, severity: &str) {
@@ -330,8 +369,7 @@ impl Scan<'_> {
             let candidates = if target.is_empty() {
                 vec![file.to_path_buf()]
             } else {
-                self.load_inventory()?;
-                self.wiki(file, target)
+                self.wiki(file, target)?
             };
             let candidate = match candidates.as_slice() {
                 [] => {
@@ -453,7 +491,7 @@ impl Scan<'_> {
         for raw in wiki_links(&rows) {
             let target = wiki_target(raw).0;
             if !target.is_empty()
-                && let [candidate] = self.wiki(file, target).as_slice()
+                && let [candidate] = self.wiki(file, target)?.as_slice()
             {
                 row_targets.insert(resolved(candidate));
             }
@@ -588,6 +626,26 @@ fn regular(root: &Path, path: &Path) -> bool {
 
 fn resolved(path: &Path) -> PathBuf {
     path.canonicalize().unwrap_or_else(|_| lexical(path))
+}
+
+fn direct_visible(root: &Path, path: &Path) -> bool {
+    let Ok(relative) = path.strip_prefix(root) else {
+        return false;
+    };
+    if relative.components().any(|part| {
+        matches!(part, Component::ParentDir | Component::CurDir)
+            || part.as_os_str().to_string_lossy().starts_with('.')
+    }) {
+        return false;
+    }
+    if !path.is_file() {
+        return false;
+    }
+    path.parent()
+        .into_iter()
+        .flat_map(Path::ancestors)
+        .take_while(|parent| *parent != root)
+        .all(|parent| fs::symlink_metadata(parent).is_ok_and(|meta| !meta.is_symlink()))
 }
 
 fn lexical(path: &Path) -> PathBuf {
@@ -935,5 +993,171 @@ mod tests {
         );
         assert_eq!(audit(&fixture.0, &paths, false, None).unwrap()["errors"], 1);
         assert!(audit(&fixture.0, &[PathBuf::from("../outside.md")], true, None).is_err());
+    }
+
+    #[test]
+    fn qualified_links_skip_global_inventory_on_a_large_generic_fixture() {
+        let fixture = Fixture::new();
+        fixture.write(SCOPE, "readme_collections: []\ntechnical: []\n");
+        fixture.write("guide/profile.md", "[[targets/live]]");
+        fixture.write("targets/live.md", "# Live\n");
+        for number in 0..5_300 {
+            fixture.write(&format!("archive/{number}/noise.md"), "# Noise\n");
+        }
+        let policy =
+            serde_saphyr::from_str(&fs::read_to_string(fixture.0.join(SCOPE)).unwrap()).unwrap();
+        let mut scan = Scan {
+            root: &fixture.0,
+            policy: &policy,
+            inventory: None,
+            anchors: false,
+            checked: 0,
+            issues: Vec::new(),
+            excluded: Vec::new(),
+        };
+        scan.check(&fixture.0.join("guide/profile.md")).unwrap();
+        assert!(scan.inventory.is_none());
+        assert!(scan.issues.is_empty());
+    }
+
+    #[test]
+    fn qualified_direct_locations_keep_ambiguity_checks() {
+        let fixture = Fixture::new();
+        fixture.write(SCOPE, "readme_collections: []\ntechnical: []\n");
+        fixture.write("guide/profile.md", "[[routes/live]]");
+        fixture.write("routes/live.md", "# Root target\n");
+        fixture.write("guide/routes/live.md", "# Source target\n");
+        let report = audit(
+            &fixture.0,
+            &[PathBuf::from("guide/profile.md")],
+            false,
+            None,
+        )
+        .unwrap();
+        assert_eq!(report["issues"][0]["kind"], "ambiguous-wikilink");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn qualified_direct_target_does_not_hide_a_distinct_aliased_target() {
+        use std::os::unix::fs::symlink;
+        let fixture = Fixture::new();
+        fixture.write(SCOPE, "readme_collections: []\ntechnical: []\n");
+        fixture.write("guide/profile.md", "[[routes/live]]");
+        fixture.write("routes/live.md", "# Direct target\n");
+        fixture.write("actual/other.md", "# Other visible target\n");
+        fixture.write("bridge/.keep", "");
+        symlink("../bridge", fixture.0.join("guide/routes")).unwrap();
+        symlink("../actual/other.md", fixture.0.join("bridge/live")).unwrap();
+        let report = audit(
+            &fixture.0,
+            &[PathBuf::from("guide/profile.md")],
+            false,
+            None,
+        )
+        .unwrap();
+        assert_eq!(report["issues"][0]["kind"], "ambiguous-wikilink");
+    }
+
+    #[test]
+    fn qualified_directory_does_not_force_inventory_before_a_direct_file() {
+        let fixture = Fixture::new();
+        fixture.write(SCOPE, "readme_collections: []\ntechnical: []\n");
+        fixture.write("guide/profile.md", "[[routes/live]]");
+        fixture.write("routes/live/child.md", "# Directory child\n");
+        fixture.write("guide/routes/live.md", "# Source target\n");
+        let policy =
+            serde_saphyr::from_str(&fs::read_to_string(fixture.0.join(SCOPE)).unwrap()).unwrap();
+        let mut scan = Scan {
+            root: &fixture.0,
+            policy: &policy,
+            inventory: None,
+            anchors: false,
+            checked: 0,
+            issues: Vec::new(),
+            excluded: Vec::new(),
+        };
+        scan.check(&fixture.0.join("guide/profile.md")).unwrap();
+        assert!(scan.issues.is_empty());
+        assert!(scan.inventory.is_none());
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn qualified_outside_directory_alias_stays_broken() {
+        use std::os::unix::fs::symlink;
+        let fixture = Fixture::new();
+        let outside = Fixture::new();
+        fixture.write(SCOPE, "readme_collections: []\ntechnical: []\n");
+        fixture.write("guide/profile.md", "[[external/live]]");
+        outside.write("live.md", "# Outside target\n");
+        symlink(&outside.0, fixture.0.join("external")).unwrap();
+        let report = audit(
+            &fixture.0,
+            &[PathBuf::from("guide/profile.md")],
+            false,
+            None,
+        )
+        .unwrap();
+        assert_eq!(report["issues"][0]["kind"], "broken-wikilink");
+    }
+
+    #[test]
+    fn bare_names_keep_global_ambiguity_checks() {
+        let fixture = Fixture::new();
+        fixture.write(SCOPE, "readme_collections: []\ntechnical: []\n");
+        fixture.write("guide/profile.md", "[[live]]");
+        fixture.write("targets/live.md", "# Live\n");
+        fixture.write("elsewhere/live.md", "# Also live\n");
+        let report = audit(
+            &fixture.0,
+            &[PathBuf::from("guide/profile.md")],
+            false,
+            None,
+        )
+        .unwrap();
+        assert_eq!(report["issues"][0]["kind"], "ambiguous-wikilink");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn qualified_aliases_recheck_visibility_on_each_audit() {
+        use std::os::unix::fs::symlink;
+
+        let fixture = Fixture::new();
+        fixture.write(SCOPE, "readme_collections: []\ntechnical: []\n");
+        fixture.write("guide/profile.md", "[[routes/../shortcut]]");
+        fixture.write("routes/.keep", "");
+        fixture.write("targets/live.md", "# Live\n");
+        symlink("targets/live.md", fixture.0.join("shortcut.md")).unwrap();
+        symlink("targets", fixture.0.join("linked")).unwrap();
+        fixture.write("guide/alias.md", "[[linked/live]]");
+        fixture.write(".private/hidden.md", "# Hidden\n");
+        fixture.write("guide/hidden.md", "[[.private/hidden]]");
+
+        let aliases = audit(
+            &fixture.0,
+            &[
+                PathBuf::from("guide/profile.md"),
+                PathBuf::from("guide/alias.md"),
+            ],
+            false,
+            None,
+        )
+        .unwrap();
+        assert!(aliases["issues"].as_array().unwrap().is_empty());
+
+        let hidden = audit(&fixture.0, &[PathBuf::from("guide/hidden.md")], false, None).unwrap();
+        assert_eq!(hidden["issues"][0]["kind"], "broken-wikilink");
+
+        fs::remove_file(fixture.0.join("targets/live.md")).unwrap();
+        let changed = audit(
+            &fixture.0,
+            &[PathBuf::from("guide/profile.md")],
+            false,
+            None,
+        )
+        .unwrap();
+        assert_eq!(changed["issues"][0]["kind"], "broken-wikilink");
     }
 }
