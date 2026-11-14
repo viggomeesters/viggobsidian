@@ -101,7 +101,7 @@
       "target": ".agents/tools/vault-layout/src/skill_routes.rs"
     },
     {
-      "sha256": "0fb5d500294dbd9e15e0d685ce8f09c7be80bc99db53da080c01884e18501879",
+      "sha256": "0e653ce642b136b071ad276b1a07ef76dcd3e5db22083e92d21df06e909d1971",
       "source": "crates/vault-layout/src/adoption.rs",
       "target": ".agents/tools/vault-layout/src/adoption.rs"
     },
@@ -567,7 +567,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "ca1d3b723d48faa02fc7dd15686b6d7d6c06e21a",
+  "revision": "c530444b0a7ebd9ae21b1d926e734758ac136e42",
   "schema": "viggobsidian.package.v1",
-  "version": "0.28.1"
+  "version": "0.28.2"
 }
