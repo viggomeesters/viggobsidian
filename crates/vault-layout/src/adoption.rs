@@ -2,7 +2,7 @@
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     fs,
     io::Write,
     path::{Path, PathBuf},
@@ -17,20 +17,70 @@ pub(crate) fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
-fn safe(vault: &Path, raw: &str) -> Result<PathBuf> {
+fn relative_path(vault: &Path, raw: &str) -> Result<PathBuf> {
     if raw.split('/').any(|p| p.is_empty() || p.starts_with('.')) || raw.contains('\\') {
         return Err("invalid adoption path".into());
     }
-    let path = vault.join(raw);
-    for part in Path::new(raw)
-        .ancestors()
-        .filter(|p| !p.as_os_str().is_empty())
-    {
-        if fs::symlink_metadata(vault.join(part)).is_ok_and(|m| m.is_symlink()) {
-            return Err("symlink in adoption path".into());
+    Ok(vault.join(raw))
+}
+
+struct PathGuard<'a> {
+    vault: &'a Path,
+    checked: BTreeSet<PathBuf>,
+    #[cfg(test)]
+    metadata_checks: usize,
+}
+
+impl<'a> PathGuard<'a> {
+    fn new(vault: &'a Path) -> Self {
+        Self {
+            vault,
+            checked: BTreeSet::new(),
+            #[cfg(test)]
+            metadata_checks: 0,
         }
     }
-    Ok(path)
+
+    fn safe(&mut self, raw: &str) -> Result<PathBuf> {
+        let path = relative_path(self.vault, raw)?;
+        for (depth, part) in Path::new(raw)
+            .ancestors()
+            .filter(|part| !part.as_os_str().is_empty())
+            .enumerate()
+        {
+            let candidate = self.vault.join(part);
+            // The leaf is always checked for this record. Only shared parent
+            // prefixes are memoized within one adoption-state load.
+            if depth > 0 && self.checked.contains(&candidate) {
+                continue;
+            }
+            #[cfg(test)]
+            {
+                self.metadata_checks += 1;
+            }
+            match fs::symlink_metadata(&candidate) {
+                Ok(metadata) if metadata.is_symlink() => {
+                    return Err("symlink in adoption path".into());
+                }
+                // Cache only successful metadata lookups. A missing path stays
+                // observable in case it appears before a later validation.
+                Ok(_) => {
+                    self.checked.insert(candidate);
+                }
+                Err(_) => {}
+            }
+        }
+        Ok(path)
+    }
+
+    #[cfg(test)]
+    fn metadata_checks(&self) -> usize {
+        self.metadata_checks
+    }
+}
+
+fn safe(vault: &Path, raw: &str) -> Result<PathBuf> {
+    PathGuard::new(vault).safe(raw)
 }
 
 pub(crate) fn load(vault: &Path) -> Result<Value> {
@@ -57,8 +107,9 @@ pub(crate) fn load(vault: &Path) -> Result<Value> {
     let owners = value["owners"]
         .as_object()
         .ok_or("adoption owners missing")?;
+    let mut paths = PathGuard::new(vault);
     for (owner, entry) in owners {
-        safe(vault, owner)?;
+        paths.safe(owner)?;
         if !matches!(entry["state"].as_str(), Some("legacy" | "strict"))
             || entry.as_object().is_none_or(|o| o.len() != 2)
         {
@@ -68,7 +119,7 @@ pub(crate) fn load(vault: &Path) -> Result<Value> {
             .as_object()
             .ok_or("adoption file proofs missing")?
         {
-            safe(vault, path)?;
+            paths.safe(path)?;
             if !Path::new(path).starts_with(owner)
                 || proof.as_object().is_none_or(|p| p.len() != 2)
                 || proof["bytes"].as_u64().is_none()
@@ -441,4 +492,93 @@ pub(crate) fn run(vault: &Path, mode: &str, input: Value) -> Result<u8> {
     result?;
     println!("{}", json!({"status":"applied","state":load(vault)?}));
     Ok(0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        fs,
+        sync::atomic::{AtomicU64, Ordering},
+    };
+
+    static SERIAL: AtomicU64 = AtomicU64::new(0);
+
+    #[test]
+    #[cfg(unix)]
+    fn adoption_load_rechecks_successful_parent_prefixes_on_each_invocation() {
+        use std::os::unix::fs::symlink;
+        let root = std::env::temp_dir().join(format!(
+            "adoption-load-guard-{}-{}",
+            std::process::id(),
+            SERIAL.fetch_add(1, Ordering::Relaxed)
+        ));
+        fs::create_dir_all(root.join("legacy/history")).unwrap();
+        fs::create_dir(root.join(".viggobsidian")).unwrap();
+        let source = b"fictional";
+        fs::write(root.join("legacy/history/source.md"), source).unwrap();
+        let state = json!({"schema":SCHEMA,"owners":{"legacy/history":{
+            "state":"legacy","files":{"legacy/history/source.md":{
+                "bytes":source.len(),"sha256":hash(source)
+            }}
+        }}});
+        fs::write(root.join(STATE), state.to_string()).unwrap();
+        assert!(load(&root).is_ok());
+
+        fs::rename(
+            root.join("legacy/history"),
+            root.join("legacy/original-history"),
+        )
+        .unwrap();
+        symlink("original-history", root.join("legacy/history")).unwrap();
+        assert!(
+            load(&root)
+                .unwrap_err()
+                .to_string()
+                .contains("symlink in adoption path")
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn adoption_path_guard_checks_each_shared_prefix_once_and_rejects_symlinks() {
+        let root = std::env::temp_dir().join(format!(
+            "adoption-path-guard-{}-{}",
+            std::process::id(),
+            SERIAL.fetch_add(1, Ordering::Relaxed)
+        ));
+        fs::create_dir_all(root.join("legacy/history")).unwrap();
+        for number in 0..128 {
+            fs::write(
+                root.join(format!("legacy/history/{number}.md")),
+                "fictional",
+            )
+            .unwrap();
+        }
+
+        let mut guard = PathGuard::new(&root);
+        for number in 0..128 {
+            guard.safe(&format!("legacy/history/{number}.md")).unwrap();
+        }
+        assert_eq!(guard.metadata_checks(), 130);
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::symlink;
+            // A successful leaf lookup is not trusted for a later record.
+            fs::remove_file(root.join("legacy/history/0.md")).unwrap();
+            symlink("1.md", root.join("legacy/history/0.md")).unwrap();
+            assert!(guard.safe("legacy/history/0.md").is_err());
+
+            symlink("history", root.join("legacy/linked")).unwrap();
+            assert!(guard.safe("legacy/linked/0.md").is_err());
+
+            // A missing prefix was not cached: if it appears as a symlink
+            // later in this load, the next member still rejects it.
+            assert!(guard.safe("legacy/future/0.md").is_ok());
+            symlink("history", root.join("legacy/future")).unwrap();
+            assert!(guard.safe("legacy/future/0.md").is_err());
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
 }
