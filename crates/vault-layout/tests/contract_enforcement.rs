@@ -9,6 +9,8 @@ use std::{
     process::{Command, Output, Stdio},
 };
 
+type ProviderDocumentMutation = Box<dyn Fn(&mut Value)>;
+
 #[test]
 fn shared_source_preparation_goldens_pass_native_raw_gates() {
     let fixture = Fixture::new("shared-source-preparation");
@@ -214,6 +216,22 @@ fn procedure_fixture(name: &str) -> Fixture {
     fixture
 }
 
+fn providers_v2(first: &Fixture, second: &Fixture) {
+    let first_file = first.0.join(".viggobsidian/providers.json");
+    let second_file = second.0.join(".viggobsidian/providers.json");
+    let first_document: Value = serde_json::from_slice(&fs::read(&first_file).unwrap()).unwrap();
+    let second_document: Value = serde_json::from_slice(&fs::read(&second_file).unwrap()).unwrap();
+    let first_root = first.0.canonicalize().unwrap();
+    let second_root = second.0.canonicalize().unwrap();
+    let bindings = json!([
+        {"vault":second_root,"capabilities":second_document["capabilities"]},
+        {"vault":first_root,"capabilities":first_document["capabilities"]}
+    ]);
+    let document = json!({"schema":"viggobsidian.providers.v2","bindings":bindings});
+    fs::write(&first_file, document.to_string()).unwrap();
+    fs::write(&second_file, document.to_string()).unwrap();
+}
+
 fn skill_check(fixture: &Fixture, args: &[&str]) -> (Output, Value) {
     let output = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
         .arg("--vault")
@@ -271,6 +289,116 @@ fn procedure_preflight_reads_explicit_target_without_executing_or_mutating() {
         .output()
         .unwrap();
     assert_eq!(missing.status.code(), Some(2));
+}
+
+#[test]
+fn providers_v2_selects_the_exact_requested_root_without_checking_other_host_dependencies() {
+    let first = procedure_fixture("providers-v2-first");
+    let second = procedure_fixture("providers-v2-second");
+    providers_v2(&first, &second);
+    let first_file = first.0.join(".viggobsidian/providers.json");
+    let second_file = second.0.join(".viggobsidian/providers.json");
+    let mut document: Value = serde_json::from_slice(&fs::read(&first_file).unwrap()).unwrap();
+    document["bindings"][0]["capabilities"]["read"]["external_files"] =
+        json!(["/fictional/unavailable/host-provider.txt"]);
+    document["bindings"][0]["capabilities"]["capture"] =
+        json!({"state":"unavailable","mode":"unavailable","reason":"Unavailable on this host"});
+    fs::write(&first_file, document.to_string()).unwrap();
+    fs::write(&second_file, document.to_string()).unwrap();
+
+    let first_before = fs::read(&first_file).unwrap();
+    let second_before = fs::read(&second_file).unwrap();
+    let (first_output, first_report) = skill_check(&first, &["--skill-route", "vault"]);
+    assert!(first_output.status.success(), "{first_report}");
+    assert_eq!(first_report["routes"][0]["capability"], "read");
+    assert_eq!(first_report["routes"][0]["state"], "available");
+    assert_eq!(fs::read(&first_file).unwrap(), first_before);
+
+    let (second_output, second_report) = skill_check(
+        &second,
+        &["--skill-route", "vault", "--skill-capability", "capture"],
+    );
+    assert_eq!(second_output.status.code(), Some(1), "{second_report}");
+    assert_eq!(second_report["routes"][0]["capability"], "capture");
+    assert_eq!(second_report["routes"][0]["state"], "unavailable");
+    assert_eq!(fs::read(&second_file).unwrap(), second_before);
+}
+
+#[test]
+fn providers_v2_refuses_malformed_or_ambiguous_binding_identities_without_mutation() {
+    let first = procedure_fixture("providers-v2-invalid-first");
+    let second = procedure_fixture("providers-v2-invalid-second");
+    providers_v2(&first, &second);
+    let config = first.0.join(".viggobsidian/providers.json");
+    let original = fs::read(&config).unwrap();
+    let first_root = first.0.canonicalize().unwrap();
+    let second_root = second.0.canonicalize().unwrap();
+    let parent = first_root.parent().unwrap();
+    let unnormalized = parent.join(first_root.file_name().unwrap()).join("..");
+
+    let cases: Vec<(&str, ProviderDocumentMutation)> = vec![
+        (
+            "unknown document key",
+            Box::new(|value| value["unknown"] = json!(true)),
+        ),
+        (
+            "empty bindings",
+            Box::new(|value| value["bindings"] = json!([])),
+        ),
+        (
+            "unknown binding key",
+            Box::new(|value| value["bindings"][0]["unknown"] = json!(true)),
+        ),
+        (
+            "non-string root",
+            Box::new(|value| value["bindings"][0]["vault"] = json!(42)),
+        ),
+        (
+            "relative root",
+            Box::new(|value| value["bindings"][0]["vault"] = json!("relative/vault")),
+        ),
+        (
+            "unnormalized root",
+            Box::new(move |value| value["bindings"][0]["vault"] = json!(unnormalized)),
+        ),
+        (
+            "repeated separator",
+            Box::new(|value| value["bindings"][0]["vault"] = json!("/fictional//vault")),
+        ),
+        (
+            "embedded current-directory segment",
+            Box::new(|value| value["bindings"][0]["vault"] = json!("/fictional/./vault")),
+        ),
+        (
+            "trailing separator",
+            Box::new(|value| value["bindings"][0]["vault"] = json!("/fictional/vault/")),
+        ),
+        (
+            "null byte in root",
+            Box::new(|value| value["bindings"][0]["vault"] = json!("/fictional/\0vault")),
+        ),
+        (
+            "non-object capabilities",
+            Box::new(|value| value["bindings"][0]["capabilities"] = json!([])),
+        ),
+        (
+            "missing requested root",
+            Box::new(|value| value["bindings"][1]["vault"] = json!("/fictional/missing-vault")),
+        ),
+        (
+            "duplicate root",
+            Box::new(move |value| value["bindings"][1]["vault"] = json!(second_root)),
+        ),
+    ];
+    for (name, mutate) in cases {
+        let mut document: Value = serde_json::from_slice(&original).unwrap();
+        mutate(&mut document);
+        let bytes = document.to_string().into_bytes();
+        fs::write(&config, &bytes).unwrap();
+        let output = skill_check(&first, &["--skill-route", "vault"]).0;
+        assert_eq!(output.status.code(), Some(2), "{name}");
+        assert_eq!(fs::read(&config).unwrap(), bytes, "{name}");
+    }
 }
 
 #[test]

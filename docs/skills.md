@@ -20,11 +20,23 @@ grens. Een gekozen unavailable effect geeft exit 1; ongeldige metadata,
 rootmismatch, ontbrekende bestanden, onbekende oude routenaam of hashdrift exit 2.
 Exit 0 geeft geen claim, schrijfbevoegdheid of bewijs van live gedrag.
 
-providers.json blijft lokaal, met exact doelpad, capability en beschikbare
-instructiesectie/bestanden of unavailable met reden. De checker controleert
-release-assets, dependencies, symlinkgrenzen en tijdens de controle gewijzigde
-bindings; hij voert geen provider uit. Productwriters, claims en stricte lokale
-gates blijven leidend. Een aanwezige guided provider is geen generieke writer.
+providers.json blijft lokaal. Het bestaande `viggobsidian.providers.v1`-document met één
+exacte doelroot blijft ondersteund. Voor gesynchroniseerde configuratie over hosts
+bestaat daarnaast `viggobsidian.providers.v2`:
+
+```json
+{"schema":"viggobsidian.providers.v2","bindings":[{"vault":"/absolute/canonical/root","capabilities":{}}]}
+```
+
+Elke binding heeft uitsluitend `vault` en `capabilities`; roots zijn niet-leeg,
+uniek, absoluut en lexicaal genormaliseerd. De checker valideert alle
+binding-identiteiten, maar kiest capabilities uitsluitend op de exacte
+gecanonicaliseerde `--vault`-root: nooit de eerste binding, een default of een
+fallback. Alleen de gekozen binding laat vervolgens haar instructiesectie,
+dependencies en externe bestanden controleren. Daardoor blijft een expliciete
+`unavailable`-binding op deze host een grens en wordt een niet-geselecteerde
+hostprovider niet geopend. v2 verleent geen write authority en migreert v1 niet
+automatisch.
 
 Lees alleen de inhoudelijke contracten die het effect nodig heeft. Bronopslag,
 kennisverwerking en uitvoering houden hun afzonderlijke autorisatie; een gecombineerd
