@@ -96,7 +96,7 @@
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
     {
-      "sha256": "43d5f71f971b0db6e54dc0e803c4675d1ca978e6eebf6813a28ee332950c8ea3",
+      "sha256": "ba220a9da5989f36cc7509915c362e51338a567fd8d9ebfd7dead3edac29d136",
       "source": "crates/vault-layout/src/skill_routes.rs",
       "target": ".agents/tools/vault-layout/src/skill_routes.rs"
     },
@@ -191,7 +191,7 @@
       "target": ".viggobsidian/core/policy.md"
     },
     {
-      "sha256": "1d29087179b01b28d8b1add3db64ee3c128671fb738fbd6c80c709e365c5f68b",
+      "sha256": "9dc3282ec1f1120391fc4eac3929512431cee6ce0373d95929b78865f66a0da5",
       "source": "docs/skills.md",
       "target": ".viggobsidian/core/skills.md"
     },
@@ -201,7 +201,7 @@
       "target": ".viggobsidian/core/plugin-check.md"
     },
     {
-      "sha256": "5997bc2b63f41ad29f524e2bd96fc2c1b39ec98af06b63c6020a431c2fe0e596",
+      "sha256": "9d7a58b74996aa84d140e1c1b7d122d05ff627eeb4aa5eb43bae27b7fdf6d3f5",
       "source": "docs/updates.md",
       "target": ".viggobsidian/core/updates.md"
     },
@@ -382,7 +382,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "47ab5a98ed33880d7a27a7740ae296ecf734636ba96cfc9826679f99d28eb18e",
+      "sha256": "15d8d1383a845a8947b5214e9b54e9eb830b161ccf6cd507c7f883bff9b971a1",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -567,7 +567,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "67cbb9f17e62483d2ebb5017c1652a940389ad88",
+  "revision": "ca1d3b723d48faa02fc7dd15686b6d7d6c06e21a",
   "schema": "viggobsidian.package.v1",
-  "version": "0.28.0"
+  "version": "0.28.1"
 }
