@@ -45,13 +45,23 @@ echte bronadapters. De verwijderde naamroutes en proceduregenerator komen niet
 terug. `cargo run --bin procedure-assets -- --adoption-map TARGET` blijft uitsluitend
 een read-only hashinventaris; zonder dat argument genereert de tool niets.
 
-Maak vóór gebruik de lokale `.viggobsidian/providers.json` met exact gebonden
-doelroot en alle capabilities. Een beschikbare capability wijst naar een
-bestaande lokale instructiesectie en haar benodigde providerbestanden. Externe
-providerbestanden zijn alleen expliciete absolute locators; zij selecteren nooit
-een andere doelvault. Een ontbrekende capability wordt `unavailable` met reden.
+Maak vóór gebruik de lokale `.viggobsidian/providers.json` met alle capabilities.
+`viggobsidian.providers.v1` behoudt één exact gebonden doelroot. Een gedeeld
+`viggobsidian.providers.v2`-document gebruikt `bindings`, met per binding
+`vault` (niet-leeg, absoluut, lexicaal genormaliseerd canoniek rootpad) en
+`capabilities`. De checker valideert iedere binding-identiteit, kiest alleen de
+binding waarvan `vault` exact gelijk is aan de gecanonicaliseerde gevraagde
+`--vault` en heeft geen eerste/default/fallback-keuze. Hij controleert
+instructiesecties, dependencies en externe bestanden uitsluitend voor die
+binding; een andere hostbinding mag dus unavailable zijn of een lokaal niet
+bereikbaar extern pad noemen. v2 wijzigt geen bestaande v1-configuratie.
+Een beschikbare capability wijst naar een bestaande lokale instructiesectie en
+haar benodigde providerbestanden. Externe providerbestanden zijn alleen
+expliciete absolute locators; zij selecteren nooit een andere doelvault. Een
+ontbrekende capability wordt `unavailable` met reden.
 `vault-layout --vault ROOT --skill-routes` controleert de gedeelde release-assets
-en volledige lokale binding; de controle voert geen provider uit. Zie docs/skills.md.
+en volledige lokale binding, voert geen provider uit en verleent geen
+write authority. Zie docs/skills.md.
 
 Verander lokale writer-/registry-/importercode niet als bijeffect van deze
 bronoverdracht. Vergelijk hun oorspronkelijke hashes en draai bestaande

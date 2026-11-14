@@ -76,6 +76,70 @@ fn object_keys(value: &Value, allowed: &[&str]) -> Result<()> {
     Ok(())
 }
 
+fn normalized_absolute_root(raw: &str) -> Result<()> {
+    let path = Path::new(raw);
+    if raw.is_empty()
+        || raw.contains('\0')
+        || !path.is_absolute()
+        || path
+            .components()
+            .any(|part| matches!(part, Component::CurDir | Component::ParentDir))
+        || path
+            .components()
+            .collect::<std::path::PathBuf>()
+            .as_os_str()
+            != path.as_os_str()
+    {
+        return Err("provider binding vault root must be an absolute normalized path".into());
+    }
+    Ok(())
+}
+
+fn selected_capabilities<'a>(
+    providers: &'a Value,
+    vault: &Path,
+) -> Result<&'a serde_json::Map<String, Value>> {
+    if providers["schema"] == "viggobsidian.providers.v1" {
+        object_keys(providers, &["schema", "vault", "capabilities"])?;
+        if providers["vault"] != json!(vault) {
+            return Err("provider target vault mismatch or schema error".into());
+        }
+        return providers["capabilities"]
+            .as_object()
+            .ok_or_else(|| "provider capabilities missing".into());
+    }
+    if providers["schema"] != "viggobsidian.providers.v2" {
+        return Err("provider target vault mismatch or schema error".into());
+    }
+    object_keys(providers, &["schema", "bindings"])?;
+    let bindings = providers["bindings"]
+        .as_array()
+        .filter(|bindings| !bindings.is_empty())
+        .ok_or("provider bindings missing")?;
+    let requested = vault
+        .to_str()
+        .ok_or("requested vault root is not valid UTF-8")?;
+    let mut roots = BTreeSet::new();
+    let mut selected = None;
+    for binding in bindings {
+        object_keys(binding, &["vault", "capabilities"])?;
+        let root = binding["vault"]
+            .as_str()
+            .ok_or("provider binding vault root missing")?;
+        normalized_absolute_root(root)?;
+        if !roots.insert(root) {
+            return Err("duplicate provider binding vault root".into());
+        }
+        let capabilities = binding["capabilities"]
+            .as_object()
+            .ok_or("provider capabilities missing")?;
+        if root == requested {
+            selected = Some(capabilities);
+        }
+    }
+    selected.ok_or_else(|| "provider target vault mismatch or schema error".into())
+}
+
 fn installed(vault: &Path) -> Result<(Value, Vec<u8>)> {
     let bytes = fs::read(safe(vault, ".viggobsidian/installed.json")?)?;
     let state = decode(&bytes)?;
@@ -188,13 +252,7 @@ pub(crate) fn check(
     };
     let provider_bytes = fs::read(safe(vault, PROVIDERS)?)?;
     let providers = decode(&provider_bytes)?;
-    object_keys(&providers, &["schema", "vault", "capabilities"])?;
-    if providers["schema"] != "viggobsidian.providers.v1" || providers["vault"] != json!(vault) {
-        return Err("provider target vault mismatch or schema error".into());
-    }
-    let capabilities = providers["capabilities"]
-        .as_object()
-        .ok_or("provider capabilities missing")?;
+    let capabilities = selected_capabilities(&providers, vault)?;
     let mut assets = BTreeMap::new();
     assets.insert(MAP.to_string(), descriptor);
     let mut results = Vec::new();
