@@ -76,7 +76,8 @@
       "surface": "native-only",
       "protocols": [
         "viggobsidian.plan.v1",
-        "viggobsidian.receipt.v1"
+        "viggobsidian.receipt.v1",
+        "viggobsidian.receipt.v2"
       ],
       "rulesets": [],
       "commands": [

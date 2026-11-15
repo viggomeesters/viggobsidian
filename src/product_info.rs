@@ -79,7 +79,11 @@ const CAPABILITIES: &[Capability] = &[
         id: "package-lifecycle-native",
         status: "shipped",
         surface: "native-only",
-        protocols: &["viggobsidian.plan.v1", "viggobsidian.receipt.v1"],
+        protocols: &[
+            "viggobsidian.plan.v1",
+            "viggobsidian.receipt.v1",
+            "viggobsidian.receipt.v2",
+        ],
         rulesets: &[],
         commands: &["plan", "apply", "rollback", "check", "doctor"],
         scope: "Existing native package lifecycle; local writers retain exclusive execution and recovery authority.",
