@@ -1,0 +1,108 @@
+{
+  "schema": "viggobsidian.product-capabilities.v1",
+  "catalog_version": 1,
+  "capabilities": [
+    {
+      "id": "link-style-text",
+      "status": "shipped",
+      "surface": "portable-text",
+      "protocols": [
+        "viggobsidian.link-style-snapshot.v1",
+        "viggobsidian.link-style-result.v1"
+      ],
+      "rulesets": [],
+      "commands": [],
+      "scope": "Captured Markdown inventory and visible link-style diagnostics only."
+    },
+    {
+      "id": "wiki-layout-text",
+      "status": "shipped",
+      "surface": "portable-text",
+      "protocols": [
+        "viggobsidian.wiki-layout-snapshot.v1",
+        "viggobsidian.wiki-layout-snapshot.v2",
+        "viggobsidian.wiki-layout-result.v1"
+      ],
+      "rulesets": [
+        "wiki-layout.v1"
+      ],
+      "commands": [],
+      "scope": "Captured selected Wiki text only; selection, filesystem and writer authority remain native."
+    },
+    {
+      "id": "activity-text",
+      "status": "shipped",
+      "surface": "portable-text",
+      "protocols": [
+        "viggobsidian.activity-snapshot.v1",
+        "viggobsidian.activity-result.v1"
+      ],
+      "rulesets": [
+        "activity-text.v1"
+      ],
+      "commands": [],
+      "scope": "Captured Activity text only; native strict selection and domain actions remain native."
+    },
+    {
+      "id": "source-preparation-native",
+      "status": "shipped",
+      "surface": "native-only",
+      "protocols": [
+        "viggobsidian.source-preparation.v1",
+        "viggobsidian.source-preparation-result.v1"
+      ],
+      "rulesets": [
+        "source-capture-v1"
+      ],
+      "commands": [
+        "source-note-transform"
+      ],
+      "scope": "Read-only typed Raw source postimages; it neither selects a vault nor grants writer authority."
+    },
+    {
+      "id": "vault-layout-native",
+      "status": "shipped",
+      "surface": "native-only",
+      "protocols": [],
+      "rulesets": [],
+      "commands": [
+        "vault-layout"
+      ],
+      "scope": "Native filesystem selection, strict validation and local adapter boundaries."
+    },
+    {
+      "id": "package-lifecycle-native",
+      "status": "shipped",
+      "surface": "native-only",
+      "protocols": [
+        "viggobsidian.plan.v1",
+        "viggobsidian.receipt.v1"
+      ],
+      "rulesets": [],
+      "commands": [
+        "plan",
+        "apply",
+        "rollback",
+        "check",
+        "doctor"
+      ],
+      "scope": "Existing native package lifecycle; local writers retain exclusive execution and recovery authority."
+    },
+    {
+      "id": "visible-folder-entrance-proof",
+      "status": "unshipped-proof",
+      "surface": "portable-text-proof",
+      "protocols": [
+        "viggobsidian.structure-snapshot.v1",
+        "viggobsidian.structure-result.v1"
+      ],
+      "rulesets": [
+        "visible-folder-entrance.v1"
+      ],
+      "commands": [
+        "structure-snapshot-check"
+      ],
+      "scope": "Bounded visible-inventory experiment; it is not a shipped product capability or filesystem attestation."
+    }
+  ]
+}

@@ -12,6 +12,7 @@ Eén profiel: `20-projects` voor losse projecten, `21-programma` tot en met `29-
 - [Algemene skillbibliotheek en werk-/privéadapters](docs/skill-library.md)
 - [Installeren, updates en rollback](docs/updates.md)
 - [Afbakening en migratie uit bestaande systemen](docs/system-boundary.md)
+- [Productcapabilities](schemas/product-capabilities.v1.json) en [uitvoerings-/evidencecontract](docs/product-execution.md)
 
 ## Rust CLI
 

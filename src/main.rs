@@ -12,6 +12,7 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod css;
 mod plugin_check;
 mod procedure_surface;
+mod product_info;
 mod skill_check;
 mod skill_library;
 // Historical targets remain readable/restorable; new packages cannot write them.
@@ -948,6 +949,7 @@ fn run() -> Result<bool> {
     let command = args.first().map(String::as_str).unwrap_or("help");
     let mut ok = true;
     let output = match command {
+        "product-info" => product_info::run(&args[1..])?,
         "plugin-check" => {
             let out = plugin_check::run(&args)?;
             ok = out["phasePassed"] == true;
@@ -992,7 +994,7 @@ fn run() -> Result<bool> {
             println!(concat!(
                 "viggobsidian ",
                 env!("CARGO_PKG_VERSION"),
-                "\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nskill-check --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--preview-intent public-review|local-private] [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nPreview intent defaults to public-review; local-private is only valid for source-preview.\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md, docs/plugin-check.md and skills/github-work/references/obsidian-plugins.md."
+                "\nproduct-info\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nskill-check --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--preview-intent public-review|local-private] [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nProduct-info is read-only and accepts no arguments; it reports declared contracts, not runtime availability or execution.\nPreview intent defaults to public-review; local-private is only valid for source-preview.\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md, docs/plugin-check.md, docs/product-execution.md and skills/github-work/references/obsidian-plugins.md."
             ));
             return Ok(true);
         }
