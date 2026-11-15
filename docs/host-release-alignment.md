@@ -12,16 +12,18 @@ formaat en exacte executablehash opnieuw beoordeeld zijn.
 `plan`/`apply` beheert een al aanwezige lokale `.agents/skills/_bundle/source-lock.json`
 alleen als afgeleide lokale release-identiteit binnen dezelfde pakkettransactie. De
 preview toont de exacte tien origin-revisionwijzigingen plus bron/preimagehash;
-apply verifieert vóór iedere write de oude release-identiteit, alle tien beheerde
-SKILL.md-hashes, pad-/symlinkgrenzen en drift. Alleen `origin` verandert naar de
-nieuwe `installed.json`-revision; naam, pad, managementrol, hash-authority,
-volgorde en overige velden/rijen blijven logisch behouden. De receipt bewaart
-beide preimages en rollback weigert postimage- of managed drift voordat hij beide
-identiteiten herstelt. Een ontbrekende source-lock blijft ondersteund voor een
-installatie zonder source-lock, maar een revisionwijziging met een ontbrekende,
-malformed of afwijkende source-lock faalt gesloten; de updater verzint of claimt
-geen metadata. Dit is één lock-/journaltransactie met herstel na onderbreking,
-geen claim van OS-brede multi-file-atomiciteit.
+apply verifieert vóór iedere write de oude identity en alle tien beheerde
+SKILL.md-hashes. Alleen `origin` in precies één rij per kern verandert naar de
+nieuwe `installed.json`-revision; volgorde, overige velden en niet-kernrijen
+blijven logisch behouden. Dubbele kernrijen of niet-kernrijen die een kernpad
+schaduwen falen gesloten. De receipt bindt de source-lock-preimage aan de
+strikt gedecodeerde vorige installed state en de exact herberekende postimage;
+rollback controleert die binding ook bij pending-/rollback-hervatting vóór een
+write. Een ontbrekende source-lock blijft ondersteund voor een installatie zonder
+source-lock, maar een revisionwijziging met een ontbrekende, malformed of
+afwijkende source-lock faalt gesloten; de updater verzint of claimt geen metadata.
+Dit is één lock-/journaltransactie met herstel na onderbreking, geen claim van
+OS-brede multi-file-atomiciteit.
 
 Draai daarna `doctor`, `skill-check`, de lokale profielcontrole en de relevante
 providerregressies met de werkelijk geïnstalleerde CLI. De tien kernen, lokale

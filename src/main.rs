@@ -321,10 +321,19 @@ fn source_lock_bytes(
     let mut origins = Vec::new();
     for row in rows.iter_mut() {
         let name = field(row, "name")?.to_string();
-        if !expected.contains(&name) || !seen.insert(name.clone()) {
-            return fail("source-lock must have exactly the declared core rows");
-        }
         let path = format!(".agents/skills/{name}/SKILL.md");
+        if !expected.contains(&name) {
+            if SKILLS
+                .iter()
+                .any(|core| row["path"] == format!(".agents/skills/{core}/SKILL.md"))
+            {
+                return fail("source-lock row shadows a declared core path");
+            }
+            continue;
+        }
+        if !seen.insert(name.clone()) {
+            return fail("source-lock has duplicate declared core rows");
+        }
         let old_origin = format!(
             "https://github.com/viggomeesters/viggobsidian/blob/{old_revision}/skills/{name}/SKILL.md"
         );
@@ -404,6 +413,29 @@ fn source_lock_postimage(
     Ok(Some(
         source_lock_bytes(&before, installed, next_revision)?.0,
     ))
+}
+fn bound_source_lock_receipt(receipt: &Value) -> Result<Option<(Vec<u8>, String)>> {
+    if receipt["source_lock"].is_null() {
+        return Ok(None);
+    }
+    let source_lock = &receipt["source_lock"];
+    if source_lock["target"] != SOURCE_LOCK {
+        return fail("unsafe source-lock receipt binding");
+    }
+    let after = field(source_lock, "after")?.to_owned();
+    let before: Option<Vec<u8>> = serde_json::from_value(source_lock["before"].clone())?;
+    let before = before.ok_or("source-lock receipt lacks a preimage")?;
+    let previous_state: Option<Vec<u8>> =
+        serde_json::from_value(receipt["previous_state"].clone())?;
+    let previous_state = strict_decode_state(
+        &previous_state.ok_or("source-lock receipt lacks a previous installed state")?,
+    )?;
+    let next_state = strict_state(receipt["next_state"].clone())?;
+    let expected = source_lock_bytes(&before, &previous_state, field(&next_state, "revision")?)?.0;
+    if hash(&expected) != after {
+        return fail("source-lock receipt preimage does not bind its postimage");
+    }
+    Ok(Some((before, after)))
 }
 fn atomic(root: &Path, target: &str, bytes: &[u8]) -> Result<()> {
     let dest = checked(root, target)?;
@@ -507,59 +539,63 @@ fn materialize(
     let recipe = json!({"kind":"css-v1","source_sha256":item["sha256"],"config":config_name,"config_sha256":hash(&config),"sha256":hash(&bytes)});
     Ok((bytes, Some(recipe)))
 }
+fn strict_state(value: Value) -> Result<Value> {
+    if value["schema"] != "viggobsidian.installed.v1" || !value["files"].is_object() {
+        return fail("invalid installed state");
+    }
+    let manifest_bytes = field(&value, "manifest_bytes")?;
+    let options = serde_saphyr::options! {duplicate_keys:serde_saphyr::DuplicateKeyPolicy::Error};
+    let manifest: Value = serde_saphyr::from_str_with_options(manifest_bytes, options)?;
+    let mut files = BTreeMap::new();
+    for item in rows(&manifest, "files")? {
+        let target = field(item, "target")?;
+        let expected =
+            if item["transform"] == "css-v1" && target == ".obsidian/snippets/folder-note.css" {
+                let derivation = &value["derived"][target];
+                if derivation["kind"] != "css-v1"
+                    || derivation["source_sha256"] != item["sha256"]
+                    || derivation["config"] != ".viggobsidian/appearance.json"
+                {
+                    return fail("invalid installed CSS derivation");
+                }
+                field(derivation, "config_sha256")?;
+                field(derivation, "sha256")?;
+                derivation["sha256"].clone()
+            } else if item["transform"].is_null() {
+                item["sha256"].clone()
+            } else {
+                return fail("unsupported installed transform");
+            };
+        if !state_allowed(target) || files.insert(target.to_string(), expected).is_some() {
+            return fail("invalid installed manifest target");
+        }
+    }
+    if hash(manifest_bytes.as_bytes()) != field(&value, "manifest_sha256")?
+        || manifest["schema"] != "viggobsidian.package.v1"
+        || manifest["revision"] != value["revision"]
+        || manifest["version"] != value["version"]
+        || serde_json::to_value(files)? != value["files"]
+    {
+        return fail("installed manifest integrity failure");
+    }
+    for (path, digest) in value["files"]
+        .as_object()
+        .ok_or("missing installed files")?
+    {
+        if !state_allowed(path) || digest.as_str().is_none() {
+            return fail("unsafe installed entry");
+        }
+    }
+    Ok(value)
+}
+fn strict_decode_state(bytes: &[u8]) -> Result<Value> {
+    let options = serde_saphyr::options! {duplicate_keys:serde_saphyr::DuplicateKeyPolicy::Error};
+    strict_state(serde_saphyr::from_slice_with_options(bytes, options)?)
+}
 fn state(vault: &Path) -> Result<Value> {
     match bytes_at(vault, STATE)? {
         None => Ok(Value::Null),
-        Some(bytes) => {
-            let value: Value = serde_json::from_slice(&bytes)?;
-            if value["schema"] != "viggobsidian.installed.v1" || !value["files"].is_object() {
-                return fail("invalid installed state");
-            }
-            let manifest_bytes = field(&value, "manifest_bytes")?;
-            let manifest: Value = serde_json::from_str(manifest_bytes)?;
-            let mut files = BTreeMap::new();
-            for item in rows(&manifest, "files")? {
-                let target = field(item, "target")?;
-                let expected = if item["transform"] == "css-v1"
-                    && target == ".obsidian/snippets/folder-note.css"
-                {
-                    let derivation = &value["derived"][target];
-                    if derivation["kind"] != "css-v1"
-                        || derivation["source_sha256"] != item["sha256"]
-                        || derivation["config"] != ".viggobsidian/appearance.json"
-                    {
-                        return fail("invalid installed CSS derivation");
-                    }
-                    field(derivation, "config_sha256")?;
-                    field(derivation, "sha256")?;
-                    derivation["sha256"].clone()
-                } else if item["transform"].is_null() {
-                    item["sha256"].clone()
-                } else {
-                    return fail("unsupported installed transform");
-                };
-                if !state_allowed(target) || files.insert(target.to_string(), expected).is_some() {
-                    return fail("invalid installed manifest target");
-                }
-            }
-            if hash(manifest_bytes.as_bytes()) != field(&value, "manifest_sha256")?
-                || manifest["schema"] != "viggobsidian.package.v1"
-                || manifest["revision"] != value["revision"]
-                || manifest["version"] != value["version"]
-                || serde_json::to_value(files)? != value["files"]
-            {
-                return fail("installed manifest integrity failure");
-            }
-            for (path, digest) in value["files"]
-                .as_object()
-                .ok_or("missing installed files")?
-            {
-                if !state_allowed(path) || digest.as_str().is_none() {
-                    return fail("unsafe installed entry");
-                }
-            }
-            Ok(value)
-        }
+        Some(bytes) => strict_decode_state(&bytes),
     }
 }
 fn plan(vault: &Path, package_root: &Path, adoption: &Value) -> Result<Value> {
@@ -724,7 +760,7 @@ fn rollback(vault: &Path, receipt: &Value) -> Result<Value> {
     {
         return fail("receipt target mismatch");
     }
-    let next = &receipt["next_state"];
+    let next = strict_state(receipt["next_state"].clone())?;
     let installed = state(vault)?;
     let pending = bytes_at(vault, ".viggobsidian/pending.json")?;
     let undo = bytes_at(vault, ".viggobsidian/rollback.json")?;
@@ -739,7 +775,7 @@ fn rollback(vault: &Path, receipt: &Value) -> Result<Value> {
         if active != *receipt {
             return fail("a different pending transaction exists");
         }
-    } else if undo.is_none() && installed != *next {
+    } else if undo.is_none() && installed != next {
         return fail("receipt is not current installation");
     }
     let mut restoring = BTreeSet::new();
@@ -763,31 +799,23 @@ fn rollback(vault: &Path, receipt: &Value) -> Result<Value> {
             return fail(format!("rollback conflict: {target}"));
         }
     }
-    let source_lock = if receipt["source_lock"].is_null() {
-        None
-    } else {
-        let source_lock = &receipt["source_lock"];
-        if source_lock["target"] != SOURCE_LOCK || source_lock["after"].as_str().is_none() {
-            return fail("unsafe source-lock receipt binding");
-        }
-        let before: Option<Vec<u8>> = serde_json::from_value(source_lock["before"].clone())?;
-        let before = before.ok_or("source-lock receipt lacks a preimage")?;
+    let source_lock = bound_source_lock_receipt(receipt)?;
+    if let Some((before, after)) = &source_lock {
         let current = digest_at(vault, SOURCE_LOCK)?;
-        let before_hash = Value::String(hash(&before));
+        let before_hash = Value::String(hash(before));
         if pending.is_none() && undo.is_none() {
-            if current != source_lock["after"] {
+            if current != *after {
                 return fail("rollback conflict: source-lock");
             }
-            let verified = source_lock_update(vault, next, field(next, "revision")?)?
+            let verified = source_lock_update(vault, &next, field(&next, "revision")?)?
                 .ok_or("receipt expects a source-lock postimage")?;
-            if verified["before"] != source_lock["after"] {
+            if verified["before"] != *after {
                 return fail("rollback source-lock postimage drift");
             }
-        } else if current != source_lock["after"] && current != before_hash {
+        } else if current != *after && current != before_hash {
             return fail("rollback conflict: source-lock");
         }
-        Some(before)
-    };
+    }
     // Verify the whole managed postimage, including assets that this transaction didn't change.
     if pending.is_none() {
         for (target, expected) in next["files"].as_object().ok_or("missing next files")? {
@@ -812,7 +840,7 @@ fn rollback(vault: &Path, receipt: &Value) -> Result<Value> {
             fs::remove_file(checked(vault, target)?)?;
         }
     }
-    if let Some(before) = source_lock {
+    if let Some((before, _)) = source_lock {
         atomic(vault, SOURCE_LOCK, &before)?;
     }
     let before: Option<Vec<u8>> = serde_json::from_value(receipt["previous_state"].clone())?;

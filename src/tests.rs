@@ -739,6 +739,99 @@ fn source_lock_rejects_missing_malformed_foreign_and_managed_drift_on_revision_c
 }
 
 #[test]
+fn source_lock_preserves_unmanaged_rows_while_advancing_exactly_ten_cores() {
+    let f = source_identity_fixture();
+    let source_before = fs::read(f.vault.join(SOURCE_LOCK)).unwrap();
+    let unrelated = json!({
+        "name":"private-local",
+        "path":".agents/skills/private-local/SKILL.md",
+        "management_role":"local-provider",
+        "hash_authority":"local-owner",
+        "origin":"https://example.invalid/private-local",
+        "local_note":"preserve this row"
+    });
+    let mut source: Value = serde_json::from_slice(&source_before).unwrap();
+    source.as_array_mut().unwrap().push(unrelated.clone());
+    let source_with_unmanaged = serde_json::to_vec(&source).unwrap();
+    atomic(&f.vault, SOURCE_LOCK, &source_with_unmanaged).unwrap();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+
+    let proposal = f.plan();
+    assert_eq!(
+        proposal["source_lock"]["origins"].as_array().unwrap().len(),
+        10
+    );
+    let applied = apply(&f.vault, &proposal).unwrap();
+    let after: Value =
+        serde_json::from_slice(&fs::read(f.vault.join(SOURCE_LOCK)).unwrap()).unwrap();
+    assert_eq!(after.as_array().unwrap().len(), 11);
+    assert_eq!(after[10], unrelated);
+    let receipt = read_json(&f.vault.join(field(&applied, "receipt").unwrap())).unwrap();
+    rollback(&f.vault, &receipt).unwrap();
+    assert_eq!(
+        fs::read(f.vault.join(SOURCE_LOCK)).unwrap(),
+        source_with_unmanaged
+    );
+}
+
+#[test]
+fn source_lock_rollback_rejects_forged_preimage_in_normal_and_pending_resume() {
+    let f = source_identity_fixture();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    let result = apply(&f.vault, &f.plan()).unwrap();
+    let receipt = read_json(&f.vault.join(field(&result, "receipt").unwrap())).unwrap();
+    let source_after = fs::read(f.vault.join(SOURCE_LOCK)).unwrap();
+    let mut forged = receipt.clone();
+    let source_before: Vec<u8> =
+        serde_json::from_value(forged["source_lock"]["before"].clone()).unwrap();
+    let mut forged_before: Value = serde_json::from_slice(&source_before).unwrap();
+    forged_before[0]["unrelated_local_field"] = json!("forged");
+    forged["source_lock"]["before"] = json!(serde_json::to_vec(&forged_before).unwrap());
+    assert!(
+        rollback(&f.vault, &forged).is_err(),
+        "a receipt must bind source-lock preimage semantics"
+    );
+    assert_eq!(fs::read(f.vault.join(SOURCE_LOCK)).unwrap(), source_after);
+    atomic(
+        &f.vault,
+        ".viggobsidian/pending.json",
+        &serde_json::to_vec(&forged).unwrap(),
+    )
+    .unwrap();
+    assert!(
+        rollback(&f.vault, &forged).is_err(),
+        "pending rollback resume must bind the same source-lock preimage"
+    );
+    assert_eq!(fs::read(f.vault.join(SOURCE_LOCK)).unwrap(), source_after);
+    assert!(f.vault.join(".viggobsidian/pending.json").exists());
+    fs::remove_file(f.vault.join(".viggobsidian/pending.json")).unwrap();
+    atomic(
+        &f.vault,
+        ".viggobsidian/rollback.json",
+        &serde_json::to_vec(&forged).unwrap(),
+    )
+    .unwrap();
+    assert!(
+        rollback(&f.vault, &forged).is_err(),
+        "rollback resume must bind the same source-lock preimage"
+    );
+    assert_eq!(fs::read(f.vault.join(SOURCE_LOCK)).unwrap(), source_after);
+    assert!(f.vault.join(".viggobsidian/rollback.json").exists());
+}
+
+#[test]
 fn source_lock_rollback_refuses_postimage_drift_and_forged_local_metadata_target() {
     let f = source_identity_fixture();
     let mut manifest = read_json(&f.package.join("package.json")).unwrap();
