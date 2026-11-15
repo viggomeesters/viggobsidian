@@ -567,7 +567,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "eb547a45802455e9fd363f297b004e3fb489e9c9",
+  "revision": "296b07d1b303475e465ddd23e01316807c452ff0",
   "schema": "viggobsidian.package.v1",
-  "version": "0.28.3"
+  "version": "0.29.0"
 }
