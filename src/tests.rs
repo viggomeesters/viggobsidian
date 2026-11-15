@@ -1461,3 +1461,129 @@ fn installed_skills_reference_has_its_exact_plugin_check_contract() {
             .contains("[plugin-check](plugin-check.md)")
     );
 }
+
+#[test]
+fn source_identity_receipt_rejects_substituted_valid_previous_state_and_lock_preimage() {
+    let f = source_identity_fixture();
+    let actual_previous_state = fs::read(f.vault.join(STATE)).unwrap();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    let result = apply(&f.vault, &f.plan()).unwrap();
+    let receipt = read_json(&f.vault.join(field(&result, "receipt").unwrap())).unwrap();
+    let mut forged = receipt.clone();
+
+    let c = "c".repeat(40);
+    let previous_bytes: Vec<u8> = serde_json::from_value(forged["previous_state"].clone()).unwrap();
+    let mut previous: Value = serde_json::from_slice(&previous_bytes).unwrap();
+    let mut prior_manifest: Value =
+        serde_json::from_str(previous["manifest_bytes"].as_str().unwrap()).unwrap();
+    prior_manifest["revision"] = json!(c.clone());
+    let prior_manifest_bytes = serde_json::to_string(&prior_manifest).unwrap();
+    previous["revision"] = json!(c.clone());
+    previous["manifest_bytes"] = json!(prior_manifest_bytes.clone());
+    previous["manifest_sha256"] = json!(hash(prior_manifest_bytes.as_bytes()));
+    forged["previous_state"] = json!(serde_json::to_vec(&previous).unwrap());
+
+    let source_before: Vec<u8> =
+        serde_json::from_value(forged["source_lock"]["before"].clone()).unwrap();
+    let mut source_before: Value = serde_json::from_slice(&source_before).unwrap();
+    for row in source_before.as_array_mut().unwrap() {
+        let name = row["name"].as_str().unwrap();
+        row["origin"] = json!(format!(
+            "https://github.com/viggomeesters/viggobsidian/blob/{c}/skills/{name}/SKILL.md"
+        ));
+    }
+    forged["source_lock"]["before"] = json!(serde_json::to_vec(&source_before).unwrap());
+    forged["next_state"]["source_identity"] = json!({
+        "previous_state_sha256":hash(serde_json::from_value::<Vec<u8>>(forged["previous_state"].clone()).unwrap().as_slice()),
+        "source_lock_before_sha256":hash(serde_json::from_value::<Vec<u8>>(forged["source_lock"]["before"].clone()).unwrap().as_slice()),
+    });
+
+    assert!(rollback(&f.vault, &forged).is_err());
+    atomic(&f.vault, STATE, &actual_previous_state).unwrap();
+    atomic(
+        &f.vault,
+        SOURCE_LOCK,
+        &serde_json::from_value::<Vec<u8>>(forged["source_lock"]["before"].clone()).unwrap(),
+    )
+    .unwrap();
+    atomic(
+        &f.vault,
+        ".viggobsidian/pending.json",
+        &serde_json::to_vec(&forged).unwrap(),
+    )
+    .unwrap();
+    assert!(rollback(&f.vault, &forged).is_err());
+    fs::remove_file(f.vault.join(".viggobsidian/pending.json")).unwrap();
+    atomic(
+        &f.vault,
+        ".viggobsidian/rollback.json",
+        &serde_json::to_vec(&forged).unwrap(),
+    )
+    .unwrap();
+    assert!(rollback(&f.vault, &forged).is_err());
+}
+
+#[test]
+fn source_identity_plan_anchor_is_previewed_and_preserved_for_noop() {
+    let f = source_identity_fixture();
+    let previous_state = fs::read(f.vault.join(STATE)).unwrap();
+    let source_before = fs::read(f.vault.join(SOURCE_LOCK)).unwrap();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+
+    let proposal = f.plan();
+    assert_eq!(
+        proposal["source_identity"]["previous_state_sha256"],
+        hash(&previous_state)
+    );
+    assert_eq!(
+        proposal["source_identity"]["source_lock_before_sha256"],
+        hash(&source_before)
+    );
+    assert_eq!(
+        proposal["next_state"]["source_identity"],
+        proposal["source_identity"]
+    );
+    let result = apply(&f.vault, &proposal).unwrap();
+    let receipt = read_json(&f.vault.join(field(&result, "receipt").unwrap())).unwrap();
+    assert_eq!(receipt["schema"], RECEIPT_V2);
+
+    let no_op = f.plan();
+    assert_eq!(no_op["source_identity"], proposal["source_identity"]);
+    assert_eq!(no_op["next_state"], state(&f.vault).unwrap());
+    assert_eq!(apply(&f.vault, &no_op).unwrap()["status"], "unchanged");
+}
+
+#[test]
+fn legacy_receipt_without_source_identity_is_compatible_but_source_identity_cannot_downgrade() {
+    let f = Fixture::new();
+    let applied = apply(&f.vault, &f.plan()).unwrap();
+    let legacy = read_json(&f.vault.join(field(&applied, "receipt").unwrap())).unwrap();
+    assert_eq!(legacy["schema"], RECEIPT_V1);
+    rollback(&f.vault, &legacy).unwrap();
+
+    let f = source_identity_fixture();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    let applied = apply(&f.vault, &f.plan()).unwrap();
+    let mut source_identity =
+        read_json(&f.vault.join(field(&applied, "receipt").unwrap())).unwrap();
+    source_identity["schema"] = json!(RECEIPT_V1);
+    assert!(rollback(&f.vault, &source_identity).is_err());
+}
