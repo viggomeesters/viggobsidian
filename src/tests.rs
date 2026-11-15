@@ -562,6 +562,253 @@ impl Drop for Fixture {
     }
 }
 
+fn source_identity_fixture() -> Fixture {
+    let f = Fixture::new();
+    let mut files = Vec::new();
+    for (index, target) in skill_library::targets().iter().enumerate() {
+        let source = format!("identity-{index}.md");
+        let bytes = format!("fictional managed instruction: {target}\n").into_bytes();
+        fs::write(f.package.join(&source), &bytes).unwrap();
+        files.push(json!({"source":source,"target":target,"sha256":hash(&bytes)}));
+    }
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&json!({
+            "schema":"viggobsidian.package.v1","version":"0.1.0","revision":"a".repeat(40),"files":files
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    apply(&f.vault, &f.plan()).unwrap();
+    atomic(
+        &f.vault,
+        ".agents/skills/_bundle/native-surface.json",
+        &serde_json::to_vec(&json!({"public":SKILLS})).unwrap(),
+    )
+    .unwrap();
+    atomic(
+        &f.vault,
+        ".agents/skills/_bundle/source-lock.json",
+        &serde_json::to_vec(&Value::Array(SKILLS.iter().map(|name| json!({
+            "name":name,
+            "path":format!(".agents/skills/{name}/SKILL.md"),
+            "management_role":"viggobsidian-release",
+            "hash_authority":STATE,
+            "origin":format!("https://github.com/viggomeesters/viggobsidian/blob/{}/skills/{name}/SKILL.md", "a".repeat(40))
+        })).collect())).unwrap(),
+    )
+    .unwrap();
+    let entrypoints: serde_json::Map<_, _> = SKILLS
+        .iter()
+        .map(|name| (name.to_string(), json!({})))
+        .collect();
+    atomic(
+        &f.vault,
+        ".agents/skills/_bundle/catalog.yaml",
+        &serde_json::to_vec(&json!({"entrypoints":entrypoints,"modules":{},"sources":SKILLS.iter().map(|name|json!({"source_name":name,"source_owner":"vault","vault_path":format!(".agents/skills/{name}/SKILL.md")})).collect::<Vec<_>>() })).unwrap(),
+    )
+    .unwrap();
+    let aliases: serde_json::Map<_, _> = SKILLS.iter().map(|name| (name.to_string(), json!({"entry":name,"source":format!(".agents/skills/{name}/SKILL.md"),"disposition":"canonical-core"}))).collect();
+    atomic(
+        &f.vault,
+        ".agents/skills/_bundle/aliases.yaml",
+        &serde_json::to_vec(&Value::Object(aliases)).unwrap(),
+    )
+    .unwrap();
+    f
+}
+
+#[test]
+fn zero_content_release_update_previews_and_commits_all_source_lock_identities() {
+    let f = source_identity_fixture();
+    assert!(
+        skill_check::run(&f.vault).unwrap()["errors"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    let mut source_lock: Value =
+        serde_json::from_slice(&fs::read(f.vault.join(SOURCE_LOCK)).unwrap()).unwrap();
+    source_lock[0]["local_note"] = json!("preserve");
+    atomic(
+        &f.vault,
+        SOURCE_LOCK,
+        &serde_json::to_vec(&source_lock).unwrap(),
+    )
+    .unwrap();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+
+    let proposal = f.plan();
+    assert!(rows(&proposal, "changes").unwrap().is_empty());
+    assert_eq!(
+        proposal["source_lock"]["target"],
+        ".agents/skills/_bundle/source-lock.json"
+    );
+    assert_eq!(
+        proposal["source_lock"]["origins"].as_array().unwrap().len(),
+        SKILLS.len()
+    );
+    let source_before = fs::read(f.vault.join(SOURCE_LOCK)).unwrap();
+    let applied = apply(&f.vault, &proposal).unwrap();
+    assert_eq!(applied["changed"], 0);
+    assert_eq!(
+        serde_json::from_slice::<Value>(&fs::read(f.vault.join(SOURCE_LOCK)).unwrap()).unwrap()[0]
+            ["local_note"],
+        "preserve"
+    );
+    assert!(
+        skill_check::run(&f.vault).unwrap()["errors"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    let receipt = read_json(&f.vault.join(field(&applied, "receipt").unwrap())).unwrap();
+    assert_eq!(receipt["source_lock"]["target"], SOURCE_LOCK);
+    rollback(&f.vault, &receipt).unwrap();
+    assert_eq!(fs::read(f.vault.join(SOURCE_LOCK)).unwrap(), source_before);
+    assert!(
+        skill_check::run(&f.vault).unwrap()["errors"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
+fn same_revision_source_lock_preimage_is_bound_even_when_package_is_unchanged() {
+    let f = source_identity_fixture();
+    let proposal = f.plan();
+    assert!(rows(&proposal, "changes").unwrap().is_empty());
+    assert!(!proposal["source_lock"].is_null());
+    let mut source: Value =
+        serde_json::from_slice(&fs::read(f.vault.join(SOURCE_LOCK)).unwrap()).unwrap();
+    source[0]["origin"] = json!(format!(
+        "https://github.com/viggomeesters/viggobsidian/blob/{}/skills/github-work/SKILL.md",
+        "c".repeat(40)
+    ));
+    atomic(&f.vault, SOURCE_LOCK, &serde_json::to_vec(&source).unwrap()).unwrap();
+    assert!(apply(&f.vault, &proposal).is_err());
+}
+
+#[test]
+fn source_lock_rejects_missing_malformed_foreign_and_managed_drift_on_revision_change() {
+    let f = source_identity_fixture();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    fs::remove_file(f.vault.join(SOURCE_LOCK)).unwrap();
+    assert!(
+        plan(&f.vault, &f.package, &json!({})).is_err(),
+        "revision advance must not invent a source-lock"
+    );
+
+    let f = source_identity_fixture();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    atomic(&f.vault, SOURCE_LOCK, b"not an array").unwrap();
+    assert!(plan(&f.vault, &f.package, &json!({})).is_err());
+    let source = Value::Array(SKILLS.iter().map(|name| json!({"name":name,"path":format!(".agents/skills/{name}/SKILL.md"),"management_role":"viggobsidian-release","hash_authority":STATE,"origin":"https://example.invalid/foreign"})).collect());
+    atomic(&f.vault, SOURCE_LOCK, &serde_json::to_vec(&source).unwrap()).unwrap();
+    assert!(plan(&f.vault, &f.package, &json!({})).is_err());
+
+    let f = source_identity_fixture();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    atomic(&f.vault, ".agents/skills/audit/SKILL.md", b"human drift").unwrap();
+    assert!(plan(&f.vault, &f.package, &json!({})).is_err());
+}
+
+#[test]
+fn source_lock_rollback_refuses_postimage_drift_and_forged_local_metadata_target() {
+    let f = source_identity_fixture();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    let result = apply(&f.vault, &f.plan()).unwrap();
+    let receipt = read_json(&f.vault.join(field(&result, "receipt").unwrap())).unwrap();
+    atomic(&f.vault, SOURCE_LOCK, b"human source-lock edit").unwrap();
+    assert!(rollback(&f.vault, &receipt).is_err());
+    let mut forged = receipt.clone();
+    forged["source_lock"]["target"] = json!("AGENTS.md");
+    assert!(rollback(&f.vault, &forged).is_err());
+    assert_eq!(
+        fs::read(f.vault.join(SOURCE_LOCK)).unwrap(),
+        b"human source-lock edit"
+    );
+}
+
+#[test]
+fn interrupted_source_lock_and_installed_state_recover_from_the_same_receipt() {
+    let f = source_identity_fixture();
+    let source_before = fs::read(f.vault.join(SOURCE_LOCK)).unwrap();
+    let state_before = fs::read(f.vault.join(STATE)).unwrap();
+    let mut manifest = read_json(&f.package.join("package.json")).unwrap();
+    manifest["revision"] = json!("b".repeat(40));
+    fs::write(
+        f.package.join("package.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    let result = apply(&f.vault, &f.plan()).unwrap();
+    let receipt = read_json(&f.vault.join(field(&result, "receipt").unwrap())).unwrap();
+    let source_after = fs::read(f.vault.join(SOURCE_LOCK)).unwrap();
+    let state_after = fs::read(f.vault.join(STATE)).unwrap();
+    rollback(&f.vault, &receipt).unwrap();
+
+    for (source, state) in [
+        (&source_before, &state_before),
+        (&source_after, &state_before),
+        (&source_after, &state_after),
+    ] {
+        atomic(&f.vault, SOURCE_LOCK, source).unwrap();
+        atomic(&f.vault, STATE, state).unwrap();
+        atomic(
+            &f.vault,
+            ".viggobsidian/pending.json",
+            &serde_json::to_vec(&receipt).unwrap(),
+        )
+        .unwrap();
+        rollback(&f.vault, &receipt).unwrap();
+        assert_eq!(fs::read(f.vault.join(SOURCE_LOCK)).unwrap(), source_before);
+        assert_eq!(fs::read(f.vault.join(STATE)).unwrap(), state_before);
+        assert!(!f.vault.join(".viggobsidian/pending.json").exists());
+        assert!(!f.vault.join(".viggobsidian/rollback.json").exists());
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn source_lock_symlink_is_refused() {
+    let f = source_identity_fixture();
+    fs::remove_file(f.vault.join(SOURCE_LOCK)).unwrap();
+    std::os::unix::fs::symlink(f.vault.join("AGENTS.md"), f.vault.join(SOURCE_LOCK)).unwrap();
+    assert!(plan(&f.vault, &f.package, &json!({})).is_err());
+}
+
 #[test]
 fn install_idempotence_update_and_rollback() {
     let f = Fixture::new();

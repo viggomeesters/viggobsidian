@@ -28,6 +28,7 @@ const RETIRED_GO: &[&str] = &[
     ".agents/skills/go-vision/PROCEDURE.md",
 ];
 const STATE: &str = ".viggobsidian/installed.json";
+const SOURCE_LOCK: &str = ".agents/skills/_bundle/source-lock.json";
 const SKILLS: &[&str] = &[
     "github-work",
     "brainstorm",
@@ -306,6 +307,104 @@ fn digest_at(root: &Path, path: &str) -> Result<Value> {
         .map(|b| Value::String(hash(&b)))
         .unwrap_or(Value::Null))
 }
+fn source_lock_bytes(
+    bytes: &[u8],
+    installed: &Value,
+    next_revision: &str,
+) -> Result<(Vec<u8>, Value)> {
+    let options = serde_saphyr::options! {duplicate_keys:serde_saphyr::DuplicateKeyPolicy::Error};
+    let mut rows: Value = serde_saphyr::from_slice_with_options(bytes, options)?;
+    let rows = rows.as_array_mut().ok_or("source-lock must be an array")?;
+    let expected: BTreeSet<_> = SKILLS.iter().map(|name| name.to_string()).collect();
+    let mut seen = BTreeSet::new();
+    let old_revision = field(installed, "revision")?;
+    let mut origins = Vec::new();
+    for row in rows.iter_mut() {
+        let name = field(row, "name")?.to_string();
+        if !expected.contains(&name) || !seen.insert(name.clone()) {
+            return fail("source-lock must have exactly the declared core rows");
+        }
+        let path = format!(".agents/skills/{name}/SKILL.md");
+        let old_origin = format!(
+            "https://github.com/viggomeesters/viggobsidian/blob/{old_revision}/skills/{name}/SKILL.md"
+        );
+        let next_origin = format!(
+            "https://github.com/viggomeesters/viggobsidian/blob/{next_revision}/skills/{name}/SKILL.md"
+        );
+        if row["path"] != path
+            || row["management_role"] != "viggobsidian-release"
+            || row["hash_authority"] != STATE
+            || row["origin"] != old_origin
+        {
+            return fail(format!("invalid prior source identity: {name}"));
+        }
+        row["origin"] = Value::String(next_origin.clone());
+        origins.push(json!({"name":name,"before":old_origin,"after":next_origin}));
+    }
+    if seen != expected {
+        return fail("source-lock must have exactly the declared core rows");
+    }
+    let next = if old_revision == next_revision {
+        bytes.to_vec()
+    } else {
+        serde_json::to_vec_pretty(&rows)?
+    };
+    Ok((next, Value::Array(origins)))
+}
+fn source_lock_update(
+    vault: &Path,
+    installed: &Value,
+    next_revision: &str,
+) -> Result<Option<Value>> {
+    let bytes = match bytes_at(vault, SOURCE_LOCK)? {
+        Some(bytes) => bytes,
+        None => {
+            if !installed.is_null() && field(installed, "revision")? != next_revision {
+                return fail(
+                    "source-lock absent; release identity update requires an existing verified source-lock",
+                );
+            }
+            return Ok(None);
+        }
+    };
+    if installed.is_null() {
+        return fail("source-lock exists without an installed package identity");
+    }
+    for name in SKILLS {
+        let path = format!(".agents/skills/{name}/SKILL.md");
+        let expected = installed["files"][&path]
+            .as_str()
+            .ok_or("installed package lacks managed core hash")?;
+        if digest_at(vault, &path)? != expected {
+            return fail(format!(
+                "managed skill drift before source identity update: {path}"
+            ));
+        }
+    }
+    let (after, origins) = source_lock_bytes(&bytes, installed, next_revision)?;
+    Ok(Some(json!({
+        "target":SOURCE_LOCK,
+        "before":hash(&bytes),
+        "after":hash(&after),
+        "origins":origins
+    })))
+}
+fn source_lock_postimage(
+    vault: &Path,
+    installed: &Value,
+    next_revision: &str,
+) -> Result<Option<Vec<u8>>> {
+    let Some(expected) = source_lock_update(vault, installed, next_revision)? else {
+        return Ok(None);
+    };
+    let before = bytes_at(vault, SOURCE_LOCK)?.ok_or("source-lock disappeared during apply")?;
+    if hash(&before) != field(&expected, "before")? {
+        return fail("source-lock changed during apply");
+    }
+    Ok(Some(
+        source_lock_bytes(&before, installed, next_revision)?.0,
+    ))
+}
 fn atomic(root: &Path, target: &str, bytes: &[u8]) -> Result<()> {
     let dest = checked(root, target)?;
     let parent = dest.parent().ok_or("missing parent")?;
@@ -522,10 +621,11 @@ fn plan(vault: &Path, package_root: &Path, adoption: &Value) -> Result<Value> {
             }
         }
     }
+    let source_lock = source_lock_update(vault, &installed, field(&manifest, "revision")?)?;
     Ok(
         json!({"schema":"viggobsidian.plan.v1","vault":vault,"package":package_root,
         "version":manifest["version"],"revision":manifest["revision"],"manifest_sha256":manifest_sha256,
-        "previous_state_sha256":digest_at(vault,STATE)?,"adoption":adoption,"changes":changes,
+        "previous_state_sha256":digest_at(vault,STATE)?,"adoption":adoption,"changes":changes,"source_lock":source_lock,
         "next_state":{"schema":"viggobsidian.installed.v1","version":manifest["version"],"revision":manifest["revision"],"manifest_sha256":manifest_sha256,"manifest_bytes":fs::read_to_string(checked(package_root,"package.json")?)?,"files":next,"derived":derived}}),
     )
 }
@@ -548,7 +648,10 @@ fn apply(vault: &Path, proposal: &Value) -> Result<Value> {
     if fresh != *proposal {
         return fail("stale or altered plan; regenerate and review");
     }
-    if rows(proposal, "changes")?.is_empty() && state(vault)? == proposal["next_state"] {
+    let installed = state(vault)?;
+    let source_lock_postimage =
+        source_lock_postimage(vault, &installed, field(proposal, "revision")?)?;
+    if rows(proposal, "changes")?.is_empty() && installed == proposal["next_state"] {
         return Ok(json!({"status":"unchanged"}));
     }
     let (manifest, _) = package(&package_root)?;
@@ -559,9 +662,15 @@ fn apply(vault: &Path, proposal: &Value) -> Result<Value> {
         entries.push(json!({"target":target,"before":bytes,"after":change["after"]}));
     }
     let old_state = bytes_at(vault, STATE)?;
+    let source_lock_receipt = if let Some(after) = &source_lock_postimage {
+        let before = bytes_at(vault, SOURCE_LOCK)?.ok_or("source-lock disappeared during apply")?;
+        json!({"target":SOURCE_LOCK,"before":before,"after":hash(after)})
+    } else {
+        Value::Null
+    };
     let receipt_path = format!(".viggobsidian/receipts/{}.json", stamp()?);
     let receipt = json!({"schema":"viggobsidian.receipt.v1","vault":vault,"receipt":receipt_path,
-        "entries":entries,"previous_state":old_state,"next_state":proposal["next_state"]});
+        "entries":entries,"source_lock":source_lock_receipt,"previous_state":old_state,"next_state":proposal["next_state"]});
     atomic(vault, &receipt_path, &serde_json::to_vec_pretty(&receipt)?)?;
     atomic(
         vault,
@@ -587,6 +696,16 @@ fn apply(vault: &Path, proposal: &Value) -> Result<Value> {
             return fail("package or local CSS configuration changed during apply");
         }
         atomic(vault, target, &bytes)?;
+    }
+    if let Some(bytes) = source_lock_postimage {
+        let source_lock = &proposal["source_lock"];
+        if source_lock["target"] != SOURCE_LOCK
+            || digest_at(vault, SOURCE_LOCK)? != source_lock["before"]
+            || hash(&bytes) != field(source_lock, "after")?
+        {
+            return fail("concurrent edit; transaction retained: source-lock");
+        }
+        atomic(vault, SOURCE_LOCK, &bytes)?;
     }
     atomic(
         vault,
@@ -644,6 +763,31 @@ fn rollback(vault: &Path, receipt: &Value) -> Result<Value> {
             return fail(format!("rollback conflict: {target}"));
         }
     }
+    let source_lock = if receipt["source_lock"].is_null() {
+        None
+    } else {
+        let source_lock = &receipt["source_lock"];
+        if source_lock["target"] != SOURCE_LOCK || source_lock["after"].as_str().is_none() {
+            return fail("unsafe source-lock receipt binding");
+        }
+        let before: Option<Vec<u8>> = serde_json::from_value(source_lock["before"].clone())?;
+        let before = before.ok_or("source-lock receipt lacks a preimage")?;
+        let current = digest_at(vault, SOURCE_LOCK)?;
+        let before_hash = Value::String(hash(&before));
+        if pending.is_none() && undo.is_none() {
+            if current != source_lock["after"] {
+                return fail("rollback conflict: source-lock");
+            }
+            let verified = source_lock_update(vault, next, field(next, "revision")?)?
+                .ok_or("receipt expects a source-lock postimage")?;
+            if verified["before"] != source_lock["after"] {
+                return fail("rollback source-lock postimage drift");
+            }
+        } else if current != source_lock["after"] && current != before_hash {
+            return fail("rollback conflict: source-lock");
+        }
+        Some(before)
+    };
     // Verify the whole managed postimage, including assets that this transaction didn't change.
     if pending.is_none() {
         for (target, expected) in next["files"].as_object().ok_or("missing next files")? {
@@ -667,6 +811,9 @@ fn rollback(vault: &Path, receipt: &Value) -> Result<Value> {
         } else if checked(vault, target)?.exists() {
             fs::remove_file(checked(vault, target)?)?;
         }
+    }
+    if let Some(before) = source_lock {
+        atomic(vault, SOURCE_LOCK, &before)?;
     }
     let before: Option<Vec<u8>> = serde_json::from_value(receipt["previous_state"].clone())?;
     if let Some(bytes) = before {
