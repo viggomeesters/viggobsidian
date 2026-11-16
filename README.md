@@ -10,6 +10,7 @@ Eén profiel: `20-projects` voor losse projecten, `21-programma` tot en met `29-
 - [Profiel](profiles/numbered-v1.yaml), [vaultschema](schemas/vault-schema.yaml) en [integratieschema](schemas/vault.schema.json)
 - [Vaultskills en lokale adapters](docs/skills.md)
 - [Algemene skillbibliotheek en werk-/privéadapters](docs/skill-library.md)
+- [Optional host skills and pinned installation](docs/host-skills.md)
 - [Installeren, updates en rollback](docs/updates.md)
 - [Afbakening en migratie uit bestaande systemen](docs/system-boundary.md)
 - [Productcapabilities](schemas/product-capabilities.v1.json) en [uitvoerings-/evidencecontract](docs/product-execution.md)
