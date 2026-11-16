@@ -1,3 +1,4 @@
+use dossier_retrieval_core::ask_cli::{ASK_HELP, run_ask};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
@@ -1243,6 +1244,7 @@ fn run() -> Result<bool> {
     let mut ok = true;
     let output = match command {
         "product-info" => product_info::run(&args[1..])?,
+        "dossier-ask" => run_ask(&args[1..])?,
         "plugin-check" => {
             let out = plugin_check::run(&args)?;
             ok = out["phasePassed"] == true;
@@ -1284,11 +1286,10 @@ fn run() -> Result<bool> {
             out
         }
         "help" | "--help" => {
-            println!(concat!(
-                "viggobsidian ",
-                env!("CARGO_PKG_VERSION"),
-                "\nproduct-info\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nskill-check --vault DIR\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--preview-intent public-review|local-private] [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nProduct-info is read-only and accepts no arguments; it reports declared contracts, not runtime availability or execution.\nPreview intent defaults to public-review; local-private is only valid for source-preview.\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md, docs/plugin-check.md, docs/product-execution.md and skills/github-work/references/obsidian-plugins.md."
-            ));
+            println!(
+                "viggobsidian {}\nproduct-info\npack --package DIR --revision COMMIT\nplan --vault DIR --package DIR [--adopt JSON]\napply --vault DIR --plan JSON\nrollback --vault DIR --receipt JSON\ncheck --vault DIR\nskill-check --vault DIR\ndossier-{ASK_HELP}\nplugin-check --repo-dir DIR --github OWNER/REPO --phase source-preview|public-release|catalog-install [--preview-intent public-review|local-private] [--candidate COMMIT] [--initial] [--evidence JSON] [--installed-dir DIR]\nProduct-info is read-only and accepts no arguments; it reports declared contracts, not runtime availability or execution.\nPreview intent defaults to public-review; local-private is only valid for source-preview.\nAll commands print JSON; redirect a plan to a file before apply. See docs/updates.md, docs/plugin-check.md, docs/product-execution.md and skills/github-work/references/obsidian-plugins.md.",
+                env!("CARGO_PKG_VERSION")
+            );
             return Ok(true);
         }
         _ => return fail("unknown command"),

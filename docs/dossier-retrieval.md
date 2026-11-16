@@ -1,9 +1,65 @@
-# Read-only dossier retrieval PoC
+# Read-only dossier retrieval and one-command ask
 
 `dossier-retrieve` is a native Rust proof of concept for finding evidence in one
 existing Wiki/Raw dossier. It is intentionally lexical retrieval, **not** a
 generative model and not a semantic consistency checker. It supplies ranked,
 readable excerpts so an agent can formulate a separately grounded answer.
+
+## Managed one-command ask
+
+Use either native entrypoint for the same strict route:
+
+```sh
+# Standalone retrieval package binary
+dossier-retrieve ask --vault /absolute/vault --query 'Welke fictieve garantie geldt?'
+
+# Canonical ViggObsidian native CLI
+viggobsidian dossier-ask --vault /absolute/vault --query 'Welke fictieve garantie geldt?'
+```
+
+Both call the same Rust parser and managed route. `--vault` and `--query` are
+mandatory. The optional selection hints are `--dossier RELATIVE/PATH`,
+`--context-path RELATIVE/PATH` and `--topic LABEL`; they narrow selection but
+never make an ambiguous owner authoritative. The optional `--cache-dir ABS`
+selects an absolute private cache root; otherwise the route uses
+`$XDG_CACHE_HOME/viggobsidian/dossier-retrieval` or
+`$HOME/.cache/viggobsidian/dossier-retrieval`. If neither environment variable
+can establish an absolute user-local location, the command refuses rather than
+choosing a repository, current-directory or vault fallback. `--limit` is 1–20
+and defaults to 8. Unknown, duplicate and positional arguments are refused.
+
+The JSON response uses `dossier-ask.v1`. It identifies the selected owner and
+cache outcome and returns only one of the managed outcomes: `complete`,
+`needs_selection`, `not_applicable`, `no_evidence`, `refused` or `busy`.
+Evidence is lexical and cited; before making a factual synthesis, read the
+original Raw source for every material claim. A selection failure asks for an
+explicit owner/context rather than scanning another dossier or falling back to
+the current directory.
+
+This command is read-only for the selected vault. Its cache is private derived
+data, not a source of authority: do not commit, sync or publish it. It makes no
+network or model call and does not process sources, write Wiki notes, or invoke
+providers. Managed cache handling still rejects unsafe locations and preserves
+vault/repository boundaries.
+
+Selection first uses an explicit eligible dossier, then the nearest eligible
+owner of an existing context path. Otherwise discovery is bounded to visible
+numbered collections. A unique lexical topic/title match may select an owner
+only after complete discovery. Budget exhaustion returns `needs_selection` with
+`discovery_complete: false`, never a match from an incomplete candidate set.
+Use the known dossier/context for large vaults; no full-vault background crawl
+is started. Ordinary folders are never converted. Besides real `wiki/` plus
+`raw/`, a direct-Wiki foldernote is eligible only at its exact same-name path
+with both `layer: wiki` and array class `vault-wiki-direct`, plus real `raw/`.
+
+The managed cache creates missing nested application directories privately,
+without changing existing broad HOME/XDG parent permissions. Source edits,
+additions, deletions and corrupt derived state trigger one bounded atomic
+rebuild. Unsafe paths, permissions or source-identity errors do not. A busy
+cache lock returns a retryable state without stale evidence or lock stealing.
+This read route can run repeatedly for every eligible dossier; it needs no
+per-dossier configuration or manual build command.
+
 
 ## Boundary and safety
 
@@ -12,8 +68,9 @@ readable excerpts so an agent can formulate a separately grounded answer.
 - The command never writes in the vault. `build` writes one disposable JSON
   index at an absolute path outside both the vault and this repository.
 - It rejects `..`, backslashes, symlinks anywhere in the selected dossier, hidden
-  files, oversized files and excessive file counts. It scans only Markdown under
-  the dossier's `wiki` and `raw` folders.
+  files, oversized files and excessive file counts. It indexes Markdown under
+  the dossier's `wiki` and `raw` folders and an explicitly declared direct-Wiki
+  same-name foldernote.
 - Each document gets a SHA-256 identity. `query` validates index schema and
   integrity, rescans the complete eligible Wiki/Raw inventory, reconstructs
   every document record from live source bytes, and rejects additions,
