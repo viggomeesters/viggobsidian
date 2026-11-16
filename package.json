@@ -81,7 +81,7 @@
       "target": ".agents/tools/link-style-core/src/wasm.rs"
     },
     {
-      "sha256": "68863e410adc8ef6d86eeea996af4c93a172bd6bf1706640d73776f90043d1af",
+      "sha256": "513ebd720d20323097b9653bde1ee7e4fa3dc2c53a1d788fc8f61fa41c3f7725",
       "source": "crates/vault-layout/fixtures/procedure-assets.json",
       "target": ".agents/tools/vault-layout/fixtures/procedure-assets.json"
     },
@@ -472,7 +472,7 @@
       "target": ".agents/skills/research/references/financial-evidence.md"
     },
     {
-      "sha256": "cc5517df315f2d06e01d21fb07d3cf285278f5e7b88765da9237575a95a41661",
+      "sha256": "749eb262f819c34e60203e5de0ecb0cc4621ba19d18b5c9817d90332486fb2e7",
       "source": "skills/vault/SKILL.md",
       "target": ".agents/skills/vault/SKILL.md"
     },
@@ -567,7 +567,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "b2e640701c8471b5b578baf91fc5e0f77c3341bd",
+  "revision": "40bf72057ad375b69a04f23db1b4a17b42c40765",
   "schema": "viggobsidian.package.v1",
-  "version": "0.29.1"
+  "version": "0.30.0"
 }
