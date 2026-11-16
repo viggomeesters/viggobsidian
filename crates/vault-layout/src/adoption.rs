@@ -237,10 +237,14 @@ pub(crate) fn retained(vault: &Path, state: &Value, path: &str) -> Result<bool> 
         return Ok(false);
     }
     let tail = std::str::from_utf8(&bytes[length..])?;
-    if !(tail.starts_with("\n\n") || prefix.ends_with(b"\n") && tail.starts_with('\n')) {
+    valid_legacy_addition(std::str::from_utf8(prefix)?, tail)
+}
+
+/// The existing append gate, also used by explicitly typed maintenance proofs.
+pub(crate) fn valid_legacy_addition(original: &str, tail: &str) -> Result<bool> {
+    if !(tail.starts_with("\n\n") || original.ends_with('\n') && tail.starts_with('\n')) {
         return Ok(false);
     }
-    let original = std::str::from_utf8(prefix)?;
     // A legacy unclosed top-level fence must not swallow the new contribution.
     let mut fence = None;
     for line in original.lines() {

@@ -95,6 +95,33 @@ The caller must seal the baseline: it is evidence, not a trusted user exemption.
 
 ## Typed maintenance proofs (v0.9)
 
+Version 0.31 adds three separately checked proofs. `verified-link-repair` takes
+`before`, a sibling `.md.txt` `archive`, and an exact `mapping` of WikiLink target
+strings. A file destination has `kind: file`, `uri`, an explicit absolute `root`
+and source `sha256`; the native adapter verifies regular files, symlinks, root
+containment, exact bytes and any preserved anchor. A historical destination has
+`kind: git`, a full immutable `revision`, relative `path` and source `sha256`.
+Its original label/heading stays visible as a historical locator, without a fake
+text-file heading fragment. It verifies the actual Git object in the selected
+vault. All non-token source bytes and fenced/indented examples remain unchanged;
+unsupported embeds and ambiguous inline contexts fail closed.
+
+Every repair or append owner must be paired in the same write set with
+`source-preimage-archive`: `before: null`, exact `source` owner and full
+`source_before` bytes. The archive is create-only, directly beside the owner and
+byte-identical. An archive alone, a changed archive, a missing pair or any other
+new member receives no compatibility. The precise paired archive is a typed
+source artifact; this does not exempt arbitrary sibling payloads or change full
+strict audits.
+
+`activity-append` takes a separate `before`, sibling `archive` and `append`.
+It checks a real final Activity section outside code/comments and runs the
+existing legacy-addition provenance, chronology, result-goal and delivery gates
+on the addition. It preserves the complete previous prefix. Callers can validate
+and publish link repair first and independently plan the result contribution
+from the new preimage. No proof grants write authority or changes schema,
+adoption, configuration, source identity or canonical writer ownership.
+
 A canonical migration adapter may include `proof` on a present change. This is
 validation only; it grants no write authority. `--maintenance-transform` reads
 `{path,proof}` on stdin and returns the sole permitted postimage without writing.

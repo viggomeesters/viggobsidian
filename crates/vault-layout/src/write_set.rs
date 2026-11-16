@@ -141,18 +141,29 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         let path = checked_path(vault, change["path"].as_str().ok_or("missing change path")?)?;
         if let Some(proof) = change.get("proof") {
             let after = crate::maintenance::transform(path.to_str().ok_or("invalid path")?, proof)?;
-            let expected = if phase == "baseline" {
+            let archive = proof["kind"] == "source-preimage-archive";
+            let expected = if phase == "baseline" && !archive {
                 proof["before"].as_str().ok_or("missing before")?
             } else {
                 &after
             };
-            if fs::read_to_string(vault.join(&path))? != expected {
+            let exact = if phase == "baseline" && archive {
+                !vault.join(&path).exists()
+            } else {
+                fs::read_to_string(vault.join(&path))? == expected
+            };
+            if !exact {
                 return Err("compatibility proof does not match the installed bytes".into());
             }
             if change["expect"] != "present" {
                 return Err("compatibility changes cannot delete notes".into());
             }
-            let targets: Vec<_> = if proof["kind"] == "owner-handoff" {
+            let targets: Vec<_> = if matches!(
+                proof["kind"].as_str(),
+                Some("verified-link-repair" | "activity-append" | "source-preimage-archive")
+            ) {
+                Vec::new()
+            } else if proof["kind"] == "owner-handoff" {
                 vec![proof["target"].as_str().ok_or("missing target")?]
             } else {
                 proof["mapping"]
@@ -182,6 +193,7 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
             return Err("duplicate change path or invalid expected state".into());
         }
     }
+    crate::verified_links::bindings(vault, &proofs)?;
     let changes: Vec<_> = paths
         .iter()
         .map(|(p, e)| match proofs.get(p) {
@@ -388,7 +400,20 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
             scan.folder_with_depth(&dir, under_raw, *recurse)?;
         }
     }
-    let owned_findings = findings(&scan.findings);
+    // A paired create-only byte-exact preimage is a typed source artifact,
+    // not an arbitrary loose file. Its bytes/source/scope were checked above.
+    // Full strict audits and every other structural finding remain unchanged.
+    let owned_findings = findings(&scan.findings)
+        .into_iter()
+        .filter(|row| {
+            !(row["code"] == "loose-file"
+                && row["path"].as_str().is_some_and(|p| {
+                    proofs
+                        .get(Path::new(p))
+                        .is_some_and(|proof| proof["kind"] == "source-preimage-archive")
+                }))
+        })
+        .collect::<Vec<_>>();
     scan.findings.clear();
     for dir in &boundary {
         let dir = vault.join(dir);

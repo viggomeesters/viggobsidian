@@ -77,6 +77,10 @@
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
     {
+      "source": "crates/vault-layout/src/verified_links.rs",
+      "target": ".agents/tools/vault-layout/src/verified_links.rs"
+    },
+    {
       "source": "crates/vault-layout/src/skill_routes.rs",
       "target": ".agents/tools/vault-layout/src/skill_routes.rs"
     },
