@@ -4,6 +4,9 @@
 //! cited source at query time. It ranks excerpts; it does not infer domain facts
 //! or prove semantic consistency between notes.
 use serde_json::{Value, json};
+pub mod ask_cli;
+pub mod managed;
+pub mod selection;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, OpenOptions};
@@ -526,11 +529,25 @@ fn source_artifact(note: &Path, metadata: &Value) -> Result<Value> {
 }
 
 fn doc_record(dossier: &str, path: &str, note: &Path, source: &[u8]) -> Result<Option<Value>> {
-    let Some(kind) = kind_for(dossier, path) else {
+    let direct_note = Path::new(dossier)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| format!("{dossier}/{name}.md"));
+    let declared_kind = kind_for(dossier, path);
+    if declared_kind.is_none() && direct_note.as_deref() != Some(path) {
         return Ok(None);
-    };
+    }
     let text = std::str::from_utf8(source).map_err(|_| format!("Markdown is not UTF-8: {path}"))?;
     let (metadata, body, line_offset) = split_frontmatter(text)?;
+    let direct_wiki = metadata["layer"] == "wiki"
+        && metadata["cssclasses"]
+            .as_array()
+            .is_some_and(|classes| classes.iter().any(|class| class == "vault-wiki-direct"));
+    let kind = match declared_kind {
+        Some(kind) => kind,
+        None if direct_wiki => "wiki",
+        None => return Ok(None),
+    };
     let link_targets = links(body);
     let wiki_target = metadata
         .get("wiki_target")
@@ -1204,6 +1221,36 @@ mod tests {
         )
         .unwrap();
         (root.clone(), vault, dossier)
+    }
+    #[test]
+    fn direct_wiki_requires_both_explicit_layer_and_class() {
+        let dossier = "30-topics/example-dossier";
+        let path = "30-topics/example-dossier/example-dossier.md";
+        let declared = b"---\nlayer: wiki\ncssclasses: [vault-wiki-direct]\n---\n# Dossier\n\nActuele kennis.\n";
+        let doc = doc_record(dossier, path, Path::new(path), declared)
+            .unwrap()
+            .unwrap();
+        assert_eq!(doc["kind"], "wiki");
+        assert!(
+            doc_record(
+                dossier,
+                path,
+                Path::new(path),
+                b"---\nlayer: wiki\n---\n# Gewone note\n"
+            )
+            .unwrap()
+            .is_none()
+        );
+        assert!(
+            doc_record(
+                dossier,
+                "30-topics/example-dossier/other.md",
+                Path::new(path),
+                declared
+            )
+            .unwrap()
+            .is_none()
+        );
     }
     #[test]
     fn evidence_chunks_are_disjoint_and_locators_do_not_boost_prose() {

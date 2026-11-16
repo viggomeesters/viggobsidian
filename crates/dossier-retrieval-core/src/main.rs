@@ -1,4 +1,7 @@
-use dossier_retrieval_core::{build_index, query_index};
+use dossier_retrieval_core::{
+    ask_cli::{ASK_HELP, run_ask},
+    build_index, query_index,
+};
 use std::path::Path;
 
 fn argument<'a>(args: &'a [String], name: &str) -> Result<&'a str, String> {
@@ -49,8 +52,15 @@ fn run() -> Result<(), String> {
                 serde_json::to_string_pretty(&output).map_err(|e| e.to_string())?
             );
         }
+        Some("ask") => {
+            let output = run_ask(&args[1..])?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&output).map_err(|e| e.to_string())?
+            );
+        }
         Some("help") | Some("--help") | None => println!(
-            "dossier-retrieve\nbuild --vault DIR --dossier RELATIVE/PATH --index /absolute/external/index.json\nquery --vault DIR --dossier RELATIVE/PATH --index /absolute/external/index.json --query TEXT [--limit 1..20]\n\nThe command is read-only for --vault. Build writes only the disposable external index; query revalidates every indexed source hash before returning ranked excerpts."
+            "dossier-retrieve\nbuild --vault DIR --dossier RELATIVE/PATH --index /absolute/external/index.json\nquery --vault DIR --dossier RELATIVE/PATH --index /absolute/external/index.json --query TEXT [--limit 1..20]\n{ASK_HELP}\n\nThe command is read-only for --vault. Build writes only the disposable external index; query revalidates every indexed source hash before returning ranked excerpts."
         ),
         _ => return Err("unknown command; use --help".into()),
     }
