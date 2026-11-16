@@ -24,6 +24,10 @@ fn keys(value: &Value, allowed: &[&str]) -> Result<()> {
 }
 
 fn checked_path(vault: &Path, raw: &str) -> Result<PathBuf> {
+    checked_file_path(vault, raw, false)
+}
+
+fn checked_file_path(vault: &Path, raw: &str, root_base_destination: bool) -> Result<PathBuf> {
     let path = Path::new(raw);
     if raw.contains('\\')
         || raw.split('/').any(|p| {
@@ -34,7 +38,8 @@ fn checked_path(vault: &Path, raw: &str) -> Result<PathBuf> {
         || path
             .components()
             .any(|p| !matches!(p, Component::Normal(_)))
-        || path.components().count() < 2
+        || (path.components().count() < 2
+            && !(root_base_destination && crate::maintenance::root_base_locator(raw)))
     {
         return Err("write-set paths must be visible, relative, normalized files".into());
     }
@@ -109,7 +114,9 @@ fn checked_destination(vault: &Path, target: &str) -> Result<PathBuf> {
         }
         checked_path(vault, &relative)
     } else {
-        checked_path(vault, target)
+        // A root Base is a bounded WikiLink destination, never an added write
+        // scope. Use the same regular-file and symlink checks as all targets.
+        checked_file_path(vault, target, true)
     }
 }
 

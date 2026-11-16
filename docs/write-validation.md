@@ -135,6 +135,11 @@ targets, another handoff and cycles fail.
 `locator-rebind` takes `before` and an exact locator `mapping`. It changes whole
 WikiLink targets (including basenames), local Markdown-link URIs, complete
 single-backtick file locators and declared `external-tasks[].path` bindings.
+WikiLinks may also target a visible vault-root `.base` filename containing only
+ASCII letters, digits, dots, hyphens and underscores. This exception applies only
+to WikiLink destinations; inline basenames and metadata retain their existing
+grammar. The native adapter checks the same-vault regular file and rejects
+symlinks. Root files do not become writable through this destination support.
 All other metadata, bound task IDs/status, labels, anchors, free prose, quotes,
 HTML source and code examples remain immutable. A null local-URI mapping renders
 fixed historical-unavailable text retaining the original URI. Markdown denotes

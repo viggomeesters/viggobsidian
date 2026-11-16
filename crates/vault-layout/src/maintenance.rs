@@ -34,6 +34,18 @@ fn file_locator(value: &str) -> bool {
     !value.contains([':', '?', '\0'])
         && path(value).is_ok_and(|p| p.components().count() >= 3 && p.extension().is_some())
 }
+// Root Bases are native WikiLink targets. Keep this narrower than file_locator:
+// a basename in inline code or metadata is not a complete file locator.
+pub(crate) fn root_base_locator(value: &str) -> bool {
+    path(value).is_ok_and(|p| {
+        p.components().count() == 1 && p.extension().is_some_and(|ext| ext == "base")
+    }) && value
+        .bytes()
+        .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.'))
+}
+fn wiki_destination(value: &str) -> bool {
+    file_locator(value) || root_base_locator(value)
+}
 fn local_uri(value: &str) -> bool {
     if value.chars().any(|c| {
         c.is_whitespace() || matches!(c, '`' | '<' | '>' | '[' | ']' | '(' | ')' | '"' | '\'')
@@ -90,7 +102,7 @@ pub(crate) fn rebind(before: &str, mapping: &Value) -> Result<String> {
             }
         } else if !new
             .as_str()
-            .is_some_and(|n| file_locator(n) || local_uri(n))
+            .is_some_and(|n| wiki_destination(n) || local_uri(n))
         {
             return Err("expected a complete replacement file locator or local URI".into());
         }
@@ -272,7 +284,7 @@ pub(crate) fn rebind(before: &str, mapping: &Value) -> Result<String> {
                 if let Some((old, new)) = found {
                     let new = new
                         .as_str()
-                        .filter(|n| file_locator(n))
+                        .filter(|n| wiki_destination(n))
                         .ok_or("WikiLink needs a complete replacement file locator")?;
                     output.push_str("[[");
                     output.push_str(new.strip_suffix(".md").unwrap_or(new));
@@ -533,6 +545,40 @@ mod tests {
     use super::*;
     use serde_json::json;
     const NOTE: &str = "---\ntype: note\ncategory: knowledge\n---\n\n# Existing\n\nA fact.\n";
+    #[test]
+    fn root_base_destination_only_rebinds_wikilinks() {
+        let before = NOTE.replace("A fact.", "[[previous.base|Overview]] and [[previous.base]].\n\n`previous.base`\n\n> Keep previous.base and [[previous.base]].\n\n```md\n[[previous.base]]\n```");
+        let proof = json!({"kind":"locator-rebind","before":before,
+            "mapping":{"previous.base":"OVERVIEW.base"}});
+        let after = transform("30-topics/case/case.md", &proof).unwrap();
+        assert_eq!(
+            after,
+            before.replacen(
+                "[[previous.base|Overview]] and [[previous.base]]",
+                "[[OVERVIEW.base|Overview]] and [[OVERVIEW.base]]",
+                1
+            )
+        );
+        for destination in [
+            "../OVERVIEW.base",
+            "/OVERVIEW.base",
+            ".hidden.base",
+            "a/../OVERVIEW.base",
+            "OVERVIEW.md",
+            "OVERVIEW%2ebase",
+            "OVERVIEW.base?x",
+            "OVERVIEW.base\0",
+        ] {
+            let invalid = json!({"kind":"locator-rebind","before":before,
+                "mapping":{"previous.base":destination}});
+            assert!(
+                transform("30-topics/case/case.md", &invalid).is_err(),
+                "{destination}"
+            );
+        }
+        let inline = NOTE.replace("A fact.", "`previous.base`");
+        assert!(rebind(&inline, &json!({"previous.base":"OVERVIEW.base"})).is_err());
+    }
     #[test]
     fn escaped_alias_targets_rebind_without_changing_separator_or_source_bytes() {
         for escape in ["", "\\", "\\\\"] {
