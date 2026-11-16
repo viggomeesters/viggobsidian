@@ -11,6 +11,32 @@ vragen geen extra bevestiging. Vraag alleen een werkelijk ontbrekende keuze;
 lees eerst wat bronnen al beantwoorden en wacht op antwoorden vóór afhankelijke
 conclusies. Behoud correcties, originele menselijke woorden en eerdere versies.
 
+## Directe dossierupdate bij bekende eigenaar
+
+Een expliciet geautoriseerde dossierupdate hoeft niet bij inboxopslag te stoppen.
+Lees de lokale refresh-/dossierprovider en haar echte doelgrens. Alleen als zij
+rechtstreekse bronplaatsing ondersteunt, bewaar je de nieuwe oorspronkelijke
+input en complete bijlagen in de Raw van precies die bewezen eigenaar en werk je
+de Wiki in dezelfde run inhoudelijk bij. Pin eigenaar, bronidentiteit, oorspronkelijke
+bytes, relevante eerdere kennis, preimages en de volledige write-set. Gebruik de
+bestaande exclusieve writer, haar validatie, hersteljournal en semantische readback.
+Een nieuw writer-ID of een tekstpostimage verleent op zichzelf geen bevoegdheid.
+
+Een beschikbare projectprovider bewijst geen topic- of Work-bevoegdheid. Een
+ontbrekende root of provider blijft een concrete blokkade; geen privéfallback,
+lege vervangende Work-vault of directe bestandswrite. Een bestaande inboxbron is
+geen nieuwe ontvangst: behoud haar identiteit en volg haar huidige claim- en
+verhuisprotocol. Een afgeleide Raw-weergave mag de oorspronkelijke capture pinnen
+als de lokale provider dat uitdrukkelijk ondersteunt, maar bewijst geen verhuizing,
+registratie of verwerkte inboxstand. Maak geen tweede primaire bron of fictief
+bericht-ID. De kanaal- of werkgeversnaam bepaalt de eigenaar niet.
+
+Taken blijven afzonderlijk: de nieuwe bron kan uitgevoerde arbeid bewijzen, maar
+de bestaande taakprovider bezit status en afrondingsbewijs. Meld bronopslag,
+Wiki-actualisatie, taakstatus en eventuele resterende plaatsing afzonderlijk.
+Stop bij bron-only wanneer dat de opdracht is; een gecombineerde opdracht voer je
+binnen de beschikbare bevoegdheden volledig uit, niet alleen tot het eerste receipt.
+
 ## Onderhouden eigenaar
 
 Bij onderhoud van een expliciete periode bepaal je actuele datum/tijdzone en
