@@ -13,6 +13,8 @@ Follow the target repository's audience and language policy. For repositories in
 
 Keep releases traceable through the project's SemVer version, changelog and release notes. Distinguish reviewed source, merged changes, prereleases and actually published distribution bytes. Document the current release status and remaining gates; do not manufacture a release to make a repository appear complete. Existing size, licensing, review, acceptance and publication boundaries remain binding. Shared source changes belong at their owner and reach consumers through complete reviewed exports with provenance, rather than local snapshot forks.
 
+Where related data, documentation or approved downloads live in SharePoint, keep clearly labelled links in the README or a source index linked from it. Explain their relationship to the repository and retain existing access boundaries; a linked folder does not prove release availability.
+
 Run meaningful repository-local checks for the changed behavior and affected risks. Arrange appropriate independent review, resolve material findings and verify the final result. Do not create, dispatch or require GitHub Actions. Missing hosted CI is not a blocker when local validation meets the repository contract.
 
 Create a PR describing the concrete before/after behavior, validation and material limits. Merge or release within existing authorization and verify the requested resulting state. A commit, PR or built asset does not prove merge, public availability or installation. Close the Issue only when its acceptance is achieved. Preserve incomplete dependencies visibly.
