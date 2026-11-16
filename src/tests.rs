@@ -1395,13 +1395,18 @@ fn finite_rename_does_not_remove_unmanaged_old_paths() {
 }
 
 #[test]
-fn ten_core_surface_has_no_procedure_or_module_backdoor() {
+fn declared_core_and_optional_host_surfaces_have_no_module_backdoor() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let names: BTreeSet<_> = fs::read_dir(root.join("skills"))
         .unwrap()
         .map(|p| p.unwrap().file_name().into_string().unwrap())
         .collect();
-    assert_eq!(names, SKILLS.iter().map(|n| n.to_string()).collect());
+    let mut expected: BTreeSet<_> = SKILLS.iter().map(|n| n.to_string()).collect();
+    let host = read_json(&root.join("schemas/host-skills.json")).unwrap();
+    for skill in rows(&host, "skills").unwrap() {
+        assert!(expected.insert(field(skill, "name").unwrap().to_owned()));
+    }
+    assert_eq!(names, expected);
     for row in rows(
         &read_json(&root.join("schemas/skill-library.json")).unwrap(),
         "files",
