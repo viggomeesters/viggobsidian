@@ -91,7 +91,7 @@
       "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
     },
     {
-      "sha256": "b41bf05332895051ee9b716092503493b7419aa2ff054c38ad6a9b415028204d",
+      "sha256": "9e669f44aaa58606ea62bff169728d478625b6397fdcdfa0676a3c167a57d137",
       "source": "crates/vault-layout/src/maintenance.rs",
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
@@ -111,12 +111,12 @@
       "target": ".agents/tools/vault-layout/src/adoption.rs"
     },
     {
-      "sha256": "10f27a71744ea8e92a9d0b1dc615d0a9fdbfbe897e7aad7c060ddc2227269dd3",
+      "sha256": "6a3fdcc48e109ad0aa36962952d9ed3650b4a62766db6d7745b76903ace95708",
       "source": "crates/vault-layout/src/write_set.rs",
       "target": ".agents/tools/vault-layout/src/write_set.rs"
     },
     {
-      "sha256": "556a4c13b00c5d258facff6b4a0caa49d49e8fec9e218ba809111d3a4bf4e613",
+      "sha256": "1f1814fba32caea87394db873987a3ff6827bc97a76f6e7558468677365c4334",
       "source": "docs/write-validation.md",
       "target": ".viggobsidian/core/write-validation.md"
     },
@@ -387,7 +387,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "cbb05a560050b7e9b38229bcb708743452a2dd36f0abc8d134ee2b55ff441be3",
+      "sha256": "21246d013a077c7f459ce1654b7ddd7e063c8717c6e77ba5e870920c8f0641f4",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -442,7 +442,7 @@
       "target": ".agents/skills/draft/SKILL.md"
     },
     {
-      "sha256": "a977571d73e1c36534ec4a14fdcbdf054813a37e94e9501d6f7dcac82b7330fe",
+      "sha256": "a1cfe615f3b8fd8e49732e33861aef263bd07ba5360dac20064cfc70c6407ded",
       "source": "skills/github-work/SKILL.md",
       "target": ".agents/skills/github-work/SKILL.md"
     },
@@ -572,7 +572,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "2257427652483f860c908f070c8c8134644a2954",
+  "revision": "042f65ab8b9db77e51d128740297b0906aa47591",
   "schema": "viggobsidian.package.v1",
-  "version": "0.32.0"
+  "version": "0.32.1"
 }
