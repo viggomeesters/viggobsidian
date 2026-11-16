@@ -1234,6 +1234,61 @@ fn typed_locator_destinations_bind_to_the_selected_vault_without_waiving_legacy_
 }
 
 #[test]
+fn typed_root_base_links_preserve_legacy_bytes_and_require_a_regular_target() {
+    let f = Fixture::new("typed-root-base-links");
+    f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
+    f.write("topics/topics.md", nav(&f, "topics", "HOME", ""));
+    let owner = "topics/legacy/legacy.md";
+    let before = "---\ntype: collection\ncategory: index\n---\n\n# Legacy\n\n[[previous.base|Overview]] and [[previous.base]].\n\n`previous.base`\n\n> Original previous.base and [[previous.base]].\n";
+    let after = before.replacen(
+        "[[previous.base|Overview]] and [[previous.base]]",
+        "[[OVERVIEW.base|Overview]] and [[OVERVIEW.base]]",
+        1,
+    );
+    f.write(owner, before);
+    f.write("OVERVIEW.base", "views: []\n");
+    let (out, _) = write_check(
+        &f,
+        "baseline",
+        json!([{"path":"OVERVIEW.base","expect":"present"}]),
+        Value::Null,
+    );
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("write-set paths"));
+    let changes = json!([{"path":owner,"expect":"present","proof":{"kind":"locator-rebind","before":before,"mapping":{"previous.base":"OVERVIEW.base"}}}]);
+    let (out, baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    f.write(owner, &after);
+    let (out, report) = write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(
+        out.status.success(),
+        "{report}: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(report["legacy_findings"], baseline["owned_findings"]);
+    fs::remove_file(f.0.join("OVERVIEW.base")).unwrap();
+    let (out, _) = write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("missing target"));
+    fs::create_dir(f.0.join("OVERVIEW.base")).unwrap();
+    assert!(
+        !write_check(&f, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    fs::remove_dir(f.0.join("OVERVIEW.base")).unwrap();
+    symlink(f.0.join(owner), f.0.join("OVERVIEW.base")).unwrap();
+    let (out, _) = write_check(&f, "validate", changes, baseline);
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("symbolic link"));
+}
+
+#[test]
 fn navigation_has_one_grid_and_respects_declared_dates() {
     let f = Fixture::new("navigation-grid-date");
     f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
