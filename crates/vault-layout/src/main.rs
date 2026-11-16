@@ -26,6 +26,7 @@ mod raw_task;
 mod shortcut_links;
 mod skill_routes;
 mod source_inventory;
+mod verified_links;
 mod wiki_layout;
 mod work_intake;
 mod work_package;

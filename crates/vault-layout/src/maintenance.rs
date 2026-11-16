@@ -348,6 +348,23 @@ pub(crate) fn rebind(before: &str, mapping: &Value) -> Result<String> {
 }
 pub(crate) fn transform(raw: &str, proof: &Value) -> Result<String> {
     let p = path(raw)?;
+    if proof["kind"] == "source-preimage-archive" {
+        if !raw.ends_with(".md.txt")
+            || !proof["before"].is_null()
+            || proof
+                .as_object()
+                .ok_or("invalid archive proof")?
+                .keys()
+                .any(|k| !["kind", "before", "source", "source_before"].contains(&k.as_str()))
+        {
+            return Err("invalid exact preimage archive".into());
+        }
+        path(proof["source"].as_str().ok_or("archive source absent")?)?;
+        return Ok(proof["source_before"]
+            .as_str()
+            .ok_or("original archive bytes absent")?
+            .into());
+    }
     let before = proof["before"]
         .as_str()
         .ok_or("maintenance preimage missing")?;
@@ -376,6 +393,43 @@ pub(crate) fn transform(raw: &str, proof: &Value) -> Result<String> {
         return Err("protected source is not a maintained owner".into());
     }
     match proof["kind"].as_str() {
+        Some("verified-link-repair" | "activity-append") => {
+            let kind = proof["kind"].as_str().unwrap();
+            let fields = if kind == "verified-link-repair" {
+                ["kind", "before", "archive", "mapping"]
+            } else {
+                ["kind", "before", "archive", "append"]
+            };
+            if proof
+                .as_object()
+                .unwrap()
+                .keys()
+                .any(|k| !fields.contains(&k.as_str()))
+            {
+                return Err("unknown verified maintenance field".into());
+            }
+            let archive = proof["archive"].as_str().ok_or("preimage archive absent")?;
+            let a = path(archive)?;
+            if !archive.ends_with(".md.txt") || a.parent() != p.parent() || a == p {
+                return Err("preimage archive must stay in the owner's package".into());
+            }
+            if kind == "verified-link-repair" {
+                crate::verified_links::repair(before, &proof["mapping"])
+            } else {
+                let tail = proof["append"].as_str().ok_or("Activity addition absent")?;
+                let stripped = if !crate::verified_links::final_activity(before)? {
+                    tail.strip_prefix("\n\n## Activity\n")
+                        .map(|s| format!("\n\n{s}"))
+                } else {
+                    Some(tail.to_owned())
+                }
+                .ok_or("Activity addition needs its heading")?;
+                if !crate::adoption::valid_legacy_addition(before, &stripped)? {
+                    return Err("invalid provenance Activity addition".into());
+                }
+                Ok(format!("{before}{tail}"))
+            }
+        }
         Some("owner-handoff") => {
             if proof
                 .as_object()

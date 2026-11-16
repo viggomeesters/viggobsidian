@@ -1034,6 +1034,91 @@ fn typed_handoff_preserves_old_owner_but_checks_destination_and_sibling_bytes() 
 }
 
 #[test]
+fn verified_link_repair_requires_paired_archive_and_retains_only_exact_existing_debt() {
+    let f = Fixture::new("verified-source-link");
+    f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home\n");
+    f.write(
+        "topics/topics.md",
+        nav(
+            &f,
+            "topics",
+            "HOME",
+            "> [!navigation]\n> - [[topics/old/old|Old]]\n",
+        ),
+    );
+    let owner = "topics/old/old.md";
+    let archive = "topics/old/before.md.txt";
+    let before = "---\ntype: reference\ncategory: legacy\n---\n# Historical commands\n\n> Human example [[old-note]].\n";
+    f.write(owner, before);
+    f.write("topics/old/history.txt", "Preserve sibling bytes.");
+    f.write("external/source.md", "# Source\nReal source bytes.\n");
+    let root = f.0.canonicalize().unwrap();
+    let target = root.join("external/source.md");
+    use sha2::{Digest, Sha256};
+    let digest = format!("{:x}", Sha256::digest(fs::read(&target).unwrap()));
+    let uri = format!("file://{}", target.display());
+    let proof = json!({"kind":"verified-link-repair","before":before,"archive":archive,"mapping":{"old-note":{"kind":"file","root":root.join("external"),"uri":uri,"sha256":digest}}});
+    let archive_proof = json!({"kind":"source-preimage-archive","before":null,"source":owner,"source_before":before});
+    let changes = json!([{"path":owner,"expect":"present","proof":proof},{"path":archive,"expect":"present","proof":archive_proof}]);
+    let (out, baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
+    assert!(
+        out.status.success(),
+        "{} {baseline}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let after = before.replace("[[old-note]]", &format!("[old-note]({uri})"));
+    f.write(owner, &after);
+    f.write(archive, before);
+    let (out, report) = write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(
+        out.status.success(),
+        "{} {report}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    f.write(archive, "Foreign source");
+    assert!(
+        !write_check(&f, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    f.write(archive, before);
+    f.write("topics/old/history.txt", "Foreign sibling edit.");
+    assert!(
+        !write_check(&f, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    f.write("topics/old/history.txt", "Preserve sibling bytes.");
+    f.write("external/source.md", "Changed source target.");
+    assert!(
+        !write_check(&f, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    f.write("external/source.md", "# Source\nReal source bytes.\n");
+    let mut orphan = changes.clone();
+    orphan.as_array_mut().unwrap().remove(1);
+    assert!(
+        !write_check(&f, "validate", orphan, baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    let mut injected = after;
+    injected.push_str("\nUnproved owner rewrite.\n");
+    f.write(owner, injected);
+    assert!(
+        !write_check(&f, "validate", changes, baseline)
+            .0
+            .status
+            .success()
+    );
+}
+
+#[test]
 fn typed_locator_destinations_bind_to_the_selected_vault_without_waiving_legacy_checks() {
     let f = Fixture::new("typed-locator-destinations");
     f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");

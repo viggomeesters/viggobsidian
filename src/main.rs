@@ -279,6 +279,7 @@ fn allowed(target: &str) -> bool {
         "write_set",
         "skill_routes",
         "maintenance",
+        "verified_links",
     ]
     .iter()
     .any(|name| target == format!(".agents/tools/vault-layout/src/{name}.rs"))
