@@ -32,7 +32,7 @@ mod work_intake;
 mod work_package;
 mod write_set;
 
-const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json | --skill-route vault [--skill-capability EFFECT] [--skill-source SOURCE] | --skill-routes)";
+const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json | --plan-work-task-promotion < INPUT.json | --skill-route vault [--skill-capability EFFECT] [--skill-source SOURCE] | --skill-routes)";
 const SCHEMA: &str = "99-system/contracts/vault-schema.yaml";
 const TILE_CSS: &str = ".obsidian/snippets/folder-note.css";
 const TASK_SUMMARY: &str = "```vault-task-summary";
@@ -74,6 +74,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut check_work = false;
     let mut check_all = false;
     let mut new_work_task = false;
+    let mut promotion_plan = false;
     let mut link_style = None;
     let mut write_set_mode = false;
     let mut adoption_mode = None;
@@ -114,6 +115,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
                 maintenance_transform = true
             }
             Some("--new-work-task") => new_work_task = true,
+            Some("--plan-work-task-promotion") if !promotion_plan => promotion_plan = true,
             Some("--link-style") if link_style.is_none() => link_style = Some(false),
             Some("--fix-link-style") if link_style.is_none() => link_style = Some(true),
             Some("--indexes") => indexes = true,
@@ -163,6 +165,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             || check_work
             || check_all
             || new_work_task
+            || promotion_plan
             || link_style.is_some()
             || write_set_mode
             || adoption_mode.is_some()
@@ -179,6 +182,31 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         );
     }
     let vault = vault.canonicalize()?;
+    if promotion_plan {
+        if !explicit_vault
+            || folder.is_some()
+            || tiles_only
+            || indexes
+            || !paths.is_empty()
+            || !anchors
+            || scope_policy.is_some()
+            || resolve_code.is_some()
+            || stage_raw_task
+            || strict
+            || check_work
+            || check_all
+            || new_work_task
+            || link_style.is_some()
+            || write_set_mode
+            || adoption_mode.is_some()
+            || maintenance_transform
+        {
+            return Err("task promotion planning requires --vault and an exclusive mode".into());
+        }
+        let input: Value = serde_json::from_reader(io::stdin().lock())?;
+        println!("{}", work_intake::promotion(&vault, input)?);
+        return Ok(0);
+    }
     if write_set_mode || maintenance_transform || adoption_mode.is_some() {
         if folder.is_some()
             || tiles_only

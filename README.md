@@ -14,6 +14,7 @@ Eén profiel: `20-projects` voor losse projecten, `21-programma` tot en met `29-
 - [Afbakening en migratie uit bestaande systemen](docs/system-boundary.md)
 - [Productcapabilities](schemas/product-capabilities.v1.json) en [uitvoerings-/evidencecontract](docs/product-execution.md)
 - [Read-only Wiki/Raw dossier retrieval PoC](docs/dossier-retrieval.md)
+- [Read-only Work note-to-task promotion plan](docs/work-task-promotion.md)
 
 ## Rust CLI
 

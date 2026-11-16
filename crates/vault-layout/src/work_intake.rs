@@ -6,7 +6,7 @@ use std::{
     error::Error,
     fs::{self, File},
     io::{Read, Write},
-    path::{Component, Path},
+    path::{Component, Path, PathBuf},
 };
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -31,7 +31,7 @@ fn uuid() -> Result<String> {
     ))
 }
 
-pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
+fn context(root: &Path, raw: &Path) -> Result<(Value, Value, Value)> {
     if !raw.components().all(|p| matches!(p, Component::Normal(_))) {
         return Err("choose a vault-relative component Raw path".into());
     }
@@ -72,6 +72,234 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
     {
         return Err("invalid component code".into());
     }
+    Ok((owner, meta, schema))
+}
+
+fn inventory(root: &Path, raw: &Path, code: &str) -> Result<(String, Vec<Value>, Vec<String>)> {
+    let prefix = format!("{code}-T");
+    let mut maximum = 0_u64;
+    let mut seen = std::collections::BTreeSet::new();
+    let mut pins = Vec::new();
+    let mut members = Vec::new();
+    for entry in fs::read_dir(root.join(raw))? {
+        let entry = entry?;
+        let name = entry
+            .file_name()
+            .into_string()
+            .map_err(|_| "invalid Raw filename")?;
+        if name.starts_with('.') {
+            continue;
+        }
+        if entry.file_type()?.is_symlink() {
+            return Err("symlink in component Raw".into());
+        }
+        members.push(name.clone());
+        if !entry.file_type()?.is_dir() {
+            continue;
+        }
+        let path = entry.path().join(format!("{name}.md"));
+        let bytes = match fs::symlink_metadata(&path) {
+            Ok(m) if m.is_file() && !m.is_symlink() => Some(fs::read(&path)?),
+            Ok(_) => return Err("invalid Raw primary note".into()),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+            Err(e) => return Err(e.into()),
+        };
+        pins.push(
+            json!({"path":path.strip_prefix(root)?,"sha256":bytes.as_ref().map(|b|digest(b))}),
+        );
+        if let Some((data, _)) = bytes.as_deref().map(metadata).transpose()?.flatten()
+            && text(&data, "type") == Some("task")
+        {
+            // Migrated Work tasks retain their original IDs without a numbered code.
+            let Some(task_code) = text(&data, "task-code") else {
+                continue;
+            };
+            let n = task_code
+                .strip_prefix(&prefix)
+                .and_then(|v| v.parse::<u64>().ok())
+                .ok_or("invalid existing task-code")?;
+            if n == 0 || task_code != format!("{prefix}{n:02}") || !seen.insert(n) {
+                return Err("invalid or duplicate existing task-code".into());
+            }
+            maximum = maximum.max(n);
+        }
+    }
+    pins.sort_by_key(|v| v["path"].as_str().unwrap().to_owned());
+    members.sort();
+    let n = maximum.checked_add(1).ok_or("task-code exhausted")?;
+    Ok((format!("{prefix}{n:02}"), pins, members))
+}
+fn digest(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+fn metadata(bytes: &[u8]) -> Result<Option<(Value, String)>> {
+    let text = std::str::from_utf8(bytes)?;
+    let Some((yaml, body)) = crate::frontmatter(text) else {
+        return Ok(None);
+    };
+    Ok(serde_saphyr::from_str(&yaml).ok().map(|data| (data, body)))
+}
+fn regular(root: &Path, path: &Path) -> Result<Vec<u8>> {
+    if !path.components().all(|c| matches!(c, Component::Normal(_))) {
+        return Err("expected a normalized vault-relative source path".into());
+    }
+    let mut current = root.to_path_buf();
+    for part in path.components() {
+        current.push(part);
+        if fs::symlink_metadata(&current)?.is_symlink() {
+            return Err("symlink in promotion source or owner".into());
+        }
+    }
+    if !current.is_file() {
+        return Err("promotion source is not a regular file".into());
+    }
+    Ok(fs::read(current)?)
+}
+
+/// Read-only allocation certificate. Caller owns the shared Raw lock and editor
+/// transaction, rechecks every pin/membership and never treats this as a write.
+pub(crate) fn promotion(root: &Path, input: Value) -> Result<Value> {
+    let object = input.as_object().ok_or("expected promotion input")?;
+    if object.len() != 4 || input["schema"] != "viggobsidian.work-task-promotion.v1" {
+        return Err("invalid promotion schema or fields".into());
+    }
+    let source = PathBuf::from(field(&input, "path")?);
+    let original = regular(root, &source)?;
+    if input["source_sha256"] != digest(&original) {
+        return Err("promotion source changed".into());
+    }
+    let id = field(&input, "request_id")?;
+    if id.len() != 36
+        || !id.bytes().enumerate().all(|(i, b)| {
+            if [8, 13, 18, 23].contains(&i) {
+                b == b'-'
+            } else {
+                b.is_ascii_hexdigit()
+            }
+        })
+    {
+        return Err("promotion requires an invocation UUID".into());
+    }
+    let package = source.parent().ok_or("source package missing")?;
+    let raw = package.parent().ok_or("Raw missing")?;
+    let name = package
+        .file_name()
+        .ok_or("package name missing")?
+        .to_str()
+        .ok_or("invalid package encoding")?;
+    if source.file_stem().and_then(|v| v.to_str()) != Some(name)
+        || source.extension().and_then(|v| v.to_str()) != Some("md")
+    {
+        return Err("choose the primary Raw package note".into());
+    }
+    let (owner, meta, schema) = context(root, raw)?;
+    let (mut data, body) = metadata(&original)?.ok_or("source metadata missing")?;
+    if text(&data, "type") != Some("note")
+        || text(&data, "wiki_status") == Some("processed")
+        || matches!(text(&data, "layer"), Some("wiki" | "navigation"))
+        || text(&data, "category") == Some("index")
+        || strings(&data["cssclasses"]).any(|c| c == "folder-note" || c.starts_with("vault-wiki"))
+        || !strings(&data["cssclasses"]).any(|c| c == "vault-event-v1-1")
+    {
+        return Err("choose an unprocessed own Event Note v1.1 source".into());
+    }
+    for key in [
+        "source_identity",
+        "source_inventory",
+        "source_archives",
+        "work_dossier",
+        "task_owner",
+        "registration_id",
+        "claim_token",
+        "generated",
+        "generated_by",
+        "generated_from",
+        "compiled_from",
+        "projection",
+        "readonly",
+    ] {
+        if data.get(key).is_some() {
+            return Err(format!("{key} remains with its bound source writer").into());
+        }
+    }
+    if data.get("task-code").is_some() {
+        return Err("a source with task-code retains its task writer".into());
+    }
+    event_header::check(root, &root.join(package), &data, &body)?;
+    let (task_code, mut pins, members) = inventory(root, raw, field(&meta, "code")?)?;
+    pins.retain(|p| p["path"].as_str() != source.to_str());
+    let schema_bytes = regular(root, Path::new(crate::SCHEMA))?;
+    let current_schema: Value = serde_saphyr::from_str(std::str::from_utf8(&schema_bytes)?)?;
+    if current_schema != schema {
+        return Err("promotion schema changed during planning".into());
+    }
+    pins.push(json!({"path":crate::SCHEMA,"sha256":digest(&schema_bytes)}));
+    let component = raw.parent().ok_or("component missing")?;
+    let project = component.parent().ok_or("project missing")?;
+    for folder in [project, component] {
+        let name = folder
+            .file_name()
+            .ok_or("owner name missing")?
+            .to_str()
+            .ok_or("owner encoding")?;
+        let path = folder.join(format!("{name}.md"));
+        let bytes = regular(root, &path)?;
+        let (current, _) = metadata(&bytes)?.ok_or("owner metadata missing")?;
+        if current
+            != if folder == project {
+                owner.clone()
+            } else {
+                meta.clone()
+            }
+        {
+            return Err("promotion owner changed during planning".into());
+        }
+        pins.push(json!({"path":path,"sha256":digest(&bytes)}));
+    }
+    let task_id = match data.get("task-id") {
+        Some(v) => v
+            .as_str()
+            .filter(|s| {
+                s.starts_with("task:") && s.len() > 5 && !s.chars().any(char::is_whitespace)
+            })
+            .ok_or("invalid existing task identity")?
+            .to_owned(),
+        None => format!("task:{id}"),
+    };
+    for pin in &pins {
+        if pin["sha256"].is_null() {
+            continue;
+        }
+        let bytes = regular(root, Path::new(field(pin, "path")?))?;
+        if pin["sha256"] != digest(&bytes) {
+            return Err("promotion context changed during planning".into());
+        }
+        if let Some((other, _)) = metadata(&bytes)?
+            && text(&other, "type") == Some("task")
+            && text(&other, "task-id") == Some(task_id.as_str())
+        {
+            return Err("task identity already belongs to another Raw task".into());
+        }
+    }
+    let title = text(&data, "name")
+        .or_else(|| text(&data, "title"))
+        .or_else(|| body.lines().find_map(|l| l.strip_prefix("# ")))
+        .filter(|s| !s.trim().is_empty() && !s.contains(['\n', '\r']))
+        .ok_or("source title missing")?;
+    let task_name = format!("{task_code} · {title}");
+    data["type"] = json!("task");
+    data["status"] = json!("🔴 to-do");
+    event_header::check(root, &root.join(package), &data, &body)?;
+    Ok(
+        json!({"schema":"viggobsidian.work-task-promotion-plan.v1","path":source,"raw":raw,"source_sha256":digest(&original),"task-id":task_id,"task-code":task_code,"name":task_name,"pins":pins,"members":members,"project_id":field(&owner,"project_id")?,"component-id":field(&meta,"component-id")?}),
+    )
+}
+
+pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
+    let (_, meta, schema) = context(root, raw)?;
+    let code = field(&meta, "code")?;
+    let raw_abs = root.join(raw);
+    let component = raw_abs.parent().ok_or("missing component")?;
     let day = field(&input, "date")?;
     let slug = field(&input, "slug")?;
     let title = field(&input, "title")?;
@@ -126,41 +354,7 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
             json!({"path":note.strip_prefix(root)?,"task-id":field(&old,"task-id")?,"task-code":field(&old,"task-code")?,"reused":true}),
         );
     }
-    let prefix = format!("{code}-T");
-    let mut maximum = 0_u64;
-    let mut seen = std::collections::BTreeSet::new();
-    for entry in fs::read_dir(&raw_abs)? {
-        let entry = entry?;
-        let name = entry.file_name().to_string_lossy().into_owned();
-        if name.starts_with('.') {
-            continue;
-        }
-        if entry.file_type()?.is_symlink() {
-            return Err("symlink in component Raw".into());
-        }
-        if !entry.file_type()?.is_dir() {
-            continue;
-        }
-        let path = entry.path().join(format!("{name}.md"));
-        if let Some((data, _)) = read_metadata(&path)?
-            && text(&data, "type") == Some("task")
-        {
-            // Migrated Work tasks retain their original IDs without a numbered code.
-            let Some(task_code) = text(&data, "task-code") else {
-                continue;
-            };
-            let n = task_code
-                .strip_prefix(&prefix)
-                .and_then(|v| v.parse::<u64>().ok())
-                .ok_or("invalid existing task-code")?;
-            if n == 0 || task_code != format!("{prefix}{n:02}") || !seen.insert(n) {
-                return Err("invalid or duplicate existing task-code".into());
-            }
-            maximum = maximum.max(n);
-        }
-    }
-    let n = maximum.checked_add(1).ok_or("task-code exhausted")?;
-    let task_code = format!("{prefix}{n:02}");
+    let (task_code, _, _) = inventory(root, raw, code)?;
     let id = format!("task:{}", uuid()?);
     let mut data = json!({"type":"task","category":"project-task","task-id":id,"task-code":task_code,
         "name":format!("{task_code} · {title}"),"status":"🔴 to-do","created":day,"event_date":day,
