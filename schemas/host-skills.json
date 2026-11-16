@@ -1,0 +1,12 @@
+{
+  "schema": "viggobsidian.host-skills.v1",
+  "repository": "viggomeesters/viggobsidian",
+  "skills": [
+    {
+      "name": "devops-work",
+      "path": "skills/devops-work",
+      "files": ["SKILL.md"],
+      "delivery": "reviewed-commit-export"
+    }
+  ]
+}

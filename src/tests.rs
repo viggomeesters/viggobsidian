@@ -194,6 +194,69 @@ fn installed_activity_tests_bind_a_distributed_crate_local_fixture() {
 }
 
 #[test]
+fn optional_host_skill_exports_are_complete_and_outside_the_vault_package() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let spec = read_json(&root.join("schemas/host-skills.json")).unwrap();
+    assert_eq!(spec["schema"], "viggobsidian.host-skills.v1");
+    let distribution = read_json(&root.join("distribution.json")).unwrap();
+    let mut names = BTreeSet::new();
+    for skill in rows(&spec, "skills").unwrap() {
+        let name = field(skill, "name").unwrap();
+        assert!(names.insert(name));
+        assert!(!SKILLS.contains(&name));
+        let source = field(skill, "path").unwrap();
+        assert_eq!(source, format!("skills/{name}"));
+        let directory = root.join(relative(source).unwrap());
+        let declared: BTreeSet<_> = rows(skill, "files")
+            .unwrap()
+            .iter()
+            .map(|file| file.as_str().unwrap().to_owned())
+            .collect();
+        let actual: BTreeSet<_> = fs::read_dir(&directory)
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                assert!(entry.file_type().unwrap().is_file());
+                entry.file_name().into_string().unwrap()
+            })
+            .collect();
+        assert_eq!(
+            actual, declared,
+            "host export must list all and only its files"
+        );
+        assert!(declared.contains("SKILL.md"));
+        for file in declared {
+            let path = directory.join(relative(&file).unwrap());
+            let body = fs::read_to_string(path).unwrap();
+            for forbidden in ["/Users/", "/home/"] {
+                assert!(
+                    !body.contains(forbidden),
+                    "private host path in {source}/{file}"
+                );
+            }
+        }
+        let body = fs::read_to_string(directory.join("SKILL.md")).unwrap();
+        let frontmatter = body
+            .strip_prefix("---\n")
+            .unwrap()
+            .split("\n---\n")
+            .next()
+            .unwrap();
+        let identity: Value = serde_saphyr::from_str(frontmatter).unwrap();
+        assert_eq!(identity["name"], name);
+        assert!(!field(&identity, "description").unwrap().trim().is_empty());
+        let prefix = format!("{source}/");
+        assert!(
+            rows(&distribution, "files")
+                .unwrap()
+                .iter()
+                .all(|row| { !field(row, "source").unwrap().starts_with(&prefix) })
+        );
+        assert!(!allowed(&format!(".agents/skills/{name}/SKILL.md")));
+    }
+}
+
+#[test]
 fn reviewed_skill_library_has_an_exact_surface_and_no_local_adapters() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let spec = read_json(&root.join("schemas/skill-library.json")).unwrap();
@@ -1332,13 +1395,18 @@ fn finite_rename_does_not_remove_unmanaged_old_paths() {
 }
 
 #[test]
-fn ten_core_surface_has_no_procedure_or_module_backdoor() {
+fn declared_core_and_optional_host_surfaces_have_no_module_backdoor() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let names: BTreeSet<_> = fs::read_dir(root.join("skills"))
         .unwrap()
         .map(|p| p.unwrap().file_name().into_string().unwrap())
         .collect();
-    assert_eq!(names, SKILLS.iter().map(|n| n.to_string()).collect());
+    let mut expected: BTreeSet<_> = SKILLS.iter().map(|n| n.to_string()).collect();
+    let host = read_json(&root.join("schemas/host-skills.json")).unwrap();
+    for skill in rows(&host, "skills").unwrap() {
+        assert!(expected.insert(field(skill, "name").unwrap().to_owned()));
+    }
+    assert_eq!(names, expected);
     for row in rows(
         &read_json(&root.join("schemas/skill-library.json")).unwrap(),
         "files",
