@@ -1506,6 +1506,139 @@ fn intake(fixture: &Fixture, raw: &str, input: &Value) -> Output {
     child.wait_with_output().unwrap()
 }
 
+fn promotion_plan(fixture: &Fixture, input: &Value) -> Output {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+        .arg("--vault")
+        .arg(&fixture.0)
+        .arg("--plan-work-task-promotion")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(input.to_string().as_bytes())
+        .unwrap();
+    child.wait_with_output().unwrap()
+}
+
+#[test]
+fn promotion_plan_is_source_bound_read_only_and_uses_the_existing_component_allocator() {
+    let (fixture, raw) = intake_fixture("21-program", "promotion-plan");
+    let input = json!({"date":"2026-11-11","slug":"prior","title":"Prior task","request":"Earlier complete request"});
+    assert!(intake(&fixture, &raw, &input).status.success());
+    let input = json!({"date":"2026-11-11","slug":"source","title":"Source title","request":"Exact fictional source\n![[document.pdf]]"});
+    let created = intake(&fixture, &raw, &input);
+    assert!(
+        created.status.success(),
+        "{}",
+        String::from_utf8_lossy(&created.stderr)
+    );
+    let result: Value = serde_json::from_slice(&created.stdout).unwrap();
+    let path = result["path"].as_str().unwrap();
+    let original = fs::read_to_string(fixture.0.join(path)).unwrap();
+    let source = original
+        .lines()
+        .filter(|l| {
+            !l.starts_with("task-code:") && !l.starts_with("task-id:") && !l.starts_with("name:")
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        .replacen("type: \"task\"", "type: \"note\"", 1);
+    fixture.write(path, &source);
+    fixture.write(
+        &format!("{}/{}/document.pdf", raw, "20261111-source"),
+        b"fictional binary\0\xff",
+    );
+    let request = json!({"schema":"viggobsidian.work-task-promotion.v1","path":path,"source_sha256":format!("{:x}",Sha256::digest(source.as_bytes())),"request_id":"71000000-0000-4000-8000-000000000001"});
+    let first = promotion_plan(&fixture, &request);
+    assert!(
+        first.status.success(),
+        "{}",
+        String::from_utf8_lossy(&first.stderr)
+    );
+    let plan: Value = serde_json::from_slice(&first.stdout).unwrap();
+    assert_eq!(plan["task-code"], "EX-00-T02");
+    assert_eq!(plan["task-id"], "task:71000000-0000-4000-8000-000000000001");
+    assert!(plan["name"].as_str().unwrap().ends_with("Source title"));
+    assert_eq!(
+        plan["members"],
+        json!(["20261111-prior", "20261111-source", "raw.md"])
+    );
+    assert_eq!(fs::read_to_string(fixture.0.join(path)).unwrap(), source);
+    assert_eq!(promotion_plan(&fixture, &request).stdout, first.stdout);
+    let next = intake(
+        &fixture,
+        &raw,
+        &json!({"date":"2026-11-11","slug":"next","title":"Next task","request":"Another request"}),
+    );
+    assert!(next.status.success());
+    assert_eq!(
+        serde_json::from_slice::<Value>(&next.stdout).unwrap()["task-code"],
+        "EX-00-T02"
+    );
+    assert_eq!(
+        serde_json::from_slice::<Value>(&promotion_plan(&fixture, &request).stdout).unwrap()["task-code"],
+        "EX-00-T03"
+    );
+    // Valid task-code metadata with corrupt UTF-8 source bytes must fail closed.
+    // Skipping it would allocate the existing T03 a second time.
+    let prior_path = format!("{raw}/20261111-prior/20261111-prior.md");
+    let prior = fs::read_to_string(fixture.0.join(&prior_path)).unwrap();
+    let mut corrupt = prior.replace("EX-00-T01", "EX-00-T03").into_bytes();
+    corrupt.push(0xff);
+    fixture.write(&prior_path, &corrupt);
+    assert!(!promotion_plan(&fixture, &request).status.success());
+    let duplicate = intake(
+        &fixture,
+        &raw,
+        &json!({"date":"2026-11-11","slug":"duplicate","title":"Must refuse","request":"No duplicate code"}),
+    );
+    assert!(!duplicate.status.success());
+    assert!(!fixture.0.join(format!("{raw}/20261111-duplicate")).exists());
+    assert_eq!(fs::read(fixture.0.join(&prior_path)).unwrap(), corrupt);
+    fixture.write(&prior_path, &prior);
+    let mut bad = request.clone();
+    bad["source_sha256"] = json!("0".repeat(64));
+    assert!(!promotion_plan(&fixture, &bad).status.success());
+    bad = request.clone();
+    bad["path"] = json!("../outside.md");
+    assert!(!promotion_plan(&fixture, &bad).status.success());
+    bad = request.clone();
+    bad["request_id"] = json!("not-a-uuid");
+    assert!(!promotion_plan(&fixture, &bad).status.success());
+    bad = request.clone();
+    bad["free_metadata"] = json!({"task-code":"BYPASS-T01"});
+    assert!(!promotion_plan(&fixture, &bad).status.success());
+    for binding in [
+        "source_identity: imported",
+        "work_dossier: owned",
+        "generated_by: compiler",
+        "readonly: false",
+        "wiki_status: processed",
+    ] {
+        let changed = source.replacen("---\n", &format!("---\n{binding}\n"), 1);
+        fixture.write(path, &changed);
+        bad = request.clone();
+        bad["source_sha256"] = json!(format!("{:x}", Sha256::digest(changed.as_bytes())));
+        assert!(
+            !promotion_plan(&fixture, &bad).status.success(),
+            "{binding}"
+        );
+    }
+    fixture.write(path, &source);
+    let other = format!("{raw}/20261111-foreign");
+    symlink(
+        fixture.0.join(format!("{raw}/20261111-prior")),
+        fixture.0.join(other),
+    )
+    .unwrap();
+    assert!(!promotion_plan(&fixture, &request).status.success());
+}
+
 #[test]
 fn local_intake_is_valid_and_idempotent_in_every_work_program() {
     for root in [
