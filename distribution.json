@@ -1,6 +1,14 @@
 {
   "files": [
     {
+      "source": "crates/mail-manifest-core/Cargo.toml",
+      "target": ".agents/tools/mail-manifest-core/Cargo.toml"
+    },
+    {
+      "source": "crates/mail-manifest-core/src/lib.rs",
+      "target": ".agents/tools/mail-manifest-core/src/lib.rs"
+    },
+    {
       "source": "crates/structure-core/Cargo.toml",
       "target": ".agents/tools/structure-core/Cargo.toml"
     },
@@ -149,6 +157,10 @@
       "target": ".viggobsidian/core/mail-draft.md"
     },
     {
+      "source": "crates/vault-layout/src/mail_manifest.rs",
+      "target": ".agents/tools/vault-layout/src/mail_manifest.rs"
+    },
+    {
       "source": "crates/vault-layout/src/mail_draft.rs",
       "target": ".agents/tools/vault-layout/src/mail_draft.rs"
     },
@@ -268,10 +280,6 @@
     {
       "source": "crates/vault-layout/src/dossier_tables.rs",
       "target": ".agents/tools/vault-layout/src/dossier_tables.rs"
-    },
-    {
-      "source": "crates/vault-layout/src/mail_manifest.rs",
-      "target": ".agents/tools/vault-layout/src/mail_manifest.rs"
     },
     {
       "source": "crates/vault-layout/src/work_intake.rs",
