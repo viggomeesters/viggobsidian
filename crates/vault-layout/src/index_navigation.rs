@@ -65,6 +65,7 @@ fn audit(
         inventory: None,
         anchors,
         checked: 0,
+        checked_paths: Vec::new(),
         issues: Vec::new(),
         excluded: Vec::new(),
     };
@@ -110,7 +111,62 @@ fn audit(
     Ok(json!({
         "scope": DESCRIPTION, "checked": scan.checked, "issues": scan.issues,
         "excluded": scan.excluded, "errors": errors, "warnings": warnings,
+        "checked_paths": scan.checked_paths,
     }))
+}
+
+pub(crate) fn managed_write_audit(
+    root: &Path,
+    paths: &[PathBuf],
+    proofs: &BTreeMap<PathBuf, Value>,
+    old: Option<&Value>,
+) -> Result<Value, Box<dyn std::error::Error>> {
+    let mut report = audit(root, paths, true, None)?;
+    let mut current = Vec::new();
+    let mut legacy = Vec::new();
+    for issue in items(&report["issues"]) {
+        let source = issue["path"].as_str().ok_or("link issue path missing")?;
+        let proof = proofs.get(Path::new(source));
+        let mut retained = false;
+        if issue["kind"] == "broken-local-link"
+            && let (Some(old), Some(proof)) = (old, proof)
+            && proof["kind"] == "managed-wiki-section"
+            && items(&old["issues"]).any(|previous| previous == issue)
+            && items(&old["checked_paths"]).any(|path| path == source)
+        {
+            let uri = crate::managed_wiki::retained_finder_uri(proof)?;
+            let before = proof["before"]
+                .as_str()
+                .ok_or("managed link preimage missing")?;
+            let after = fs::read_to_string(root.join(source))?;
+            if crate::maintenance::transform(source, proof)? != after {
+                return Err("managed link postimage mismatch".into());
+            }
+            retained = issue["target"] == uri
+                && local_links(&visible_body(before))
+                    .filter(|target| *target == uri)
+                    .count()
+                    == 1
+                && local_links(&visible_body(&after))
+                    .filter(|target| *target == uri)
+                    .count()
+                    == 1;
+        }
+        if retained {
+            legacy.push(issue.clone());
+        } else {
+            current.push(issue.clone());
+        }
+    }
+    let errors = current
+        .iter()
+        .filter(|row| row["severity"] == "error")
+        .count();
+    report["errors"] = json!(errors);
+    report["warnings"] = json!(current.len() - errors);
+    report["issues"] = json!(current);
+    report["legacy_issues"] = json!(legacy);
+    Ok(report)
 }
 
 struct Scan<'a> {
@@ -119,6 +175,7 @@ struct Scan<'a> {
     inventory: Option<Inventory>,
     anchors: bool,
     checked: usize,
+    checked_paths: Vec<PathBuf>,
     issues: Vec<Value>,
     excluded: Vec<Value>,
 }
@@ -334,6 +391,7 @@ impl Scan<'_> {
 
     fn check(&mut self, file: &Path) -> io::Result<()> {
         self.checked += 1;
+        self.checked_paths.push(self.relative(file).to_path_buf());
         if !regular(self.root, file) {
             self.issue(
                 file,
@@ -1012,6 +1070,7 @@ mod tests {
             inventory: None,
             anchors: false,
             checked: 0,
+            checked_paths: Vec::new(),
             issues: Vec::new(),
             excluded: Vec::new(),
         };
@@ -1074,6 +1133,7 @@ mod tests {
             inventory: None,
             anchors: false,
             checked: 0,
+            checked_paths: Vec::new(),
             issues: Vec::new(),
             excluded: Vec::new(),
         };

@@ -285,6 +285,7 @@ fn allowed(target: &str) -> bool {
         "write_set",
         "skill_routes",
         "maintenance",
+        "managed_wiki",
         "verified_links",
     ]
     .iter()
