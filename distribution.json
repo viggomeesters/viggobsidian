@@ -85,6 +85,10 @@
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
     {
+      "source": "crates/vault-layout/src/managed_wiki.rs",
+      "target": ".agents/tools/vault-layout/src/managed_wiki.rs"
+    },
+    {
       "source": "crates/vault-layout/src/verified_links.rs",
       "target": ".agents/tools/vault-layout/src/verified_links.rs"
     },

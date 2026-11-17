@@ -225,7 +225,7 @@ pub(crate) fn bindings(vault: &Path, proofs: &BTreeMap<PathBuf, Value>) -> Resul
     for (path, proof) in proofs {
         if matches!(
             proof["kind"].as_str(),
-            Some("verified-link-repair" | "activity-append")
+            Some("verified-link-repair" | "activity-append" | "managed-wiki-section")
         ) {
             let archive = Path::new(proof["archive"].as_str().ok_or("archive absent")?);
             let archived = proofs
@@ -243,7 +243,7 @@ pub(crate) fn bindings(vault: &Path, proofs: &BTreeMap<PathBuf, Value>) -> Resul
             let owner = proofs.get(source).ok_or("archive cannot stand alone")?;
             if !matches!(
                 owner["kind"].as_str(),
-                Some("verified-link-repair" | "activity-append")
+                Some("verified-link-repair" | "activity-append" | "managed-wiki-section")
             ) || owner["archive"] != path.to_str().unwrap_or("")
             {
                 return Err("archive is not paired to its maintenance owner".into());

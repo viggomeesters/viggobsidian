@@ -1119,6 +1119,226 @@ fn verified_link_repair_requires_paired_archive_and_retains_only_exact_existing_
 }
 
 #[test]
+fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_strict() {
+    let f = Fixture::new("managed-wiki-section");
+    f.write(
+        "99-system/contracts/navigation-scope.yaml",
+        "technical: []\nreadme_collections: []\n",
+    );
+    f.write(
+        ".viggobsidian/core/navigation-contract.yaml",
+        include_bytes!("../fixtures/navigation-contract.yaml"),
+    );
+    f.write(
+        "99-system/vault/vault-navigation/standaard/wiki/vault-raw.base",
+        include_bytes!("../fixtures/vault-raw.base"),
+    );
+    f.write(
+        "99-system/vault/vault-navigation/standaard/wiki/vault-dossier.base",
+        include_bytes!("../fixtures/vault-dossier.base"),
+    );
+    f.write(
+        ".obsidian/community-plugins.json",
+        "[\"vault-raw-summary\"]",
+    );
+    for name in ["manifest.json", "main.js", "styles.css"] {
+        f.write(
+            &format!(".obsidian/plugins/vault-raw-summary/{name}"),
+            "fictional structural fixture only",
+        );
+    }
+    f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home\n");
+    f.write(
+        "topics/topics.md",
+        nav(
+            &f,
+            "topics",
+            "HOME",
+            "> [!navigation]\n> - [[topics/example/example|Example]]\n",
+        ),
+    );
+    f.write(
+        "topics/example/example.md",
+        format!("---\ntype: dossier\ncategory: knowledge\nlayer: wiki\ncssclasses: [folder-note, vault-navigation, vault-dashboard, dashboard-option-2, dashboard-variant-2-2, vault-dossier-dashboard]\n---\n\n# Example\n\n> [!navigation|shortcuts]\n> - [[topics/topics|Back]]\n> - [Finder](file://{}/topics/example)\n\n> [!navigation]\n> - [[topics/example/wiki/wiki|Wiki]]\n> - [[topics/example/raw/raw|Raw]]\n\n```vault-task-summary\n```\n\n![[vault-dossier.base#Open tasks]]\n",f.0.display()),
+    );
+    f.write(
+        "topics/example/raw/raw.md",
+        format!("---\ntype: collection\ncategory: index\nlayer: navigation\ncssclasses: [folder-note, vault-navigation, vault-dashboard, dashboard-option-2, dashboard-variant-2-2, raw-hub-table]\n---\n\n# Raw\n\n> [!navigation|shortcuts]\n> - [[topics/example/example|Back]]\n> - [[topics/example/wiki/wiki|Wiki]]\n> - [Finder](file://{}/topics/example/raw)\n\n```vault-raw-summary\n```\n\n![[vault-raw.base#Latest sources]]\n",f.0.display()),
+    );
+    f.write("topics/example/raw/20261117-report/20261117-report.md","---\ntype: note\ncategory: source\nwiki_status: pending\n---\n# Fictional retained source\n");
+    f.write(".obsidian/snippets/folder-note.css",".vault-dashboard a[data-href$=\"/raw/raw\"] { --dashboard-accent: blue; --dashboard-icon: raw-icon; }\n.vault-dashboard a[data-href$=\"/wiki/wiki\"] { --dashboard-accent: green; --dashboard-icon: wiki-icon; }\n");
+    let owner = "topics/example/wiki/wiki.md";
+    let archive = "topics/example/raw/20261117-report/_source-assets/before.md.txt";
+    let before = "---\ntype: note\ncategory: knowledge\nlayer: wiki\ncssclasses: [vault-navigation, vault-dashboard, vault-wiki]\n---\n\n# Example\n\n> [!navigation|shortcuts]\n> - [[topics/example/example|Back]]\n> - [[topics/example/raw/raw|Raw]]\n> - [Finder](file:///different-host/topics/example/wiki)\n\n<!-- report:v1 begin -->\n## Daily report\n\nOld result.\n<!-- report:v1 end -->\n\n## Retained history\n\nHistory stays.\n";
+    f.write(owner, before);
+    let proof = json!({"kind":"managed-wiki-section","before":before,"archive":archive,"marker":"report:v1","replacement":"\n## Daily report\n\nNew result.\n"});
+    let archive_proof = json!({"kind":"source-preimage-archive","before":null,"source":owner,"source_before":before});
+    let changes = json!([{"path":owner,"expect":"present","proof":proof},{"path":archive,"expect":"present","proof":archive_proof}]);
+    let (out, baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
+    assert!(out.status.success(), "{baseline}");
+    let after = before.replace("Old result.", "New result.");
+    f.write(owner, &after);
+    f.write(archive, before);
+    let (out, report) = write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(out.status.success(), "{report}");
+    assert_eq!(report["links_checked"], true);
+    assert_eq!(report["link_report"]["checked_paths"], json!([owner]));
+    assert_eq!(
+        report["link_report"]["legacy_issues"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    let mut lost_issue = baseline.clone();
+    lost_issue["link_report"]["issues"] = json!([]);
+    assert!(
+        !write_check(&f, "validate", changes.clone(), lost_issue)
+            .0
+            .status
+            .success()
+    );
+    f.write("99-system/contracts/navigation-scope.yaml",format!("technical:\n  - owner: HOME.md\n    paths: [{owner}]\n    reason: fictional exclusion\nreadme_collections: []\n"));
+    let (excluded, excluded_report) =
+        write_check(&f, "validate", changes.clone(), baseline.clone());
+    assert!(!excluded.status.success());
+    assert_eq!(excluded_report["links_checked"], false);
+    f.write(
+        "99-system/contracts/navigation-scope.yaml",
+        "technical: []\nreadme_collections: []\n",
+    );
+    let mut no_link_baseline = baseline.clone();
+    no_link_baseline
+        .as_object_mut()
+        .unwrap()
+        .remove("link_report");
+    assert!(
+        !write_check(&f, "validate", changes.clone(), no_link_baseline)
+            .0
+            .status
+            .success()
+    );
+    let mut repeated = changes.clone();
+    repeated[0]["proof"]["replacement"] = json!(
+        "\n## Daily report\n\nNew result. [New broken link](file:///different-host/topics/example/wiki)\n"
+    );
+    f.write(owner, before);
+    fs::remove_file(f.0.join(archive)).unwrap();
+    let (_, repeat_baseline) = write_check(&f, "baseline", repeated.clone(), Value::Null);
+    f.write(
+        owner,
+        before.replace(
+            "Old result.",
+            "New result. [New broken link](file:///different-host/topics/example/wiki)",
+        ),
+    );
+    f.write(archive, before);
+    assert!(
+        !write_check(&f, "validate", repeated, repeat_baseline)
+            .0
+            .status
+            .success()
+    );
+    f.write(owner, &after);
+    assert!(
+        report["legacy_findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["path"] == owner && r["code"] == "dossier-dashboard-finder")
+    );
+    f.write(owner, after.clone() + "\nUnproved suffix rewrite.\n");
+    assert!(
+        !write_check(&f, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    f.write(owner, &after);
+    f.write(archive, "Changed archive");
+    assert!(
+        !write_check(&f, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    f.write(archive, before);
+    let sibling = "topics/example/raw/20261117-report/20261117-report.md";
+    let original = fs::read(f.0.join(sibling)).unwrap();
+    f.write(sibling, "Foreign changed source");
+    assert!(
+        !write_check(&f, "validate", changes.clone(), baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    f.write(sibling, original);
+    let mut orphan = changes.clone();
+    orphan.as_array_mut().unwrap().pop();
+    assert!(
+        !write_check(&f, "validate", orphan, baseline.clone())
+            .0
+            .status
+            .success()
+    );
+    let bad_before = before.replace(
+        "Old result.",
+        "Old result.\n\n> [!wiki-facts]\n> Misplaced facts.",
+    );
+    f.write(owner, &bad_before);
+    fs::remove_file(f.0.join(archive)).unwrap();
+    let mut bad_changes = changes.clone();
+    bad_changes[0]["proof"]["before"] = json!(bad_before);
+    bad_changes[1]["proof"]["source_before"] = json!(bad_before);
+    bad_changes[0]["proof"]["replacement"] =
+        json!("\n## Daily report\n\nNew result.\n\n> [!wiki-facts]\n> Misplaced facts.\n");
+    let (_, bad_baseline) = write_check(&f, "baseline", bad_changes.clone(), Value::Null);
+    f.write(owner, bad_before.replace("Old result.", "New result."));
+    f.write(archive, &bad_before);
+    assert!(
+        !write_check(&f, "validate", bad_changes, bad_baseline)
+            .0
+            .status
+            .success(),
+        "a new replacement cannot inherit non-navigation findings by matching their old code"
+    );
+    f.write(owner, before);
+    fs::remove_file(f.0.join(archive)).unwrap();
+    let new_raw = "topics/example/raw/20261118-source/20261118-source.md";
+    let mut new_changes = changes.clone();
+    new_changes
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"path":new_raw,"expect":"present"}));
+    let (_, new_baseline) = write_check(&f, "baseline", new_changes.clone(), Value::Null);
+    f.write(owner, &after);
+    f.write(archive, before);
+    assert!(
+        !write_check(&f, "validate", new_changes.clone(), new_baseline.clone())
+            .0
+            .status
+            .success(),
+        "new declared Markdown cannot be absent"
+    );
+    f.write(new_raw,"---\ntype: note\ncategory: source\nwiki_status: pending\n---\n# Fictional new source\n\n[[missing-target]]\n");
+    let (broken, broken_report) = write_check(&f, "validate", new_changes, new_baseline);
+    assert!(!broken.status.success());
+    assert!(
+        broken_report["link_report"]["checked_paths"]
+            .as_array()
+            .unwrap()
+            .contains(&json!(new_raw))
+    );
+    assert!(
+        broken_report["link_report"]["issues"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["path"] == new_raw && row["kind"] == "broken-wikilink")
+    );
+}
+
+#[test]
 fn typed_locator_destinations_bind_to_the_selected_vault_without_waiving_legacy_checks() {
     let f = Fixture::new("typed-locator-destinations");
     f.write("HOME.md", "---\ntype: note\ncategory: index\n---\n# Home");
