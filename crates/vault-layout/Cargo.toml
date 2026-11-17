@@ -7,6 +7,7 @@ rust-version = "1.89"
 publish = false
 
 [dependencies]
+mail-manifest-core = { path = "../mail-manifest-core" }
 activity-core = { path = "../activity-core" }
 structure-core = { path = "../structure-core" }
 link-style-core = { path = "../link-style-core" }

@@ -201,6 +201,12 @@ fn allowed(target: &str) -> bool {
     {
         return true;
     }
+    if ["Cargo.toml", "src/lib.rs"]
+        .iter()
+        .any(|name| target == format!(".agents/tools/mail-manifest-core/{name}"))
+    {
+        return true;
+    }
     if ["Cargo.toml", "Cargo.lock"]
         .iter()
         .any(|name| target == format!(".agents/tools/vault-layout/{name}"))

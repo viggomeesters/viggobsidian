@@ -1216,6 +1216,37 @@ fn profile_project_and_component_names() {
     assert_eq!(policy["profile"], "numbered-v1");
 }
 #[test]
+fn mail_core_upgrade_preserves_old_target_and_rolls_back() {
+    let f = Fixture::new();
+    let old = ".agents/tools/vault-layout/src/mail_manifest.rs";
+    let core = ".agents/tools/mail-manifest-core/src/lib.rs";
+    let manifest_path = f.package.join("package.json");
+    let mut manifest = read_json(&manifest_path).unwrap();
+    fs::write(f.package.join("old.rs"), b"old validator").unwrap();
+    manifest["files"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"source":"old.rs","target":old,"sha256":hash(b"old validator")}));
+    fs::write(&manifest_path, serde_json::to_vec(&manifest).unwrap()).unwrap();
+    apply(&f.vault, &f.plan()).unwrap();
+    fs::write(f.package.join("shim.rs"), b"new shim").unwrap();
+    fs::write(f.package.join("core.rs"), b"new core").unwrap();
+    manifest["files"][1] = json!({"source":"shim.rs","target":old,"sha256":hash(b"new shim")});
+    manifest["files"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"source":"core.rs","target":core,"sha256":hash(b"new core")}));
+    fs::write(&manifest_path, serde_json::to_vec(&manifest).unwrap()).unwrap();
+    let applied = apply(&f.vault, &f.plan()).unwrap();
+    assert_eq!(fs::read(f.vault.join(old)).unwrap(), b"new shim");
+    assert_eq!(fs::read(f.vault.join(core)).unwrap(), b"new core");
+    let receipt = read_json(&f.vault.join(field(&applied, "receipt").unwrap())).unwrap();
+    rollback(&f.vault, &receipt).unwrap();
+    assert_eq!(fs::read(f.vault.join(old)).unwrap(), b"old validator");
+    assert!(!f.vault.join(core).exists());
+}
+
+#[test]
 fn duplicate_package_targets_and_retirement_are_refused() {
     let f = Fixture::new();
     apply(&f.vault, &f.plan()).unwrap();

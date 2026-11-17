@@ -163,6 +163,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "mail-manifest-core"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -343,6 +351,7 @@ version = "0.1.0"
 dependencies = [
  "activity-core",
  "link-style-core",
+ "mail-manifest-core",
  "serde-saphyr",
  "serde_json",
  "sha2",
