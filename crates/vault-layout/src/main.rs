@@ -18,6 +18,7 @@ mod link_style;
 mod mail_draft;
 mod mail_manifest;
 mod maintenance;
+mod managed_wiki;
 mod native_source_archives;
 mod navigation_contract;
 mod project_codes;

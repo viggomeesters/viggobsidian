@@ -122,6 +122,37 @@ and publish link repair first and independently plan the result contribution
 from the new preimage. No proof grants write authority or changes schema,
 adoption, configuration, source identity or canonical writer ownership.
 
+`managed-wiki-section` replaces one existing section in a maintained `wiki/wiki.md`
+note (`type: note`, `layer: wiki`, no task status or source contract). It takes the
+complete `before`, an exact paired `archive`, a bounded ASCII `marker` identity
+and the inner `replacement`. Markers are unique standalone `<!-- ID begin -->`
+and `<!-- ID end -->` lines outside fences/comments, following the preserved
+navigation. The postimage is derived exactly: metadata, navigation, marker lines,
+prefix and suffix remain byte-identical. The replacement retains the exact first
+H2 role, contains one H2, balanced fences and no HTML/comments, frontmatter or
+navigation injection. This initial form accepts LF only and refuses CRLF rather
+than normalizing retained bytes. It is not a general Markdown rewrite.
+
+The create-only archive must be a dated Raw-package `.md.txt` source asset in
+the same dossier, paired through `source-preimage-archive` in the exact write set.
+Sibling fingerprints still reject concurrent drift. Only an existing identical
+`dossier-dashboard-finder` finding from the byte-preserved navigation may remain
+for the changed Wiki; other changed-note findings and all new findings still
+fail. Unchanged siblings retain their exact byte-bound baseline debt. This does
+not declare a retained host-specific Finder URL usable on another platform,
+change full strict audits, rewrite Raw history or grant a local writer authority.
+
+Managed write sets also run the ordinary native link audit for every exact
+changed present Markdown path (baseline audits the existing subset). The report
+binds measured `checked_paths`, exclusions and issues. A missing path or excluded
+scope cannot count as complete link coverage. Only a pre-existing broken local
+Finder URI in the byte-preserved navigation can be reported under
+`link_report.legacy_issues`: its exact path/kind/target must already occur in the
+baseline, and the same visible link parser must find that URI exactly once in
+both preimage and postimage. Reintroducing the same broken URI in the replacement
+is therefore a new error. Other link failures remain strict. Standalone
+`--indexes` does not inherit this contextual proof or waive those findings.
+
 A canonical migration adapter may include `proof` on a present change. This is
 validation only; it grants no write authority. `--maintenance-transform` reads
 `{path,proof}` on stdin and returns the sole permitted postimage without writing.
