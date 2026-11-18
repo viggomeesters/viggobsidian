@@ -12,6 +12,7 @@ publish = false
 activity-core = { path = "crates/activity-core" }
 dossier-retrieval-core = { path = "crates/dossier-retrieval-core" }
 serde_json = "1"
+libc = "=0.2.191"
 sha2 = "=0.10.9"
 serde-saphyr = { version = "=2.0.0", default-features = false, features = ["deserialize"] }
 
