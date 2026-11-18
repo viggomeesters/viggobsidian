@@ -371,6 +371,7 @@ version = "0.32.1"
 dependencies = [
  "activity-core",
  "dossier-retrieval-core",
+ "libc",
  "serde-saphyr",
  "serde_json",
  "sha2",

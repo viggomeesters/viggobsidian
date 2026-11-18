@@ -16,6 +16,7 @@ Eén profiel: `20-projects` voor losse projecten, `21-programma` tot en met `29-
 - [Productcapabilities](schemas/product-capabilities.v1.json) en [uitvoerings-/evidencecontract](docs/product-execution.md)
 - [Read-only Wiki/Raw dossier retrieval PoC](docs/dossier-retrieval.md)
 - [Read-only Work note-to-task promotion plan](docs/work-task-promotion.md)
+- [Completed writer plan archives and exact restore](docs/writer-plan-archives.md)
 
 ## Rust CLI
 
