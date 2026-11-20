@@ -8,6 +8,8 @@ use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
+#[path = "vault-validator/provider_binding.rs"]
+mod provider_binding;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const LIMIT: u64 = 128 * 1024 * 1024;
@@ -124,6 +126,14 @@ fn execute(value: &Value, args: &[std::ffi::OsString]) -> Result<i32> {
     {
         return Err("validator binding changed".into());
     }
+    execute_snapshot(vault, binary, text(value, "binary_sha256")?, args)
+}
+fn execute_snapshot(
+    vault: &Path,
+    binary: &Path,
+    binary_sha: &str,
+    args: &[std::ffi::OsString],
+) -> Result<i32> {
     // Execute a private, verified copy: changing the installed path after validation
     // must not substitute the bytes executed by this invocation.
     let parent = std::env::temp_dir().canonicalize()?;
@@ -136,7 +146,7 @@ fn execute(value: &Value, args: &[std::ffi::OsString]) -> Result<i32> {
     fs::DirBuilder::new().mode(0o700).create(&folder)?;
     let snapshot = Snapshot(folder);
     let data = bytes(binary)?;
-    if hash(&data) != text(value, "binary_sha256")? {
+    if hash(&data) != binary_sha {
         return Err("validator changed before snapshot".into());
     }
     let executable = snapshot.0.join("validator");
@@ -161,6 +171,7 @@ fn run_args(args: &[std::ffi::OsString]) -> Result<i32> {
         return Ok(0);
     }
     match args.first().and_then(|s|s.to_str()) {
+        Some("bind-provider") | Some("run-provider") => provider_binding::run_args(args),
         Some("bind") if args.len()==6 => {
             let value = binding(Path::new(&args[1]),Path::new(&args[2]),args[3].to_str().ok_or("invalid digest")?,args[4].to_str().ok_or("invalid digest")?)?;
             let output = Path::new(&args[5]);
