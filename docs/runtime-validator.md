@@ -45,6 +45,59 @@ directory for subsequent owner-aware cleanup. This CLI imposes no retention
 policy on unrelated temporary files and cannot alone guarantee a whole-vault
 500 MB temporary-directory limit.
 
+## Deployment-owned providers
+
+`bind-provider` authenticates an explicitly installed local Rust provider without
+claiming that its source belongs to the generic package. The installer supplies
+a source manifest with this shape (all values here are fictional):
+
+```json
+{
+  "schema": "viggobsidian.provider-source.v1",
+  "root": "/canonical/release/source",
+  "tool": "example-provider",
+  "version": "0.1.0",
+  "revision": "reviewed-source-revision",
+  "tree": "providers/example",
+  "extra_sources": ["shared/common.rs"],
+  "files": {
+    "providers/example/Cargo.toml": "<sha256>",
+    "providers/example/Cargo.lock": "<sha256>",
+    "providers/example/src/main.rs": "<sha256>",
+    "shared/common.rs": "<sha256>"
+  }
+}
+```
+
+The complete declared crate tree and optional nonoverlapping extra source trees
+or files must match the digest map. Extra source roots are limited to 64, total
+visited entries (including empty directories) to 65,536, depth to 64 components,
+and aggregate source bytes to 128 MiB. Traversal streams directory entries;
+symlinks and special files are refused. The installer owns the completeness of
+the compilation input closure, including explicitly declared shared modules;
+this CLI does not parse Rust imports or prove reproducible compilation.
+
+```sh
+vault-validator bind-provider SOURCE_MANIFEST MANIFEST_SHA BINARY BINARY_SHA OUTPUT
+vault-validator run-provider OUTPUT BINDING_SHA -- PROVIDER_ARGS...
+```
+
+The source manifest and executable must be outside the source root. Output is a
+new private file outside that root. The separate provider binding records the
+source manifest, source identity/version/revision, binary digest and host, and
+revalidates them on every run before executing the same private snapshot used
+by package-bound validators. Explicit manifest/binary digests remain installer
+trust anchors. There is no Cargo or download fallback.
+
+Install versioned immutable source snapshots and retain releases needed by old
+plans. Binding to mutable live sources would deliberately refuse after drift;
+it is not an old-plan migration mechanism. A local adapter must explicitly set
+a private temporary directory outside **both** source and target data vaults,
+preserve writer authorization and old plan/journal contracts, and review atomic
+activation and rollback separately. Provider arguments can select a data root:
+the source binding grants no data-write authority. Generic package updates do
+not automatically update these local provider releases or their bindings.
+
 Existing plan and recovery pins remain unchanged. Before changing a local
 writer that builds its own validator, implement and review its version-aware
 activation/recovery contract separately. Existing navigation releases are
