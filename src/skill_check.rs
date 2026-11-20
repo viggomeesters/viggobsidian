@@ -263,12 +263,12 @@ mod tests {
         }
     }
     #[test]
-    fn baseline_checks_all_thirteen_instructions_without_mutation() {
+    fn baseline_checks_all_fourteen_instructions_without_mutation() {
         let f = Fixture::new();
         let before = fs::read(f.0.join(STATE)).unwrap();
         let out = run(&f.0).unwrap();
         assert_eq!(out["errors"], json!([]));
-        assert_eq!(out["checked_instruction_files"], 13);
+        assert_eq!(out["checked_instruction_files"], 14);
         assert_eq!(out["sources"], 10);
         assert_eq!(out["vault"], json!(f.0.canonicalize().unwrap()));
         assert_eq!(fs::read(f.0.join(STATE)).unwrap(), before);

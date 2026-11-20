@@ -13,6 +13,6 @@ Plan the content and information hierarchy before decoration. Make duration, seq
 
 Run applicable local plan/check gates and format validation. Render the actual final file and inspect the result at its intended size or application; inspect formulas/recalculation for spreadsheets, pages for documents/PDF and slides for presentations. Correct clipping, bad pagination, unreadable labels, missing images and broken links. Source inspection or an exported file path alone does not prove successful rendering. Distinguish verified content from a blocked format/runtime check.
 
-A formatted email coordinates with draft: keep usable content in the body, a complete text fallback and required images separately; browser scripts and controls do not survive mail pasting. Apply only a confirmed sender signature from the chosen adapter.
+For a step-by-step guide that must also work in mail, apply [step guide](references/step-guide.md). A formatted email coordinates with draft: keep usable content in the body, a complete text fallback and required images separately; browser scripts and controls do not survive mail pasting. Apply only a confirmed sender signature from the chosen adapter.
 
 Public hosting, external delivery, purchases and publication remain separate effects requiring their actual authorization. Return the useful artifact link and material verification limits without creating another task register or opening a browser unnecessarily.
