@@ -49,12 +49,17 @@ fn text<'a>(value: &'a Value, key: &str) -> Result<&'a str> {
         .as_str()
         .ok_or_else(|| format!("missing {key}").into())
 }
-fn sources(vault: &Path, installed_sha: &str) -> Result<Value> {
+fn package(vault: &Path, installed_sha: &str) -> Result<Value> {
     let installed = bytes(&vault.join(".viggobsidian/installed.json"))?;
     if hash(&installed) != installed_sha {
         return Err("installed package changed".into());
     }
     let state: Value = serde_json::from_slice(&installed)?;
+    let version = text(&state, "version")?;
+    let revision = text(&state, "revision")?;
+    if version.is_empty() || revision.is_empty() {
+        return Err("package version and revision required".into());
+    }
     let mut sources = BTreeMap::new();
     for (path, expected) in state["files"]
         .as_object()
@@ -84,7 +89,7 @@ fn sources(vault: &Path, installed_sha: &str) -> Result<Value> {
     {
         return Err("installed validator sources missing".into());
     }
-    Ok(serde_json::to_value(sources)?)
+    Ok(json!({"version":version,"revision":revision,"sources":sources}))
 }
 fn binding(vault: &Path, binary: &Path, installed_sha: &str, binary_sha: &str) -> Result<Value> {
     let actual = hash(&bytes(binary)?);
@@ -98,7 +103,7 @@ fn binding(vault: &Path, binary: &Path, installed_sha: &str, binary_sha: &str) -
         json!({"schema":"viggobsidian.validator-binding.v1", "vault":vault, "binary":binary,
         "binary_sha256":actual, "installed_sha256":installed_sha,
         "host":format!("{}-{}",std::env::consts::ARCH,std::env::consts::OS),
-        "sources":sources(vault, installed_sha)?}),
+        "package":package(vault, installed_sha)?}),
     )
 }
 struct Snapshot(PathBuf);
@@ -216,7 +221,7 @@ mod tests {
                 fs::write(absolute, b"fictional source").unwrap();
                 files.insert(path, json!(hash(b"fictional source")));
             }
-            let installed = serde_json::to_vec(&json!({"files":files})).unwrap();
+            let installed = serde_json::to_vec(&json!({"files":files,"version":"0.0.0-test","revision":"fictional-source-revision"})).unwrap();
             fs::write(vault.join(".viggobsidian/installed.json"), &installed).unwrap();
             let binary = folder.join("validator");
             fs::copy(std::env::current_exe().unwrap(), &binary).unwrap();

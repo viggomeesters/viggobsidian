@@ -20,14 +20,20 @@ digest in the launcher or installer receipt, separately from the binding file:
 vault-validator run /canonical/release/binding.json BINDING_SHA256 -- --help
 ```
 
-The binding includes the exact installed metadata digest, managed tool-source
-hashes, executable path and digest, and current host architecture/OS. Binding
+The binding includes the exact installed metadata digest, package version and
+source revision, managed tool-source hashes, executable path and digest, and
+current host architecture/OS. Binding
 refuses source drift from the installed manifest, missing validator sources,
 symlinks and non-executables. Every execution checks the complete binding again.
 Missing or changed inputs fail closed; there is no producer-build fallback.
 Explicit input digests are the installer's trust anchors. This does not prove
 reproducible compilation or establish that an arbitrary executable was built
 from the selected sources.
+
+The vault in the binding selects package sources to verify. Arguments are passed
+through unchanged and may select another data vault with `--vault`; this binding
+does not grant or enforce target-vault authorization. Each caller retains its
+existing data-access and writer boundaries.
 
 Execution copies at most 128 MiB into a private directory under the host temporary
 root, verifies those bytes, and executes that copy with inherited standard IO and
