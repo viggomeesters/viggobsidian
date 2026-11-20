@@ -1,5 +1,8 @@
 # ViggObsidian
 
+The opt-in [installed runtime validator](docs/runtime-validator.md) checks a
+versioned executable and its source binding without a live-vault Cargo build.
+
 Versiebeheer voor het beleid, de structuur, opmaak en agentvaardigheden van een Obsidian-vault.
 
 ViggObsidian blijft de canonieke Rust-engine, pakketbron en native CLI. [ViggVault](https://github.com/viggomeesters/obsidian-vigg-vault) is het gebruikersproduct en de Obsidian-interface. Beide blijven bestaan met hun eigen versies; zie het [product-/enginecontract](docs/product-engine-boundary.md). ViggVault 0.1.1 biedt alleen opt-in Work-linkstijl; de gedeelde Wiki-tekstcore levert nog geen extra plugincommando.
