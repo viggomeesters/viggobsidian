@@ -386,6 +386,10 @@
       "target": ".agents/skills/output/references/interface-check.md"
     },
     {
+      "source": "skills/output/references/step-guide.md",
+      "target": ".agents/skills/output/references/step-guide.md"
+    },
+    {
       "source": "skills/research/SKILL.md",
       "target": ".agents/skills/research/SKILL.md"
     },
