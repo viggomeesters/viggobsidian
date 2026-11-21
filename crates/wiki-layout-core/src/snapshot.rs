@@ -83,7 +83,17 @@ fn evaluate(input: &Value) -> Result<Value, &'static str> {
     } else {
         body
     };
-    let (has_facts, findings) = crate::findings(body);
+    let named_guide = classes.is_some_and(|classes| {
+        classes
+            .iter()
+            .filter_map(Value::as_str)
+            .any(|class| crate::is_named_guide_overview(path, class))
+    });
+    let (has_facts, findings) = if named_guide {
+        crate::guide_overview_findings(body)
+    } else {
+        crate::findings(body)
+    };
     let findings = findings
         .into_iter()
         .map(|(code, message)| json!({"path":path,"code":code,"message":message}))
@@ -109,6 +119,32 @@ pub fn respond(bytes: &[u8]) -> Value {
 #[cfg(test)]
 mod portable_tests {
     use super::*;
+
+    #[test]
+    fn portable_named_guides_require_overview_content() {
+        let mut request = json!({
+            "schema": "viggobsidian.wiki-layout-snapshot.v2",
+            "ruleset": "wiki-layout.v1",
+            "complete": true,
+            "profile": "numbered-v1",
+            "frontmatter_present": true,
+            "path": "fictional/wiki/guide.md",
+            "cssclasses": ["vault-wiki", "vault-wiki-overview"],
+            "body": "# Guide\n\n> [!navigation|shortcuts]\n> - [[home|Back]]\n> - [[raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n## Intake\n\n## Review\n\n## Follow-up\n\n## Checks"
+        });
+        let report = evaluate(&request).unwrap();
+        assert_eq!(report["status"], "complete");
+        let codes: Vec<_> = report["report"]["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|finding| finding["code"].as_str().unwrap())
+            .collect();
+        assert_eq!(codes, ["wiki-toc", "wiki-facts"]);
+        request["cssclasses"] = json!(["vault-wiki"]);
+        assert_eq!(evaluate(&request).unwrap()["status"], "not_applicable");
+    }
+
     #[test]
     fn canonical_selection_and_v1_compatibility() {
         for (path, classes, selected) in [

@@ -891,6 +891,7 @@ impl Scan<'_> {
                 if !self.system_cache(&path) {
                     children.push(path);
                 }
+                continue;
             } else if package && under_raw && path != entrance && kind.is_file() {
                 if !export_payloads.contains(&path) {
                     self.raw_source_note(&path)?;
@@ -932,6 +933,13 @@ impl Scan<'_> {
                     "loose-file",
                     "outside a package, only the matching folder note belongs here",
                 );
+            }
+            if name == "wiki"
+                && path != entrance
+                && kind.is_file()
+                && path.extension().is_some_and(|ext| ext == "md")
+            {
+                self.check_wiki_guide_overview(&path)?;
             }
         }
 
@@ -1726,6 +1734,31 @@ impl Scan<'_> {
                     && shortcut_links::resolve_note(self.vault, &self.notes, source, target)
                         .is_ok_and(|result| result.is_ok_and(|note| note == expected))
             })
+    }
+
+    fn check_wiki_guide_overview(&mut self, path: &Path) -> io::Result<()> {
+        let Some((data, body)) = read_metadata(path)? else {
+            return Ok(());
+        };
+        if !strings(&data["cssclasses"]).any(|class| class == "vault-wiki-overview") {
+            return Ok(());
+        }
+        if text(&data, "layer") != Some("wiki") {
+            self.issue(path, "layer", "a Wiki guide overview uses layer: wiki");
+        }
+        if !strings(&data["cssclasses"]).any(|class| class == "vault-wiki") {
+            self.issue(
+                path,
+                "wiki-style",
+                "add vault-wiki for the shared Wiki reading and link style",
+            );
+        }
+        let (_, findings) =
+            wiki_layout_core::guide_overview_findings(maintenance::without_notice(&body));
+        for (code, message) in findings {
+            self.issue(path, code, message);
+        }
+        Ok(())
     }
 
     fn check_dossier_shortcuts(&mut self, folder: &Path, path: &Path, name: &str, body: &str) {
