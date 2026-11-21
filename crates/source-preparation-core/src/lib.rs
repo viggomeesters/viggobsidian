@@ -1,5 +1,6 @@
 //! Pure native-source postimages. No filesystem, registry, clock or write authority.
 use activity_core::activity_delivery::provenance_findings;
+use activity_core::activity_layout::{WIKI_PROCESSING_TITLE_LINE, visible_wiki_processing_titles};
 use activity_core::provenance::{self, RenderedProvenance, SourceKind};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -90,11 +91,7 @@ fn url(value: &str) -> String {
     output
 }
 
-fn note<'a>(text: &'a str, format: &str) -> Result<(&'a str, &'a str, Value)> {
-    if text.len() > MAX_NOTE_BYTES || text.contains('\0') {
-        return Err("note_limit_or_encoding");
-    }
-    let (header, body) = text.split_once("\n---\n").ok_or("frontmatter_required")?;
+fn parse_metadata(header: &str) -> Result<Value> {
     let yaml = header.strip_prefix("---\n").ok_or("frontmatter_required")?;
     // Enforce merge semantics at the parser, including nested/flow/tagged keys.
     // Quoted or explicitly string-tagged << keys remain ordinary source data.
@@ -102,13 +99,21 @@ fn note<'a>(text: &'a str, format: &str) -> Result<(&'a str, &'a str, Value)> {
         duplicate_keys: serde_saphyr::DuplicateKeyPolicy::Error,
         merge_keys: serde_saphyr::MergeKeyPolicy::Error
     };
-    let metadata: Value = serde_saphyr::from_str_with_options(yaml, options).map_err(|error| {
+    serde_saphyr::from_str_with_options(yaml, options).map_err(|error| {
         if matches!(error, serde_saphyr::Error::MergeKeyNotAllowed { .. }) {
             "metadata_merge_refused"
         } else {
             "metadata_invalid"
         }
-    })?;
+    })
+}
+
+fn note<'a>(text: &'a str, format: &str) -> Result<(&'a str, &'a str, Value)> {
+    if text.len() > MAX_NOTE_BYTES || text.contains('\0') {
+        return Err("note_limit_or_encoding");
+    }
+    let (header, body) = text.split_once("\n---\n").ok_or("frontmatter_required")?;
+    let metadata = parse_metadata(header)?;
     let (category, error) = match format {
         AUTHORED_ACTIVITY_FORMAT => ("general", "authored_activity_note_required"),
         LEGACY_PLAIN_SOURCE_FORMAT => ("plugin-testing", "legacy_plain_source_required"),
@@ -144,6 +149,9 @@ fn authored_sections<'a>(body: &'a str, day: &str) -> Result<(&'a str, String, &
         .ok_or("authored_activity_required")?;
     if !provenance_findings(body).is_empty() {
         return Err("invalid_authored_activity_provenance");
+    }
+    if visible_wiki_processing_titles(body) != 0 {
+        return Err("authored_activity_has_wiki_processing_title");
     }
     let mut first_in_block = true;
     for line in activity.lines() {
@@ -437,13 +445,20 @@ fn transform(v: &Value) -> Result<Value> {
             .strip_prefix(&target_prefix)
             .and_then(|s| s.strip_suffix("]]"))
             .ok_or("wiki_target_required")?;
-        if anchor.trim().is_empty() || anchor.contains(['\n', '\r', '[', ']', '|']) {
+        if anchor.trim().is_empty()
+            || anchor.contains(['\n', '\r', '[', ']', '|'])
+            || (pins_original
+                && (anchor.trim_start().starts_with('^')
+                    || anchor.contains(['<', '>', '`'])
+                    || anchor.chars().any(char::is_control)))
+        {
             return Err("wiki_target_required");
         }
         let summary = field(v, "summary")?;
         if summary.trim().is_empty()
             || summary.len() > 16384
             || summary.contains(['\n', '\r', '\0'])
+            || (pins_original && !summary.chars().any(char::is_alphabetic))
         {
             return Err("processing_summary");
         }
@@ -473,37 +488,58 @@ fn transform(v: &Value) -> Result<Value> {
         let unsafe_leading = [">", "!", "*", "[!", "```", "~~~", "<!--"]
             .iter()
             .any(|prefix| summary_text.starts_with(prefix));
-        let processing_text =
-            if format != FORMAT && (summary_text.len() + target.len() > 900 || unsafe_leading) {
-                format!(
-                    "> Samenvatting van de Wiki-verwerking: {target}\n{}",
-                    provenance::folded_verbatim(summary)
-                )
-            } else {
-                format!("> {summary_text} {target}\n")
-            };
+        let inline_markup = pins_original && summary_text.contains(['<', '>', '[', ']', '`', '\\']);
+        let processing_text = if format != FORMAT
+            && (summary_text.len() + target.len() > 900 || unsafe_leading || inline_markup)
+        {
+            format!(
+                "> Samenvatting van de Wiki-verwerking: {target}\n{}",
+                provenance::folded_verbatim(summary)
+            )
+        } else {
+            format!("> {summary_text} {target}\n")
+        };
         let separator = if authored && !body.ends_with('\n') {
             "\n\n"
         } else {
             "\n"
         };
         after = format!(
-            "{changed_header}\nwiki_processed_on: {day}\nwiki_target: {target_json}{pin}\n---\n{body}{separator}> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n> <!-- viggobsidian:activity:v1 kind=result goal=wiki-processing -->\n> **Verwerking in Wiki**\n{processing_text}{footer}",
+            "{changed_header}\nwiki_processed_on: {day}\nwiki_target: {target_json}{pin}\n---\n{body}{separator}> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n> <!-- viggobsidian:activity:v1 kind=result goal=wiki-processing -->\n{WIKI_PROCESSING_TITLE_LINE}\n{processing_text}{footer}",
         );
         original_hash = hash(original);
     }
     if after.len() > 2 * MAX_NOTE_BYTES {
         return Err("postimage_limit");
     }
-    if format != FORMAT
-        && !provenance_findings(
-            after
-                .split_once("\n---\n")
-                .expect("postimage has metadata")
-                .1,
-        )
-        .is_empty()
-    {
+    let (rendered_header, rendered_body) =
+        after.split_once("\n---\n").expect("postimage has metadata");
+    if pins_original {
+        let rendered = parse_metadata(rendered_header).map_err(|_| "invalid_rendered_metadata")?;
+        let processing = operation == "mark-wiki-processed";
+        let status = if processing { "processed" } else { "pending" };
+        if rendered["raw_preparation_format"] != format
+            || rendered["wiki_status"] != status
+            || metadata
+                .as_object()
+                .expect("parsed note has mapping")
+                .iter()
+                .any(|(key, value)| key != "wiki_status" && rendered.get(key) != Some(value))
+        {
+            return Err("invalid_rendered_metadata");
+        }
+        let prospective_body;
+        let processing_body = if processing {
+            rendered_body
+        } else {
+            prospective_body = format!("{rendered_body}\n\n{WIKI_PROCESSING_TITLE_LINE}\n");
+            &prospective_body
+        };
+        if visible_wiki_processing_titles(processing_body) != 1 {
+            return Err("invalid_rendered_wiki_processing");
+        }
+    }
+    if format != FORMAT && !provenance_findings(rendered_body).is_empty() {
         return Err("invalid_rendered_activity_provenance");
     }
     Ok(

@@ -229,6 +229,71 @@ fn legacy_plain_source_replays_with_the_exact_original_and_its_attachments() {
 }
 
 #[test]
+fn authored_processing_title_must_not_shadow_new_evidence() {
+    let mut request = authored_request();
+    request["source_note"] = json!(AUTHORED.replace(
+        "> The fictional source was read.",
+        "> **Verwerking in Wiki**\n> The fictional source was read."
+    ));
+    let out = run(&request);
+    assert_eq!(out["reason"], "authored_activity_has_wiki_processing_title");
+    assert!(out.get("postimage").is_none());
+
+    request["source_note"] = json!(AUTHORED.replace(
+        "> The fictional source was read.",
+        "> The fictional source was read.\n>\n> > [!info]- Meer\n> > **Verwerking in Wiki**"
+    ));
+    assert_eq!(run(&request)["status"], "complete");
+}
+
+#[test]
+fn opt_in_recipes_require_valid_appendable_metadata_and_visible_processing_evidence() {
+    for (format, original, category, additional) in [
+        (
+            AUTHORED_ACTIVITY_FORMAT,
+            AUTHORED,
+            "general",
+            ", activity_contract: provenance-v1",
+        ),
+        (
+            LEGACY_PLAIN_SOURCE_FORMAT,
+            "---\ntype: note\ncategory: plugin-testing\n---\n\n# Legacy source\n\nA fictional older input.\n",
+            "plugin-testing",
+            "",
+        ),
+    ] {
+        let mut prepare = authored_request();
+        prepare["format"] = json!(format);
+        let body = original.split_once("\n---\n").unwrap().1;
+        prepare["source_note"] = json!(format!(
+            "---\n{{type: note, category: {category}{additional}}}\n---\n{body}"
+        ));
+        let flow = run(&prepare);
+        assert_eq!(flow["reason"], "invalid_rendered_metadata", "{flow}");
+        assert!(flow.get("postimage").is_none());
+
+        prepare["source_note"] = json!(original);
+        let prepared = run(&prepare);
+        assert_eq!(prepared["status"], "complete");
+        let mut mark = marking();
+        mark["format"] = json!(format);
+        mark["source_note"] = prepared["postimage"].clone();
+        mark["original_note"] = json!(original);
+        mark["preparation_provenance"] = prepare["provenance"].clone();
+        mark["provenance"] = prepare["provenance"].clone();
+        mark["summary"] = json!("Recorded <!-- hidden");
+        let marked = run(&mark);
+        assert_eq!(marked["status"], "complete", "{marked}");
+        let postimage = marked["postimage"].as_str().unwrap();
+        assert!(postimage.contains("> Samenvatting van de Wiki-verwerking: [[30-topics/example/wiki/wiki#Existing knowledge]]\n"));
+        assert!(postimage.contains("> > ```text\n> > Recorded <!-- hidden\n> > ```"));
+
+        mark["summary"] = json!("123.45");
+        assert_eq!(run(&mark)["reason"], "processing_summary");
+    }
+}
+
+#[test]
 fn fictional_prepare_matches_frozen_postimage_and_preserves_original() {
     let result = run(&request());
     assert_eq!(result["status"], "complete", "{result}");

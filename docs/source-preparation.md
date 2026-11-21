@@ -89,6 +89,12 @@ date and new preparation provenance. The host owns the crash-safe transition
 from the old receipt to the new recipe. The original receipt remains available
 for legacy replay.
 
+Both opt-in formats validate the complete generated frontmatter and visible
+Wiki-processing evidence. An authored Activity with an existing direct
+processing title requires separate historical review. Processing summaries
+must contain text. Markdown control syntax in a summary goes into literal
+folded details so the Wiki backlink remains visible.
+
 `viggobsidian.source-preparation-result.v1` reports `status: complete`, component
 `engine_version`, format/operation, source/prepared locators, `before_sha256`,
 `after_sha256`, `original_sha256` and `postimage`. Complete means only that this
