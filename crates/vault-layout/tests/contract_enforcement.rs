@@ -41,6 +41,8 @@ fn named_wiki_guides_opt_in_to_the_existing_overview_layout() {
             .collect::<Vec<_>>()
     };
     assert!(guide_findings(format!("{metadata}{header}{facts}{toc}{sections}")).is_empty());
+    let notice = "<!-- viggobsidian:knowledge-owner -->\n> [!info] Actuele kennis\n> [[wiki|Open actuele kennis]]\n<!-- /viggobsidian:knowledge-owner -->\n";
+    assert!(guide_findings(format!("{metadata}{notice}{header}{facts}{toc}{sections}")).is_empty());
     assert_eq!(
         guide_findings(format!("{metadata}{header}{facts}{sections}")),
         ["wiki-toc"]

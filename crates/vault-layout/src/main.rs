@@ -1753,7 +1753,8 @@ impl Scan<'_> {
                 "add vault-wiki for the shared Wiki reading and link style",
             );
         }
-        let (_, findings) = wiki_layout_core::guide_overview_findings(&body);
+        let (_, findings) =
+            wiki_layout_core::guide_overview_findings(maintenance::without_notice(&body));
         for (code, message) in findings {
             self.issue(path, code, message);
         }
