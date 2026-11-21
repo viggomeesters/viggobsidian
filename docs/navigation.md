@@ -287,6 +287,12 @@ Nieuwe tooling gebruikt het gedeelde navigatiecontract.
 
 ## Lokale controles
 
+Maak bij een Wiki-wijziging eerst een Event Note in Raw. Werk de bestaande Wiki
+bij en zet de bronlink bij de sectie waarnaar het event terugverwijst. Controleer
+directe Markdown-edits in een Git-vault met
+`vault-layout --vault ROOT --check-wiki-changes`. De check vergelijkt met HEAD
+of met een expliciete eerdere commit via `--base` en gebruikt geen writer.
+
 Vanaf de gekozen vaultroot:
 
 ```sh
