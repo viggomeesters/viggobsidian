@@ -7,7 +7,13 @@ use crate::{
     strings, text,
 };
 use serde_json::{Value, json};
-use std::{collections::BTreeSet, fs, io, path::Path, process::Command};
+use sha2::{Digest, Sha256};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fs, io,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -76,6 +82,26 @@ fn is_wiki(note: Option<&str>, direct: bool) -> bool {
                 && (!direct
                     || strings(&data["cssclasses"]).any(|class| class == "vault-wiki-direct"))
         })
+}
+
+fn wiki_location(path: &Path) -> Option<(&Path, bool)> {
+    if !visible_markdown(path) || path.components().any(|part| part.as_os_str() == "raw") {
+        return None;
+    }
+    let parent = path.parent()?;
+    match parent
+        .ancestors()
+        .find(|ancestor| ancestor.ends_with("wiki"))
+        .and_then(Path::parent)
+    {
+        Some(dossier) => Some((dossier, false)),
+        None if direct_wiki_note(parent).as_deref() == Some(path) => Some((parent, true)),
+        None => None,
+    }
+}
+
+fn maintained(path: &Path, note: Option<&str>, direct: bool) -> bool {
+    path.ends_with("wiki/wiki.md") || is_wiki(note, direct)
 }
 
 fn event_package<'a>(raw: &Path, path: &'a Path) -> Option<&'a Path> {
@@ -178,6 +204,100 @@ fn has_event(
     Ok(false)
 }
 
+fn finding(path: &Path) -> Value {
+    json!({
+        "path": path,
+        "code": "wiki-revision-missing-raw-event",
+        "message": "keep the Wiki and cite a new processed Event Note from this dossier's Raw under the exact heading it targets"
+    })
+}
+
+fn sha256(note: &str) -> String {
+    format!("{:x}", Sha256::digest(note.as_bytes()))
+}
+
+/// Record only hashes for possible Wiki paths and prior presence for event
+/// candidates. The writer already seals the report and its full change set.
+pub(crate) fn checkpoint(vault: &Path, paths: &BTreeMap<PathBuf, &str>) -> Result<Value> {
+    let mut before = BTreeMap::new();
+    for path in paths.keys() {
+        if let Some((_, direct)) = wiki_location(path) {
+            let note = working_note(vault, path)?;
+            before.insert(
+                path,
+                json!({
+                    "wiki": maintained(path, note.as_deref(), direct),
+                    "sha256": note.as_deref().map(sha256)
+                }),
+            );
+        } else if visible_markdown(path)
+            && let Some(raw) = path.parent().and_then(Path::parent)
+            && raw.ends_with("raw")
+            && event_package(raw, path).is_some()
+        {
+            before.insert(path, json!({"event_existed": vault.join(path).is_file()}));
+        }
+    }
+    Ok(json!(before))
+}
+
+pub(crate) fn validate_write_set(
+    vault: &Path,
+    paths: &BTreeMap<PathBuf, &str>,
+    baseline: &Value,
+    current: &Value,
+) -> Result<Vec<Value>> {
+    let before = baseline
+        .as_object()
+        .ok_or("missing Wiki revision baseline")?;
+    let now = current
+        .as_object()
+        .ok_or("missing current Wiki revision state")?;
+    if !before.keys().eq(now.keys()) {
+        return Err("Wiki revision baseline does not cover the exact change paths".into());
+    }
+    let new_events = paths
+        .iter()
+        .filter(|(path, expect)| {
+            let key = path.to_string_lossy();
+            **expect == "present"
+                && before
+                    .get(key.as_ref())
+                    .is_some_and(|entry| entry["event_existed"] == false)
+                && now
+                    .get(key.as_ref())
+                    .is_some_and(|entry| entry["event_existed"] == true)
+        })
+        .map(|(path, _)| path.as_path())
+        .collect();
+    let mut findings = Vec::new();
+    for path in paths.keys() {
+        let Some((dossier, _)) = wiki_location(path) else {
+            continue;
+        };
+        let key = path.to_string_lossy();
+        let old = &before[key.as_ref()];
+        let new = &now[key.as_ref()];
+        let old_wiki = old["wiki"]
+            .as_bool()
+            .ok_or("invalid Wiki revision baseline")?;
+        if !(old_wiki || new["wiki"] == true) || old["sha256"] == new["sha256"] {
+            continue;
+        }
+        let wiki = working_note(vault, path)?;
+        if new["sha256"] != json!(wiki.as_deref().map(sha256)) {
+            return Err(format!("Wiki changed during validation: {}", path.display()).into());
+        }
+        if let Some(wiki) = wiki
+            && has_event(vault, &dossier.join("raw"), path, None, &wiki, &new_events)?
+        {
+            continue;
+        }
+        findings.push(finding(path));
+    }
+    Ok(findings)
+}
+
 pub(crate) fn run(vault: &Path, base: &str, json_output: bool) -> Result<u8> {
     let root = git(vault, &["rev-parse", "--show-toplevel"])?;
     if Path::new(root.trim_end_matches('\n')).canonicalize()? != vault {
@@ -220,17 +340,8 @@ pub(crate) fn run(vault: &Path, base: &str, json_output: bool) -> Result<u8> {
     let mut checked = 0;
     let mut findings = Vec::new();
     for path in &changes {
-        let Some(parent) = path.parent() else {
+        let Some((dossier, direct)) = wiki_location(path) else {
             continue;
-        };
-        let (dossier, direct) = match parent
-            .ancestors()
-            .find(|ancestor| ancestor.ends_with("wiki"))
-            .and_then(Path::parent)
-        {
-            Some(dossier) => (dossier, false),
-            None if direct_wiki_note(parent).as_deref() == Some(*path) => (parent, true),
-            None => continue,
         };
         let raw = dossier.join("raw");
         let before = known
@@ -238,9 +349,8 @@ pub(crate) fn run(vault: &Path, base: &str, json_output: bool) -> Result<u8> {
             .then(|| git(vault, &["show", &format!("{baseline}:{}", path.display())]))
             .transpose()?;
         let current = working_note(vault, path)?;
-        if !path.ends_with("wiki/wiki.md")
-            && !is_wiki(before.as_deref(), direct)
-            && !is_wiki(current.as_deref(), direct)
+        if !maintained(path, before.as_deref(), direct)
+            && !maintained(path, current.as_deref(), direct)
         {
             continue;
         }
@@ -253,11 +363,7 @@ pub(crate) fn run(vault: &Path, base: &str, json_output: bool) -> Result<u8> {
         {
             continue;
         }
-        findings.push(json!({
-            "path": path,
-            "code": "wiki-revision-missing-raw-event",
-            "message": "keep the Wiki and cite a new processed Event Note from this dossier's Raw under the exact heading it targets"
-        }));
+        findings.push(finding(path));
     }
     if json_output {
         println!(

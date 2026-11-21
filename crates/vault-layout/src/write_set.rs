@@ -236,6 +236,7 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
                 "preservation",
                 "link_report",
                 "links_checked",
+                "wiki_revision_state",
             ],
         )?;
         if baseline["schema"] != REPORT
@@ -447,7 +448,17 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         .map(Value::to_string)
         .collect();
     let mut legacy_findings = Vec::new();
-    let mut errors = Vec::new();
+    let wiki_revision_state = crate::wiki_revision::checkpoint(vault, &paths)?;
+    let mut errors = if phase == "validate" {
+        crate::wiki_revision::validate_write_set(
+            vault,
+            &paths,
+            &baseline["wiki_revision_state"],
+            &wiki_revision_state,
+        )?
+    } else {
+        Vec::new()
+    };
     for row in &owned_findings {
         let path = row["path"].as_str().ok_or("finding path missing")?;
         let exempt = crate::adoption::formatting(vault, row)?
@@ -537,6 +548,7 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         0
     };
     let mut report = json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"legacy_findings":legacy_findings,"adoption":adoption,"findings":errors,"preservation":preservation});
+    report["wiki_revision_state"] = wiki_revision_state;
     if managed {
         report["link_report"] = link_report;
         report["links_checked"] = json!(links_checked);

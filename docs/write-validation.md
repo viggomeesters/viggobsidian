@@ -57,6 +57,15 @@ validate` and `baseline` containing that report. Exit 0 means accepted, 1 means
 findings, 2 means invalid input or execution failure. Any failure requires the
 writer's existing rollback; never rewrite plan pins to bypass drift checks.
 
+The baseline records the preimage hash of each Wiki candidate and whether each
+declared Raw event existed. A changed maintained Wiki must cite a qualifying
+processed Raw event from the same dossier in the exact write set. That event
+must be absent at baseline and present at validation, with its processing
+backlink to the cited Wiki heading. An existing Raw event or an event outside
+the sealed write set does not qualify. Byte-identical Wikis need no new event.
+Plans sealed by checker versions that do not record this state must be replanned
+with the updated checker.
+
 Each changed file owns its direct folder. Raw/Wiki changes own their complete
 dossier, including source inventories and processed-source references. Ancestor
 navigation is checked without recursively visiting unrelated siblings. Changed
