@@ -109,6 +109,10 @@
       "target": ".viggobsidian/core/write-validation.md"
     },
     {
+      "source": "docs/project-root-relocation.md",
+      "target": ".viggobsidian/core/project-root-relocation.md"
+    },
+    {
       "source": "crates/vault-layout/src/activity_delivery.rs",
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
@@ -308,6 +312,10 @@
     {
       "source": "crates/vault-layout/src/project_codes.rs",
       "target": ".agents/tools/vault-layout/src/project_codes.rs"
+    },
+    {
+      "source": "crates/vault-layout/src/project_relocation.rs",
+      "target": ".agents/tools/vault-layout/src/project_relocation.rs"
     },
     {
       "source": "assets/bases/vault-raw.base",

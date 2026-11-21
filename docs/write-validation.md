@@ -58,6 +58,10 @@ the receipt, exact state preimage/postimage and pending/lock bytes before cleanu
 and completion. Drift or foreign recovery members remain untouched. Do not run
 recovery while the original operator is still active; the lock is local.
 
+For the separate, byte-preserving project-root adoption handoff, see
+[Project root relocation](project-root-relocation.md). Registering the moved
+owner anew is not relocation.
+
 Legacy recognition is a review aid, never an automatic exemption. The exact
 owner and recorded original files establish the boundary. The deepest explicit
 owner wins; unrecorded new files never inherit historical exceptions. The finite

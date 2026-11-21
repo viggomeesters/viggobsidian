@@ -11,17 +11,7 @@ pub struct Entry {
     pub path: PathBuf,
 }
 
-pub fn resolve(vault: &Path, project: Option<&Path>, query: &str) -> Result<Entry, String> {
-    let query = query.to_ascii_uppercase();
-    let (month, code) = match query.split_once('/') {
-        Some((month, code)) if iso_date(&format!("{month}-01")) => (Some(month), code),
-        Some(_) => return Err("expected YYYY-MM/CODE".into()),
-        None => (None, query.as_str()),
-    };
-    if !valid_code(code) {
-        return Err("expected a project or component code".into());
-    }
-
+fn resolver_roots(vault: &Path) -> Result<Vec<PathBuf>, String> {
     let mut roots = vec![vault.join("15-projects"), vault.join("20-projects")];
     if let Ok(schema) = fs::read_to_string(vault.join(crate::SCHEMA)) {
         let schema: Value = serde_saphyr::from_str(&schema).map_err(|error| error.to_string())?;
@@ -39,6 +29,30 @@ pub fn resolve(vault: &Path, project: Option<&Path>, query: &str) -> Result<Entr
             }
         }
     }
+    Ok(roots)
+}
+
+fn global_entries(vault: &Path, roots: Vec<PathBuf>) -> Result<Vec<Entry>, String> {
+    let mut entries = Vec::new();
+    for root in roots {
+        if root.is_dir() && !root.is_symlink() {
+            scan(vault, &root, &mut entries)?;
+        }
+    }
+    Ok(entries)
+}
+
+pub fn resolve(vault: &Path, project: Option<&Path>, query: &str) -> Result<Entry, String> {
+    let query = query.to_ascii_uppercase();
+    let (month, code) = match query.split_once('/') {
+        Some((month, code)) if iso_date(&format!("{month}-01")) => (Some(month), code),
+        Some(_) => return Err("expected YYYY-MM/CODE".into()),
+        None => (None, query.as_str()),
+    };
+    if !valid_code(code) {
+        return Err("expected a project or component code".into());
+    }
+    let roots = resolver_roots(vault)?;
     let mut entries = Vec::new();
     if let Some(project) = project {
         let project = vault
@@ -55,11 +69,7 @@ pub fn resolve(vault: &Path, project: Option<&Path>, query: &str) -> Result<Entr
             return Err("project does not declare a project-month".into());
         }
     } else {
-        for root in roots {
-            if root.is_dir() && !root.is_symlink() {
-                scan(vault, &root, &mut entries)?;
-            }
-        }
+        entries = global_entries(vault, roots)?;
     }
 
     let mut matches: Vec<_> = entries
@@ -175,6 +185,37 @@ pub fn validate_registry(vault: &Path, roots: &Value) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// The same resolver's keys and stable IDs, with paths relative to the selected
+/// root. A root rename should not alter any of these routes.
+pub(crate) fn relative_routes(vault: &Path, root: &Path) -> Result<Value, String> {
+    let roots = resolver_roots(vault)?;
+    if !roots.contains(&vault.join(root)) {
+        return Err("project root not in the code resolver".into());
+    }
+    let mut entries = global_entries(vault, roots)?;
+    entries.sort_by(|a, b| (&a.key, &a.id, &a.path).cmp(&(&b.key, &b.id, &b.path)));
+    let mut keys = std::collections::BTreeMap::<&str, usize>::new();
+    let mut ids = std::collections::BTreeMap::<&str, usize>::new();
+    for entry in &entries {
+        *keys.entry(&entry.key).or_default() += 1;
+        *ids.entry(&entry.id).or_default() += 1;
+    }
+    let mut routes = Vec::new();
+    for entry in &entries {
+        let Ok(suffix) = entry.path.strip_prefix(root) else {
+            continue;
+        };
+        if keys[entry.key.as_str()] != 1 || ids[entry.id.as_str()] != 1 {
+            return Err(format!(
+                "duplicate project code or stable ID: {}",
+                entry.key
+            ));
+        }
+        routes.push(serde_json::json!({"key":entry.key,"id":entry.id,"path":suffix}));
+    }
+    Ok(serde_json::json!(routes))
 }
 
 fn scan(vault: &Path, folder: &Path, entries: &mut Vec<Entry>) -> Result<(), String> {

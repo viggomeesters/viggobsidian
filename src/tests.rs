@@ -1,5 +1,24 @@
 use super::*;
 
+#[cfg(unix)]
+#[test]
+fn release_mutation_refuses_project_relocation_hold_and_exclusive_gate() {
+    let f = Fixture::new();
+    let dir = f.vault.join(".viggobsidian");
+    fs::create_dir_all(&dir).unwrap();
+    let pending = dir.join("project-relocation.pending.json");
+    fs::write(&pending, b"fictional pending journal").unwrap();
+    let err = Lock::acquire(&f.vault).err().unwrap().to_string();
+    assert!(err.contains("project relocation pending"), "{err}");
+    assert!(!dir.join("update.lock").exists());
+    fs::remove_file(&pending).unwrap();
+    let file = fs::File::open(&dir).unwrap();
+    file.try_lock().unwrap();
+    assert!(Lock::acquire(&f.vault).is_err());
+    drop(file);
+    assert!(Lock::acquire(&f.vault).is_ok());
+}
+
 #[test]
 fn installed_structure_core_has_exact_required_path_dependency_sources() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));

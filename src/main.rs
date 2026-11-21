@@ -274,6 +274,7 @@ fn allowed(target: &str) -> bool {
         "mail_draft",
         "navigation_contract",
         "project_codes",
+        "project_relocation",
         "raw_processing",
         "raw_task",
         "shortcut_links",
@@ -297,6 +298,7 @@ fn allowed(target: &str) -> bool {
     if [
         "policy.md",
         "write-validation.md",
+        "project-root-relocation.md",
         "navigation-contract.yaml",
         "mail-format.md",
         "mail-draft.md",
@@ -506,20 +508,39 @@ fn stamp() -> Result<String> {
         SEQUENCE.fetch_add(1, Ordering::Relaxed)
     ))
 }
-struct Lock(PathBuf);
+struct Lock {
+    path: PathBuf,
+    _relocation_gate: Option<fs::File>,
+}
 impl Lock {
     fn acquire(vault: &Path) -> Result<Self> {
         let dir = checked(vault, ".viggobsidian")?;
-        fs::create_dir_all(dir)?;
+        fs::create_dir_all(&dir)?;
+        let relocation_gate = if cfg!(unix) {
+            let gate = fs::File::open(dir)?;
+            gate.try_lock_shared()?;
+            let pending = checked(vault, ".viggobsidian/project-relocation.pending.json")?;
+            match fs::symlink_metadata(pending) {
+                Ok(_) => return fail("project relocation pending; recover the relocation first"),
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+                Err(e) => return Err(e.into()),
+            }
+            Some(gate)
+        } else {
+            None
+        };
         let path = checked(vault, ".viggobsidian/update.lock")?;
         fs::create_dir(&path)
             .map_err(|e| format!("update lock unavailable (do not blindly remove it): {e}"))?;
-        Ok(Self(path))
+        Ok(Self {
+            path,
+            _relocation_gate: relocation_gate,
+        })
     }
 }
 impl Drop for Lock {
     fn drop(&mut self) {
-        let _ = fs::remove_dir(&self.0);
+        let _ = fs::remove_dir(&self.path);
     }
 }
 fn package(package: &Path) -> Result<(Value, String)> {
