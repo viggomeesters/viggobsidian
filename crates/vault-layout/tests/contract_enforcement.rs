@@ -11,6 +11,241 @@ use std::{
 
 type ProviderDocumentMutation = Box<dyn Fn(&mut Value)>;
 
+fn bind_wiki_revision(event: &str, before: &str, after: &str) -> String {
+    let before = format!("{:x}", Sha256::digest(before.as_bytes()));
+    let after = format!("{:x}", Sha256::digest(after.as_bytes()));
+    event.replacen("---\n", &format!(
+        "---\nwiki_revision:\n  schema: viggobsidian.wiki-revision.v1\n  before_sha256: \"{before}\"\n  after_sha256: \"{after}\"\n"
+    ), 1)
+}
+
+fn wiki_revision_event(fixture: &Fixture, path: &str, wiki: &str, anchor: &str) -> String {
+    let package = Path::new(path).parent().unwrap();
+    let raw = package.parent().unwrap().display();
+    let dossier = package.parent().unwrap().parent().unwrap();
+    let entrance = dossier.join(dossier.file_name().unwrap());
+    format!(
+        "---\ntype: note\ncategory: source\ncreated: 2026-11-21\nevent_date: 2026-11-21\nwiki_status: processed\nwiki_processed_on: 2026-11-21\nwiki_target: \"[[{wiki}#{anchor}]]\"\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\n---\n\n# Event\n\n> [!navigation|shortcuts]\n> - [[{raw}/raw|Back]]\n> - [Finder](file://{})\n\n> [!wiki-facts|dossier]\n> - Dossier **[[{}|Example]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> A new decision.\n\n## Activity\n\n> [!activity-day|2026-11-21] 21 November\n\n> [!activity-message|human] Alex\n> **Verwerking in Wiki**\n> A new decision was recorded in [[{wiki}#{anchor}]].\n>\n> *— · Alex · editor*\n",
+        fixture.0.join(package).display(),
+        entrance.display(),
+    )
+}
+
+#[test]
+fn wiki_revision_audit_checks_direct_edits_against_a_git_baseline() {
+    let fixture = Fixture::new("wiki-revision-git");
+    let git = |args: &[&str]| {
+        let result = Command::new("git")
+            .current_dir(&fixture.0)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{args:?}: {}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+    };
+    let audit = |extra: &[&str]| {
+        let result = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+            .arg("--vault")
+            .arg(&fixture.0)
+            .args(["--check-wiki-changes", "--json"])
+            .args(extra)
+            .output()
+            .unwrap();
+        let report: Value = serde_json::from_slice(&result.stdout)
+            .unwrap_or_else(|_| panic!("{}", String::from_utf8_lossy(&result.stderr)));
+        (result.status.code().unwrap(), report)
+    };
+    let wiki = "30-topics/example/wiki/wiki.md";
+    let guide = "30-topics/example/wiki/guide.md";
+    let direct = "30-topics/direct/direct.md";
+    let raw = "30-topics/example/raw";
+    let event = format!("{raw}/20261121-new-proof/20261121-new-proof.md");
+    let old = format!("{raw}/20261120-old-proof/20261120-old-proof.md");
+    let event_note = |path: &str, anchor: &str| {
+        wiki_revision_event(&fixture, path, "30-topics/example/wiki/wiki", anchor)
+    };
+    let wiki_before = "# Wiki\n\n## Decision\n\nOld knowledge.\n\n## Other\n\nOther knowledge.\n";
+    git(&["init", "-q"]);
+    fixture.write(wiki, wiki_before);
+    fixture.write(".gitattributes", "*.md text eol=lf\n");
+    fixture.write(&format!("{raw}/raw.md"), "# Raw\n");
+    let guide_before = "---\nlayer: wiki\n---\n# Guide\n\nOld guidance.\n";
+    fixture.write(guide, guide_before);
+    fixture.write("30-topics/direct/raw/raw.md", "# Raw\n");
+    let direct_before = "---\nlayer: wiki\ncssclasses: [vault-wiki-direct]\n---\n# Direct wiki\n\n## Decision\n\nOld knowledge.\n";
+    fixture.write(direct, direct_before);
+    fixture.write(&old, event_note(&old, "Decision"));
+    git(&["add", "."]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.com",
+        "commit",
+        "-qm",
+        "Baseline",
+    ]);
+    assert_eq!(audit(&[]).1["wiki_checked"], 0);
+    fixture.write(wiki, wiki_before.replace('\n', "\r\n"));
+    assert_eq!(audit(&[]).0, 1);
+    fixture.write(wiki, wiki_before);
+
+    let without_raw = "30-topics/new-dossier/wiki/wiki.md";
+    fixture.write(without_raw, "# Wiki\n\n## New\n\nUnbacked knowledge.\n");
+    assert_eq!(audit(&[]).1["findings"][0]["path"], without_raw);
+    fs::remove_file(fixture.0.join(without_raw)).unwrap();
+
+    fixture.write(direct, direct_before.replace("Old knowledge.", "Changed."));
+    let (code, report) = audit(&[]);
+    assert_eq!(code, 1);
+    assert_eq!(report["findings"][0]["path"], direct);
+    fixture.write(direct, direct_before);
+
+    fixture.write(
+        guide,
+        guide_before.replace("Old guidance.", "New guidance."),
+    );
+    assert_eq!(audit(&[]).1["findings"][0]["path"], guide);
+    fixture.write(guide, guide_before);
+
+    let no_ext = event.trim_end_matches(".md");
+    let old_no_ext = old.trim_end_matches(".md");
+    fixture.write(
+        wiki,
+        format!("# Wiki\n\n## Decision\n\nNew knowledge. [[{old_no_ext}]]\n"),
+    );
+    assert_eq!(audit(&[]).0, 1);
+
+    fixture.write(&event, event_note(&event, "Other"));
+    fixture.write(
+        wiki,
+        format!(
+            "# Wiki\n\n## Decision\n\nNew knowledge. [[{no_ext}]]\n\n## Other\n\nOther knowledge.\n"
+        ),
+    );
+    assert_eq!(audit(&[]).0, 1);
+
+    let valid = format!(
+        "# Wiki\n\n## Decision\n\nNew knowledge. [[{no_ext}|Decision source]]\n\n## Other\n\nOther knowledge.\n"
+    );
+    fixture.write(&event, event_note(&event, "Decision"));
+    let elsewhere = event.replace("30-topics/example/", "30-topics/other/");
+    fixture.write(&elsewhere, event_note(&elsewhere, "Decision"));
+    fixture.write(
+        wiki,
+        valid.replace(no_ext, elsewhere.trim_end_matches(".md")),
+    );
+    assert_eq!(audit(&[]).0, 1);
+    fs::remove_file(fixture.0.join(elsewhere)).unwrap();
+    fixture.write(
+        wiki,
+        valid.replace(
+            &format!("[[{no_ext}|Decision source]]"),
+            &format!("`[[{no_ext}]]`"),
+        ),
+    );
+    assert_eq!(audit(&[]).0, 1);
+    fixture.write(wiki, &valid);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &valid),
+    );
+    let (code, report) = audit(&[]);
+    assert_eq!(code, 0, "{report}");
+    assert_eq!(report["wiki_checked"], 1);
+    let missing_archive = event_note(&event, "Decision").replacen(
+        "category: source",
+        "category: source\nsource_archives: source-archives.json",
+        1,
+    );
+    fixture.write(
+        &event,
+        bind_wiki_revision(&missing_archive, wiki_before, &valid),
+    );
+    assert_eq!(audit(&[]).0, 1);
+
+    let wrong_section = valid.replace("Other knowledge.", "Changed elsewhere.");
+    fixture.write(wiki, &wrong_section);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &wrong_section),
+    );
+    assert_eq!(audit(&[]).0, 1);
+    for literal in ["Literal `<!--`.", "> ```markdown\n> Quoted example"] {
+        let changed = wrong_section.replace("## Other", &format!("{literal}\n\n## Other"));
+        fixture.write(wiki, &changed);
+        fixture.write(
+            &event,
+            bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &changed),
+        );
+        assert_eq!(audit(&[]).0, 1);
+    }
+    let indented = valid.replace("New knowledge. [[", "New knowledge.\n\n    [[");
+    fixture.write(wiki, &indented);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &indented),
+    );
+    assert_eq!(audit(&[]).0, 1);
+    let emphasis = valid.replace("## Decision", "## **Decision**");
+    fixture.write(wiki, &emphasis);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &emphasis),
+    );
+    assert_eq!(audit(&[]).0, 0);
+    fixture.write(wiki, &valid);
+    assert_eq!(audit(&[]).0, 1);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &valid),
+    );
+
+    git(&["add", &event]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.com",
+        "commit",
+        "-qm",
+        "Enter Raw proof before the Wiki",
+    ]);
+    assert_eq!(audit(&[]).0, 1);
+    assert_eq!(audit(&["--base", "HEAD^"]).0, 0);
+    git(&["add", "."]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.com",
+        "commit",
+        "-qm",
+        "Direct update",
+    ]);
+    assert_eq!(audit(&[]).1["wiki_checked"], 0);
+    assert_eq!(audit(&["--base", "HEAD~2"]).0, 0);
+    fixture.write(wiki, valid.replace("New knowledge.", "A later edit."));
+    assert_eq!(audit(&[]).0, 1);
+    assert_eq!(audit(&["--base", "HEAD~2"]).0, 1);
+    fixture.write(wiki, wiki_before);
+    git(&["add", wiki]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.com",
+        "commit",
+        "-qm",
+        "Revert Wiki without altering Raw proof",
+    ]);
+    fixture.write(wiki, &valid);
+    assert_eq!(audit(&["--base", "HEAD~3"]).0, 1);
+}
+
 #[test]
 fn codex_chat_source_check_compares_every_bound_bubble_without_reading_the_tail() {
     let fixture = Fixture::new("codex-chat-times");
@@ -1375,6 +1610,22 @@ fn historical_identity_mismatch_and_new_chronology_regression_remain_blocking() 
 }
 
 fn write_check(fixture: &Fixture, phase: &str, changes: Value, baseline: Value) -> (Output, Value) {
+    write_check_version(
+        "viggobsidian.write-set.v1",
+        fixture,
+        phase,
+        changes,
+        baseline,
+    )
+}
+
+fn write_check_version(
+    schema: &str,
+    fixture: &Fixture,
+    phase: &str,
+    changes: Value,
+    baseline: Value,
+) -> (Output, Value) {
     let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
         .arg("--vault")
         .arg(&fixture.0)
@@ -1384,7 +1635,11 @@ fn write_check(fixture: &Fixture, phase: &str, changes: Value, baseline: Value) 
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    serde_json::to_writer(child.stdin.take().unwrap(), &json!({"schema":"viggobsidian.write-set.v1","phase":phase,"changes":changes,"baseline":baseline})).unwrap();
+    serde_json::to_writer(
+        child.stdin.take().unwrap(),
+        &json!({"schema":schema,"phase":phase,"changes":changes,"baseline":baseline}),
+    )
+    .unwrap();
     let output = child.wait_with_output().unwrap();
     let report = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
     (output, report)
@@ -1621,6 +1876,15 @@ fn verified_link_repair_requires_paired_archive_and_retains_only_exact_existing_
 
 #[test]
 fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_strict() {
+    let write_check = |fixture, phase, changes, baseline| {
+        write_check_version(
+            "viggobsidian.write-set.v2",
+            fixture,
+            phase,
+            changes,
+            baseline,
+        )
+    };
     let f = Fixture::new("managed-wiki-section");
     f.write(
         "99-system/contracts/navigation-scope.yaml",
@@ -1670,20 +1934,68 @@ fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_
     f.write(".obsidian/snippets/folder-note.css",".vault-dashboard a[data-href$=\"/raw/raw\"] { --dashboard-accent: blue; --dashboard-icon: raw-icon; }\n.vault-dashboard a[data-href$=\"/wiki/wiki\"] { --dashboard-accent: green; --dashboard-icon: wiki-icon; }\n");
     let owner = "topics/example/wiki/wiki.md";
     let archive = "topics/example/raw/20261117-report/_source-assets/before.md.txt";
+    let event = "topics/example/raw/20261121-new-proof/20261121-new-proof.md";
+    let result = format!("New result. [[{}]]", event.trim_end_matches(".md"));
     let before = "---\ntype: note\ncategory: knowledge\nlayer: wiki\ncssclasses: [vault-navigation, vault-dashboard, vault-wiki]\n---\n\n# Example\n\n> [!navigation|shortcuts]\n> - [[topics/example/example|Back]]\n> - [[topics/example/raw/raw|Raw]]\n> - [Finder](file:///different-host/topics/example/wiki)\n\n<!-- report:v1 begin -->\n## Daily report\n\nOld result.\n<!-- report:v1 end -->\n\n## Retained history\n\nHistory stays.\n";
+    let after = before.replace("Old result.", &result);
+    let event_note = bind_wiki_revision(
+        &wiki_revision_event(&f, event, owner.trim_end_matches(".md"), "Daily report"),
+        before,
+        &after,
+    );
     f.write(owner, before);
-    let proof = json!({"kind":"managed-wiki-section","before":before,"archive":archive,"marker":"report:v1","replacement":"\n## Daily report\n\nNew result.\n"});
+    let proof = json!({"kind":"managed-wiki-section","before":before,"archive":archive,"marker":"report:v1","replacement":format!("\n## Daily report\n\n{result}\n")});
     let archive_proof = json!({"kind":"source-preimage-archive","before":null,"source":owner,"source_before":before});
-    let changes = json!([{"path":owner,"expect":"present","proof":proof},{"path":archive,"expect":"present","proof":archive_proof}]);
-    let (out, baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
-    assert!(out.status.success(), "{baseline}");
-    let after = before.replace("Old result.", "New result.");
+    let unsupported = json!([{"path":owner,"expect":"present","proof":proof},{"path":archive,"expect":"present","proof":archive_proof}]);
+    f.write(event, &event_note);
+    let (_, without_event) = write_check(&f, "baseline", unsupported.clone(), Value::Null);
     f.write(owner, &after);
     f.write(archive, before);
+    let (out, report) = write_check(&f, "validate", unsupported, without_event);
+    assert_eq!(
+        out.status.code(),
+        Some(1),
+        "{} {report}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        report["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["code"] == "wiki-revision-missing-raw-event")
+    );
+    f.write(owner, before);
+    fs::remove_file(f.0.join(archive)).unwrap();
+    let event_hash = format!("{:x}", Sha256::digest(event_note.as_bytes()));
+    let changes = json!([{"path":owner,"expect":"present","proof":proof},{"path":archive,"expect":"present","proof":archive_proof},{"path":event,"expect":"present","post_sha256":event_hash}]);
+    let (_, stale_baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
+    f.write(owner, &after);
+    f.write(archive, before);
+    let (out, report) = write_check(&f, "validate", changes.clone(), stale_baseline);
+    assert_eq!(out.status.code(), Some(1));
+    assert!(
+        report["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["code"] == "wiki-revision-missing-raw-event")
+    );
+    f.write(owner, before);
+    fs::remove_file(f.0.join(archive)).unwrap();
+    fs::remove_file(f.0.join(event)).unwrap();
+    let (out, baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
+    assert!(out.status.success(), "{baseline}");
+    f.write(owner, &after);
+    f.write(archive, before);
+    f.write(event, &event_note);
     let (out, report) = write_check(&f, "validate", changes.clone(), baseline.clone());
     assert!(out.status.success(), "{report}");
     assert_eq!(report["links_checked"], true);
-    assert_eq!(report["link_report"]["checked_paths"], json!([owner]));
+    assert_eq!(
+        report["link_report"]["checked_paths"],
+        json!([event, owner])
+    );
     assert_eq!(
         report["link_report"]["legacy_issues"]
             .as_array()
@@ -1720,20 +2032,17 @@ fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_
             .success()
     );
     let mut repeated = changes.clone();
-    repeated[0]["proof"]["replacement"] = json!(
-        "\n## Daily report\n\nNew result. [New broken link](file:///different-host/topics/example/wiki)\n"
-    );
+    let with_broken_link =
+        format!("{result} [New broken link](file:///different-host/topics/example/wiki)");
+    repeated[0]["proof"]["replacement"] =
+        json!(format!("\n## Daily report\n\n{with_broken_link}\n"));
     f.write(owner, before);
     fs::remove_file(f.0.join(archive)).unwrap();
+    fs::remove_file(f.0.join(event)).unwrap();
     let (_, repeat_baseline) = write_check(&f, "baseline", repeated.clone(), Value::Null);
-    f.write(
-        owner,
-        before.replace(
-            "Old result.",
-            "New result. [New broken link](file:///different-host/topics/example/wiki)",
-        ),
-    );
+    f.write(owner, before.replace("Old result.", &with_broken_link));
     f.write(archive, before);
+    f.write(event, &event_note);
     assert!(
         !write_check(&f, "validate", repeated, repeat_baseline)
             .0
@@ -1788,14 +2097,17 @@ fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_
     );
     f.write(owner, &bad_before);
     fs::remove_file(f.0.join(archive)).unwrap();
+    fs::remove_file(f.0.join(event)).unwrap();
     let mut bad_changes = changes.clone();
     bad_changes[0]["proof"]["before"] = json!(bad_before);
     bad_changes[1]["proof"]["source_before"] = json!(bad_before);
-    bad_changes[0]["proof"]["replacement"] =
-        json!("\n## Daily report\n\nNew result.\n\n> [!wiki-facts]\n> Misplaced facts.\n");
+    bad_changes[0]["proof"]["replacement"] = json!(format!(
+        "\n## Daily report\n\n{result}\n\n> [!wiki-facts]\n> Misplaced facts.\n"
+    ));
     let (_, bad_baseline) = write_check(&f, "baseline", bad_changes.clone(), Value::Null);
-    f.write(owner, bad_before.replace("Old result.", "New result."));
+    f.write(owner, bad_before.replace("Old result.", &result));
     f.write(archive, &bad_before);
+    f.write(event, &event_note);
     assert!(
         !write_check(&f, "validate", bad_changes, bad_baseline)
             .0
@@ -1805,6 +2117,7 @@ fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_
     );
     f.write(owner, before);
     fs::remove_file(f.0.join(archive)).unwrap();
+    fs::remove_file(f.0.join(event)).unwrap();
     let new_raw = "topics/example/raw/20261118-source/20261118-source.md";
     let mut new_changes = changes.clone();
     new_changes
@@ -1814,6 +2127,7 @@ fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_
     let (_, new_baseline) = write_check(&f, "baseline", new_changes.clone(), Value::Null);
     f.write(owner, &after);
     f.write(archive, before);
+    f.write(event, &event_note);
     assert!(
         !write_check(&f, "validate", new_changes.clone(), new_baseline.clone())
             .0
