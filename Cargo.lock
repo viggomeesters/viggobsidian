@@ -201,6 +201,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "quick-capture-core"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
