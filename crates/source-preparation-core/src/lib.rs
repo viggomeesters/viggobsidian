@@ -1,10 +1,12 @@
 //! Pure native-source postimages. No filesystem, registry, clock or write authority.
+use activity_core::provenance::{self, RenderedProvenance, SourceKind};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 pub const MAX_REQUEST_BYTES: usize = 8 * 1024 * 1024;
 pub const MAX_NOTE_BYTES: usize = 1024 * 1024;
 pub const FORMAT: &str = "source-capture-v1";
+pub const PROVENANCE_FORMAT: &str = "source-capture-v2";
 
 type Result<T> = std::result::Result<T, &'static str>;
 
@@ -122,6 +124,23 @@ fn quoted(body: &str) -> String {
     out
 }
 
+fn contribution<'a>(value: Option<&'a Value>, day: &str) -> Result<Option<RenderedProvenance<'a>>> {
+    let rendered = value.map(provenance::render).transpose()?;
+    if rendered
+        .as_ref()
+        .is_some_and(|event| event.kind != SourceKind::VaultContribution || event.day != day)
+    {
+        return Err("vault_contribution_kind_or_day_mismatch");
+    }
+    Ok(rendered)
+}
+
+fn provenance_pin(key: &str, value: Option<&Value>) -> String {
+    value.map_or_else(String::new, |value| {
+        format!("\n{key}: \"{}\"", hash(&value.to_string()))
+    })
+}
+
 fn transform(v: &Value) -> Result<Value> {
     let object = v.as_object().ok_or("request_object_required")?;
     let allowed = [
@@ -137,12 +156,25 @@ fn transform(v: &Value) -> Result<Value> {
         "wiki_target",
         "summary",
         "preparation_date",
+        "provenance",
+        "preparation_provenance",
     ];
     if object.keys().any(|key| !allowed.contains(&key.as_str())) {
         return Err("unknown_field");
     }
-    if v["schema"] != "viggobsidian.source-preparation.v1" || v["format"] != FORMAT {
+    let format = field(v, "format")?;
+    if v["schema"] != "viggobsidian.source-preparation.v1"
+        || !matches!(format, FORMAT | PROVENANCE_FORMAT)
+    {
         return Err("schema_or_format");
+    }
+    if format == FORMAT
+        && (v.get("provenance").is_some() || v.get("preparation_provenance").is_some())
+    {
+        return Err("provenance_requires_source_capture_v2");
+    }
+    if format == PROVENANCE_FORMAT && v.get("provenance").is_none() {
+        return Err("vault_contribution_provenance_required");
     }
     let operation = field(v, "operation")?;
     if !["prepare", "mark-wiki-processed"].contains(&operation) {
@@ -152,6 +184,7 @@ fn transform(v: &Value) -> Result<Value> {
     if !date(day) {
         return Err("invalid_date");
     }
+    let event = contribution(v.get("provenance"), day)?;
     let owner = field(v, "destination_owner")?;
     let source = field(v, "source_path")?;
     let vault = field(v, "vault_root")?;
@@ -210,6 +243,8 @@ fn transform(v: &Value) -> Result<Value> {
             "activity_contract",
             "wiki_processed_on",
             "wiki_target",
+            "raw_preparation_provenance_sha256",
+            "wiki_processing_provenance_sha256",
         ]
         .iter()
         .any(|key| metadata.get(key).is_some())
@@ -219,6 +254,7 @@ fn transform(v: &Value) -> Result<Value> {
                 "wiki_target",
                 "summary",
                 "preparation_date",
+                "preparation_provenance",
             ]
             .iter()
             .any(|key| v.get(key).is_some())
@@ -230,18 +266,32 @@ fn transform(v: &Value) -> Result<Value> {
             .find_map(|line| line.strip_prefix("# "))
             .unwrap_or(package);
         let finder = url(&format!("{vault}/{raw}/{package}"));
+        let actor = event.as_ref().map_or("Agent", |event| event.author);
+        let legacy = if event.is_none() {
+            "> `— · Agent · vault-process`\n"
+        } else {
+            ""
+        };
+        let footer = event
+            .as_ref()
+            .map_or_else(String::new, RenderedProvenance::footer);
+        let pin = provenance_pin("raw_preparation_provenance_sha256", v.get("provenance"));
         after = format!(
-            "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: source-capture-v1\nactivity_contract: provenance-v1\n---\n\n# {title}\n\n> [!navigation|shortcuts]\n> - [[{raw}/raw|Back]]\n> - [Finder](file://{finder})\n\n> [!wiki-facts|dossier]\n> - Dossier **[[{dossier}/{label}|{label}]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> {title}\n\n## Activity\n\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] Agent\n> `— · Agent · vault-process`\n> <!-- viggobsidian:activity:v1 kind=result goal=raw-preparation -->\n> De oorspronkelijke inhoud is hieronder behouden voor plaatsing bij dit dossier.\n>\n> > [!info]- Meer\n{}",
+            "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: {format}\nactivity_contract: provenance-v1{pin}\n---\n\n# {title}\n\n> [!navigation|shortcuts]\n> - [[{raw}/raw|Back]]\n> - [Finder](file://{finder})\n\n> [!wiki-facts|dossier]\n> - Dossier **[[{dossier}/{label}|{label}]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> {title}\n\n## Activity\n\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n{legacy}> <!-- viggobsidian:activity:v1 kind=result goal=raw-preparation -->\n> De oorspronkelijke inhoud is hieronder behouden voor plaatsing bij dit dossier.\n>\n> > [!info]- Meer\n{}{footer}",
             quoted(body)
         );
         original_hash = hash(before);
     } else {
+        let preparation_format = metadata["raw_preparation_format"]
+            .as_str()
+            .filter(|&prepared| prepared == FORMAT || prepared == format)
+            .ok_or("prepared_pending_source_required")?;
         if metadata["wiki_status"] != "pending"
-            || metadata["raw_preparation_format"] != FORMAT
             || metadata["activity_contract"] != "provenance-v1"
             || metadata["cssclasses"] != classes
             || metadata.get("wiki_processed_on").is_some()
             || metadata.get("wiki_target").is_some()
+            || metadata.get("wiki_processing_provenance_sha256").is_some()
         {
             return Err("prepared_pending_source_required");
         }
@@ -251,14 +301,27 @@ fn transform(v: &Value) -> Result<Value> {
             return Err("invalid_preparation_date");
         }
         let (_, original_body, _) = note(original)?;
-        if !body.ends_with(&quoted(original_body)) {
+        let preparation = v.get("preparation_provenance");
+        if (preparation_format == PROVENANCE_FORMAT) != preparation.is_some() {
+            return Err("preparation_provenance_does_not_match_format");
+        }
+        let previous = contribution(preparation, preparation_date)?;
+        let previous_footer = previous
+            .as_ref()
+            .map_or_else(String::new, RenderedProvenance::footer);
+        if !body
+            .strip_suffix(&previous_footer)
+            .is_some_and(|body| body.ends_with(&quoted(original_body)))
+        {
             return Err("original_body_changed");
         }
-        let prepared = transform(
-            &json!({"schema":"viggobsidian.source-preparation.v1", "format":FORMAT,
+        let mut prepare = json!({"schema":"viggobsidian.source-preparation.v1", "format":preparation_format,
             "operation":"prepare", "source_note":original, "date":preparation_date,
-            "source_path":format!("00-inbox/{package}/{filename}"), "destination_owner":owner, "vault_root":vault}),
-        )?;
+            "source_path":format!("00-inbox/{package}/{filename}"), "destination_owner":owner, "vault_root":vault});
+        if let Some(preparation) = preparation {
+            prepare["provenance"] = preparation.clone();
+        }
+        let prepared = transform(&prepare)?;
         if prepared["postimage"].as_str() != Some(before) {
             return Err("prepared_postimage_changed");
         }
@@ -292,18 +355,50 @@ fn transform(v: &Value) -> Result<Value> {
             return Err("ambiguous_status_field");
         }
         let target_json = serde_json::to_string(target).map_err(|_| "wiki_target_required")?;
+        let actor = event.as_ref().map_or("Agent", |event| event.author);
+        let footer = event.as_ref().map_or_else(
+            || provenance::legacy_unknown_footer(actor, "vault-process"),
+            RenderedProvenance::footer,
+        );
+        let pin = provenance_pin("wiki_processing_provenance_sha256", v.get("provenance"));
+        // Keep the Wiki link as direct text. A long or Markdown-control
+        // summary goes under Details without truncating or activating it.
+        let summary_text = summary.trim();
+        let unsafe_leading = [">", "!", "*", "[!", "```", "~~~", "<!--"]
+            .iter()
+            .any(|prefix| summary_text.starts_with(prefix));
+        let processing_text = if format == PROVENANCE_FORMAT
+            && (summary_text.len() + target.len() > 900 || unsafe_leading)
+        {
+            format!(
+                "> Samenvatting van de Wiki-verwerking: {target}\n{}",
+                provenance::folded_verbatim(summary)
+            )
+        } else {
+            format!("> {summary_text} {target}\n")
+        };
         after = format!(
-            "{changed_header}\nwiki_processed_on: {day}\nwiki_target: {target_json}\n---\n{body}\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] Agent\n> <!-- viggobsidian:activity:v1 kind=result goal=wiki-processing -->\n> **Verwerking in Wiki**\n> {} {target}\n>\n> *— · Agent · vault-process*\n",
-            summary.trim()
+            "{changed_header}\nwiki_processed_on: {day}\nwiki_target: {target_json}{pin}\n---\n{body}\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n> <!-- viggobsidian:activity:v1 kind=result goal=wiki-processing -->\n> **Verwerking in Wiki**\n{processing_text}{footer}",
         );
         original_hash = hash(original);
     }
     if after.len() > 2 * MAX_NOTE_BYTES {
         return Err("postimage_limit");
     }
+    if format == PROVENANCE_FORMAT
+        && !activity_core::activity_delivery::provenance_findings(
+            after
+                .split_once("\n---\n")
+                .expect("postimage has metadata")
+                .1,
+        )
+        .is_empty()
+    {
+        return Err("invalid_rendered_activity_provenance");
+    }
     Ok(
         json!({"schema":"viggobsidian.source-preparation-result.v1", "status":"complete",
-        "engine":"source-preparation-core", "engine_version":env!("CARGO_PKG_VERSION"), "format":FORMAT,
+        "engine":"source-preparation-core", "engine_version":env!("CARGO_PKG_VERSION"), "format":format,
         "operation":operation, "source_path":source, "prepared_path":prepared_path,
         "before_sha256":hash(before), "after_sha256":hash(&after), "original_sha256":original_hash, "postimage":after}),
     )

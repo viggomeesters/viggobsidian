@@ -62,7 +62,7 @@ const CAPABILITIES: &[Capability] = &[
             "viggobsidian.source-preparation.v1",
             "viggobsidian.source-preparation-result.v1",
         ],
-        rulesets: &["source-capture-v1"],
+        rulesets: &["source-capture-v1", "source-capture-v2"],
         commands: &["source-note-transform"],
         scope: "Read-only typed Raw source postimages; it neither selects a vault nor grants writer authority.",
     },
