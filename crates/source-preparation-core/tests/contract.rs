@@ -1,7 +1,7 @@
 use serde_json::{Value, json};
 use source_preparation_core::{
-    AUTHORED_ACTIVITY_FORMAT, FORMAT, MAX_NOTE_BYTES, MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash,
-    respond,
+    AUTHORED_ACTIVITY_FORMAT, FORMAT, LEGACY_PLAIN_SOURCE_FORMAT, MAX_NOTE_BYTES,
+    MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash, respond,
 };
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -159,6 +159,73 @@ fn authored_activity_refuses_ambiguous_or_unrelated_sources() {
     v["format"] = json!(AUTHORED_ACTIVITY_FORMAT);
     v.as_object_mut().unwrap().remove("provenance");
     assert_eq!(run(&v)["reason"], "vault_contribution_provenance_required");
+}
+
+#[test]
+fn legacy_plain_source_replays_with_the_exact_original_and_its_attachments() {
+    let original = "---\ntype: note\ncategory: plugin-testing\ncreated: 2026-11-02\nsource_identity: legacy:fictional\n---\n\n# Fictional legacy note\n\n## Test result\n\nSee [diagram](diagram.png).\n";
+    let mut prepare = authored_request();
+    prepare["format"] = json!(LEGACY_PLAIN_SOURCE_FORMAT);
+    prepare["source_note"] = json!(original);
+    let prepared = run(&prepare);
+    assert_eq!(prepared["status"], "complete", "{prepared}");
+    assert_eq!(run(&prepare), prepared);
+    assert_eq!(prepared["original_sha256"], hash(original));
+    let postimage = prepared["postimage"].as_str().unwrap();
+    assert!(postimage.contains("category: plugin-testing\n"));
+    assert!(postimage.contains("> > ## Test result\n> > \n> > See [diagram](diagram.png).\n"));
+    assert!(!postimage.contains("\n## Test result\n"));
+
+    let mut process = marking();
+    process["format"] = json!(LEGACY_PLAIN_SOURCE_FORMAT);
+    process["source_note"] = prepared["postimage"].clone();
+    process["original_note"] = json!(original);
+    process["preparation_provenance"] = prepare["provenance"].clone();
+    process["provenance"] = prepare["provenance"].clone();
+    process["provenance"]["timestamp"] = json!("2026-11-13T09:01:16+01:00");
+    let processed = run(&process);
+    assert_eq!(processed["status"], "complete", "{processed}");
+    assert_eq!(run(&process), processed);
+    assert_eq!(processed["before_sha256"], hash(postimage));
+    assert_eq!(processed["original_sha256"], hash(original));
+    assert!(
+        processed["postimage"]
+            .as_str()
+            .unwrap()
+            .contains("> > ## Test result\n> > \n> > See [diagram](diagram.png).\n")
+    );
+
+    process["original_note"] = json!(original.trim_end_matches('\n'));
+    assert_eq!(run(&process)["reason"], "prepared_postimage_changed");
+    process["original_note"] = json!(original);
+    process["source_note"] =
+        json!(postimage.replace("wiki_status: pending", "wiki_status: processed"));
+    assert_eq!(run(&process)["reason"], "prepared_pending_source_required");
+
+    for (note, reason) in [
+        (ORIGINAL.to_owned(), "legacy_plain_source_required"),
+        (
+            original.replace("type: note", "type: task"),
+            "legacy_plain_source_required",
+        ),
+        (
+            original.replace("category: plugin-testing", "category: email"),
+            "legacy_plain_source_required",
+        ),
+        (
+            original.replace("## Test result", "## Activity"),
+            "unprepared_source_required",
+        ),
+        (
+            original.replace("type: note", "type: note\nwiki_status: pending"),
+            "unprepared_source_required",
+        ),
+    ] {
+        prepare["source_note"] = json!(note);
+        let result = run(&prepare);
+        assert_eq!(result["reason"], reason, "{result}");
+        assert!(result.get("postimage").is_none());
+    }
 }
 
 #[test]

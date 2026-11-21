@@ -74,6 +74,21 @@ original Activity stays byte-identical. This format applies to new preparation
 intents and preserves the existing replay contracts for `source-capture-v1` and
 `source-capture-v2`.
 
+### Proven legacy plain source
+
+Select `format: legacy-plain-source-v1` for the unprepared original of a
+`type: note`, `category: plugin-testing` source. The host must first verify
+the prior ready receipt, its original Git source and exact legacy postimage.
+The host supplies the original bytes in `source_note` with a new preparation
+contribution. The core generates a new reading layer with the original body
+inside a folded Activity bubble. The source category and attachment links are
+preserved, and metadata binds the exact original bytes and preparation facts.
+
+Mark processing with the same format and the exact original, new preparation
+date and new preparation provenance. The host owns the crash-safe transition
+from the old receipt to the new recipe. The original receipt remains available
+for legacy replay.
+
 `viggobsidian.source-preparation-result.v1` reports `status: complete`, component
 `engine_version`, format/operation, source/prepared locators, `before_sha256`,
 `after_sha256`, `original_sha256` and `postimage`. Complete means only that this

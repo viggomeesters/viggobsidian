@@ -9,6 +9,7 @@ pub const MAX_NOTE_BYTES: usize = 1024 * 1024;
 pub const FORMAT: &str = "source-capture-v1";
 pub const PROVENANCE_FORMAT: &str = "source-capture-v2";
 pub const AUTHORED_ACTIVITY_FORMAT: &str = "authored-activity-v1";
+pub const LEGACY_PLAIN_SOURCE_FORMAT: &str = "legacy-plain-source-v1";
 
 type Result<T> = std::result::Result<T, &'static str>;
 
@@ -108,30 +109,31 @@ fn note<'a>(text: &'a str, format: &str) -> Result<(&'a str, &'a str, Value)> {
             "metadata_invalid"
         }
     })?;
-    if format == AUTHORED_ACTIVITY_FORMAT {
-        if !metadata.is_object()
-            || metadata["type"] != "note"
-            || metadata["category"] != "general"
-            || metadata["activity_contract"] != "provenance-v1"
-            || [
-                "task-id",
-                "task_id",
-                "component-id",
-                "component_id",
-                "project_id",
-                "layer",
-                "source_archives",
-            ]
-            .iter()
-            .any(|key| metadata.get(key).is_some())
-        {
-            return Err("authored_activity_note_required");
-        }
-    } else if !metadata.is_object()
+    let (category, error) = match format {
+        AUTHORED_ACTIVITY_FORMAT => ("general", "authored_activity_note_required"),
+        LEGACY_PLAIN_SOURCE_FORMAT => ("plugin-testing", "legacy_plain_source_required"),
+        _ => ("source", "plain_note_source_required"),
+    };
+    if !metadata.is_object()
         || metadata["type"] != "note"
-        || metadata["category"] != "source"
+        || metadata["category"] != category
+        || (format == AUTHORED_ACTIVITY_FORMAT && metadata["activity_contract"] != "provenance-v1")
+        || (matches!(
+            format,
+            AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
+        ) && [
+            "task-id",
+            "task_id",
+            "component-id",
+            "component_id",
+            "project_id",
+            "layer",
+            "source_archives",
+        ]
+        .iter()
+        .any(|key| metadata.get(key).is_some()))
     {
-        return Err("plain_note_source_required");
+        return Err(error);
     }
     Ok((header, body, metadata))
 }
@@ -238,7 +240,7 @@ fn transform(v: &Value) -> Result<Value> {
     if v["schema"] != "viggobsidian.source-preparation.v1"
         || !matches!(
             format,
-            FORMAT | PROVENANCE_FORMAT | AUTHORED_ACTIVITY_FORMAT
+            FORMAT | PROVENANCE_FORMAT | AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
         )
     {
         return Err("schema_or_format");
@@ -249,6 +251,10 @@ fn transform(v: &Value) -> Result<Value> {
         return Err("provenance_requires_source_capture_v2");
     }
     let authored = format == AUTHORED_ACTIVITY_FORMAT;
+    let pins_original = matches!(
+        format,
+        AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
+    );
     if format != FORMAT && v.get("provenance").is_none() {
         return Err("vault_contribution_provenance_required");
     }
@@ -324,7 +330,7 @@ fn transform(v: &Value) -> Result<Value> {
         ]
         .iter()
         .any(|key| metadata.get(key).is_some())
-            || (authored && metadata.get("raw_preparation_original_sha256").is_some())
+            || (pins_original && metadata.get("raw_preparation_original_sha256").is_some())
             || (!authored
                 && (metadata.get("activity_contract").is_some()
                     || body.lines().any(|line| line == "## Activity")))
@@ -347,11 +353,16 @@ fn transform(v: &Value) -> Result<Value> {
             )
         };
         let pin = provenance_pin("raw_preparation_provenance_sha256", v.get("provenance"));
+        let original_pin = if pins_original {
+            format!("\nraw_preparation_original_sha256: \"{original_hash}\"")
+        } else {
+            String::new()
+        };
         after = if authored {
             let (title, context, activity) = authored_sections(body, day)?;
             let entrance = entrance(title, &context);
             format!(
-                "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: {format}\nraw_preparation_original_sha256: \"{original_hash}\"{pin}\n---\n\n{entrance}{activity}"
+                "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: {format}{original_pin}{pin}\n---\n\n{entrance}{activity}"
             )
         } else {
             let title = body
@@ -369,14 +380,16 @@ fn transform(v: &Value) -> Result<Value> {
                 .as_ref()
                 .map_or_else(String::new, RenderedProvenance::footer);
             format!(
-                "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: {format}\nactivity_contract: provenance-v1{pin}\n---\n\n{entrance}\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n{legacy}> <!-- viggobsidian:activity:v1 kind=result goal=raw-preparation -->\n> De oorspronkelijke inhoud is hieronder behouden voor plaatsing bij dit dossier.\n>\n> > [!info]- Meer\n{}{footer}",
+                "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: {format}{original_pin}\nactivity_contract: provenance-v1{pin}\n---\n\n{entrance}\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n{legacy}> <!-- viggobsidian:activity:v1 kind=result goal=raw-preparation -->\n> De oorspronkelijke inhoud is hieronder behouden voor plaatsing bij dit dossier.\n>\n> > [!info]- Meer\n{}{footer}",
                 quoted(body)
             )
         };
     } else {
         let preparation_format = metadata["raw_preparation_format"]
             .as_str()
-            .filter(|&prepared| prepared == format || (!authored && prepared == FORMAT))
+            .filter(|&prepared| {
+                prepared == format || (format == PROVENANCE_FORMAT && prepared == FORMAT)
+            })
             .ok_or("prepared_pending_source_required")?;
         if metadata["wiki_status"] != "pending"
             || metadata["activity_contract"] != "provenance-v1"
