@@ -80,6 +80,80 @@ contract creates no registration, writer, launch, or source-access authority.
   must obtain their actual source facts, persist intent and call the native
   formatter or writer route. The public tests use fictional facts only.
 
+### Claudian: one human message with no reliable time
+
+`claudian-activity-append` prepares a request for an **existing** guarded
+Activity-append writer. It does not read a Claudian session, edit a vault, or
+authorize a destination. Use it only when the caller has the original human
+message, its stable provider/session/message IDs, its actual author, and a
+separately evidenced local calendar day. Do not turn a session-level timestamp,
+resume/turn start, UI display fallback, or import time into message metadata.
+When neither original message time nor a reliable local day is known, preserve
+the source outside dated Activity via the existing source-capture path.
+Aggregated transcripts and assistant responses are not accepted by this
+fallback; a response import must establish its separate provenance and role.
+
+Fictional stdin example (the preimage must be the exact selected note bytes):
+
+```json
+{
+  "schema": "viggobsidian.claudian-activity-append.v1",
+  "vault_root": "/fictional/vault",
+  "skill": "vault-project-refresh",
+  "path": "20-projects/example/notes/owner.md",
+  "preimage": "---\ntype: note\ncategory: knowledge\n---\n\n# Fictional owner\n",
+  "message": {
+    "provider": "codex",
+    "session_id": "example-session",
+    "message_id": "example-message",
+    "role": "human",
+    "body": "Original fictional input.",
+    "day_basis": "human-confirmed-message-local-date",
+    "provenance": {
+      "kind": "chat-message",
+      "timestamp": null,
+      "day": "2026-11-13",
+      "display_timezone": "Europe/Amsterdam",
+      "author": "Example Person",
+      "channel": "Claudian / Codex"
+    }
+  }
+}
+```
+
+Keep original message bytes, exact structured intent and validator binary pin in
+private source storage before rendering. The original provider/session/message
+IDs are case-sensitive and must be reused byte for byte on resume. The command
+does not connect to Claudian or attest that the supplied IDs are authentic.
+`day_basis` is an assertion made by
+that source owner: `original-message-local-date` or
+`human-confirmed-message-local-date`. The command cannot verify that evidence.
+Target an already resolved owner; the example does not select a vault or
+create a package. Existing writer scope still applies.
+
+On `complete`, use `result.request` as the existing `vs plan` request. Inspect
+that exact trusted plan with `vs inspect` using the same root. Submit the
+original input and the inspection as `{"schema":
+"viggobsidian.claudian-activity-inspect.v1", "input": <original input>,
+"inspection": <vs inspect result>}`. The command recomputes the recipe from
+the original input; it does not trust a derived recipe. Only `verified`
+matches the expected root, single path, writer goal, preimage and postimage.
+Apply **that same**
+reviewed plan with the existing writer, not a copy with different changes.
+Use the writer's normal recovery for an interrupted apply. Restarting from a
+new plan is not recovery or a substitute for inspection. For a retry after a
+completed apply, read the existing owner again and resubmit the same message;
+`reused` returns without a writer request. An existing same-ID bubble with
+different facts or bytes is refused. This is not cross-note deduplication.
+
+The message is literal inside folded Details, with the canonical `—` footer
+outside Details and no header stamp. The command appends under the existing
+same day, starts a later day, or refuses a new source dated before the current
+Activity tail; it does not reorder historical entries. The bounded fallback
+accepts only LF text, up to 1 MiB of note both before and after, 256 KiB of original message,
+and 4 MiB per input. An incomplete request exits 2 without a write request.
+The legacy renderer and writer interfaces are not changed.
+
 ## Implementation and dependency boundary
 
 New rendering, native CLI, and tests are Rust. Jiff `0.2.39` (MIT or

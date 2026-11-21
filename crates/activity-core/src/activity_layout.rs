@@ -59,6 +59,43 @@ pub fn message_heading(line: &str) -> Option<(&str, &str)> {
         })
 }
 
+/// Detect visible Activity headings, including noncanonical ATX and setext forms.
+pub fn visible_activity_headings(body: &str) -> usize {
+    let mut previous_label = false;
+    let mut headings = 0;
+    for line in link_style_core::visible_blocks(body).lines() {
+        let trimmed = line.trim_start_matches(' ');
+        if line.len() - trimmed.len() > 3 || trimmed.starts_with(['\t', '>']) {
+            previous_label = false;
+            continue;
+        }
+        let trimmed = trimmed.trim_end_matches([' ', '\t']);
+        let width = trimmed.bytes().take_while(|b| *b == b'#').count();
+        if (1..=6).contains(&width) && trimmed[width..].starts_with([' ', '\t']) {
+            let text = trimmed[width..].trim_start_matches([' ', '\t']);
+            let without_hashes = text.trim_end_matches('#');
+            let title =
+                if without_hashes.len() < text.len() && without_hashes.ends_with([' ', '\t']) {
+                    without_hashes.trim_end_matches([' ', '\t'])
+                } else {
+                    text
+                };
+            if title == "Activity" {
+                headings += 1;
+            }
+        }
+        if previous_label
+            && trimmed.as_bytes().first().is_some_and(|first| {
+                matches!(first, b'=' | b'-') && trimmed.bytes().all(|b| b == *first)
+            })
+        {
+            headings += 1;
+        }
+        previous_label = trimmed == "Activity";
+    }
+    headings
+}
+
 pub fn check_task_event(body: &str) -> Result<(), &'static str> {
     let visible = crate::index_navigation::visible_body(body);
     let (_, activity) = visible
