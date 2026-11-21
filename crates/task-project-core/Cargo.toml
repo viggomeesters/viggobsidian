@@ -1,0 +1,11 @@
+[package]
+name = "task-project-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT"
+description = "Pure project and component choice preparation for task writers"
+publish = false
+
+[dependencies]
+serde_json = "=1.0.154"
