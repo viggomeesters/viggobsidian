@@ -120,10 +120,22 @@ Na de Wiki/Raw-tegels volgt een leeg `vault-task-summary`-blok en dan
 `![[vault-dossier.base#Open tasks]]`. Op Raw volgt na de snelkoppelingen een leeg
 `vault-raw-summary`-blok en dan `![[vault-raw.base#Latest sources]]`.
 Raw toont Status, Created, Note; taken tonen Status, Action date, Note.
-Wiki-knoppen staan vóór eventuele onderbouwde feitkaarten. Gebruik `vault-wiki`
-en voor feitkaarten `vault-wiki-overview`. Vanaf vier H2-koppen staat een leeg
-`wiki-toc`-blok na de kaarten. Bronlinks staan bij de bewering en wijzen naar
-de echte note/kop/passage. Gebruik waar passend een kort bronlabel met `↗`.
+Plaats na de Wiki-titel eerst Back, Raw en Finder. Twee tot vier uitgelichte,
+onderbouwde feiten staan direct onder die knoppen in `[!wiki-facts]`, elk met
+een label en een vetgedrukte waarde. Gebruik `vault-wiki` en voeg voor de
+kaarten `vault-wiki-overview` toe. Vanaf vier inhoudelijke H2-koppen staat
+precies één leeg `wiki-toc`-blok vóór de eerste sectie, direct onder de kaarten
+of onder de knoppen. Houd koppen eenduidig en gebruik alleen koppen die de
+lezer helpen navigeren. Bronlinks staan bij de bewering en wijzen naar de
+echte note, kop of passage. Gebruik waar passend een kort bronlabel met `↗`.
+
+Een benoemde gids naast `wiki/wiki.md` kan op een bestaand toegestaan pad
+dezelfde leesopmaak gebruiken met `layer: wiki`, `vault-wiki` en
+`vault-wiki-overview`. Kies dat overzicht wanneer de gids twee tot vier
+zinvolle feitkaarten heeft. De native layoutcheck controleert dan de volgorde,
+kaarten en inhoudsopgave ook in die gids. Back kan daar teruggaan naar de
+ingang die de gids ontsluit. Controleer die route en de gerenderde kaarten
+en koplinks in Obsidian vóór oplevering.
 
 ### Event folders en kop van de eventnote
 
