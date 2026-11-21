@@ -181,7 +181,6 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             || link_style.is_some()
             || write_set_mode
             || adoption_mode.is_some()
-            || relocation_mode.is_some()
             || maintenance_transform
         {
             return Err(WIKI_REVISION_USAGE.into());
