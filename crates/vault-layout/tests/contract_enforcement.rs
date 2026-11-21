@@ -12,6 +12,97 @@ use std::{
 type ProviderDocumentMutation = Box<dyn Fn(&mut Value)>;
 
 #[test]
+fn codex_chat_source_check_compares_every_bound_bubble_without_reading_the_tail() {
+    let fixture = Fixture::new("codex-chat-times");
+    let note = "---\ntype: note\ncategory: source\ncssclasses: [vault-event-v1-1]\nactivity_contract: provenance-v1\n---\n# Example\n\n## Activity\n\n> [!activity-day|2026-07-02] July 2\n\n> [!activity-message|human] Alex\n> Fictional prompt.\n>\n> > ```text\n> > [!activity-message|human] Spoof\n> > *03:00 · Spoof · Codex-chat*\n> > ```\n>\n> *00:05 · Alex · Codex-chat*\n\n> [!activity-message|codex] Codex\n> <!-- viggobsidian:activity:v1 kind=result goal=example -->\n> Fictional summary.\n>\n> *00:06 · Codex · Codex-chat*\n";
+    let session = "00000000-0000-4000-8000-000000000001";
+    let source_header = json!({"type":"session_meta", "payload":{"id":session}});
+    let unrelated = json!({"type":"response_item","payload":{"type":"function_call"}});
+    let user = json!({"type":"response_item","timestamp":"2026-07-01T22:05:59.123Z","payload":{
+        "type":"message","role":"user","content":[{"type":"input_text","text":"Fictional prompt."}]
+    }});
+    let reply = json!({"type":"response_item","timestamp":"2026-07-01T22:06:00Z","payload":{
+        "type":"message","role":"assistant","phase":"final_answer","content":[{"type":"output_text","text":"Fictional private answer."}]
+    }});
+    let source = |answer: &Value| format!("{source_header}\n{user}\n{unrelated}\n{answer}\n{{");
+    let request = json!({"schema":"viggobsidian.codex-chat-time-bindings.v1",
+        "session_id":session,"display_timezone":"Europe/Amsterdam","message_lines":[2,4]});
+    let run = |note: &str, rollout: &str, input: &Value| {
+        fixture.write("example.md", note);
+        fixture.write("rollout.jsonl", rollout);
+        let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+            .arg("--check-codex-chat-times")
+            .arg(fixture.0.join("example.md"))
+            .arg(fixture.0.join("rollout.jsonl"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(input.to_string().as_bytes())
+            .unwrap();
+        let out = child.wait_with_output().unwrap();
+        assert_eq!(
+            fs::read_to_string(fixture.0.join("example.md")).unwrap(),
+            note
+        );
+        assert_eq!(
+            fs::read_to_string(fixture.0.join("rollout.jsonl")).unwrap(),
+            rollout
+        );
+        assert!(!String::from_utf8_lossy(&out.stderr).contains("Fictional private answer"));
+        out
+    };
+    let result = run(note, &source(&reply), &request);
+    assert!(result.status.success(), "{:?}", result);
+    for change in [
+        note.replace("00:05 · Alex", "— · Alex"),
+        note.replace("00:05 · Alex", "00:04 · Alex"),
+        note.replace("2026-07-02", "2026-07-01"),
+    ] {
+        let result = run(&change, &source(&reply), &request);
+        assert_eq!(result.status.code(), Some(1), "{:?}", result);
+        assert!(String::from_utf8_lossy(&result.stderr).contains("2026-07-02 and time 00:05"));
+    }
+    for bad_lines in [json!([2]), json!([2, 2]), json!([2, 3]), json!([2, 5])] {
+        let mut invalid = request.clone();
+        invalid["message_lines"] = bad_lines;
+        assert_eq!(run(note, &source(&reply), &invalid).status.code(), Some(2));
+    }
+    let mut unavailable = reply.clone();
+    unavailable["timestamp"] = Value::Null;
+    assert_eq!(
+        run(note, &source(&unavailable), &request).status.code(),
+        Some(2)
+    );
+    let mut commentary = reply.clone();
+    commentary["payload"]["phase"] = json!("commentary");
+    assert_eq!(
+        run(note, &source(&commentary), &request).status.code(),
+        Some(2)
+    );
+    let mut phase_less = reply.clone();
+    phase_less["payload"]
+        .as_object_mut()
+        .unwrap()
+        .remove("phase");
+    assert_eq!(
+        run(note, &source(&phase_less), &request).status.code(),
+        Some(2)
+    );
+    let mut wrong_session = request.clone();
+    wrong_session["session_id"] = json!("00000000-0000-4000-8000-000000000002");
+    assert_eq!(
+        run(note, &source(&reply), &wrong_session).status.code(),
+        Some(2)
+    );
+}
+
+#[test]
 fn named_wiki_guides_opt_in_to_the_existing_overview_layout() {
     let fixture = Fixture::new("wiki-guide-overview");
     let folder = "99-system/vault/example/wiki";

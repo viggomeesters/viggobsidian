@@ -26,6 +26,15 @@ De lokale captureprovider bezit create/append, pakketroute en registratie.
 Een capture gaat naar de ene inbox als er geen bewezen eigenaar is. Kies geen
 ander writer-ID of dossier om een weigering te omzeilen.
 
+Bij een nieuwe of omgezette Event Note uit een Codex-chat: lees eerst de
+oorspronkelijke berichtregels in het door de lokale adapter of gebruiker
+geselecteerde sessielog. Neem hun tijden over en controleer de geplande
+note met `vault-layout --check-codex-chat-times` naast de gewone layoutcheck
+als de bron beschikbaar is. Een groen layoutresultaat alleen verifieert de
+tijden niet. Gebruik `—` alleen bij daadwerkelijk onbekende tijd; leg een
+onbeschikbare of niet-verifieerbare bron expliciet als leesgat vast. Geef
+bronpaden of transcriptinhoud niet door naar externe tools.
+
 Pin bronlocator, grootte en hash van iedere aangeleverde gewone bijlage. Behoud
 de bron; publiceer doelbytes zonder overschrijven, hergebruik alleen identieke
 bytes en controleer bronhash opnieuw plus doelgrootte/hash. Bewaar het volledige

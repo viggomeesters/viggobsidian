@@ -307,6 +307,55 @@ lokale dieptechecks. Verander geen hashes of uitzonderingen om fouten te verberg
 
 ### Event Note v1.1-bubbels
 
+#### Tijden uit een Codex-chat controleren
+
+Gebruik bij een nieuwe of omgezette Event Note uit een Codex-chat met een
+beschikbaar origineel sessielog naast `vault-layout --strict` deze lokale,
+read-only broncontrole:
+
+```sh
+vault-layout --check-codex-chat-times /absoluut/event.md /absoluut/rollout.jsonl < bindings.json
+```
+
+`bindings.json` is een lokaal controlebestand, geen vaultmetadata:
+
+```json
+{
+  "schema": "viggobsidian.codex-chat-time-bindings.v1",
+  "session_id": "00000000-0000-4000-8000-000000000001",
+  "display_timezone": "Europe/Amsterdam",
+  "message_lines": [12, 19]
+}
+```
+
+Bind elke buitenste Activity-bubbel in volgorde aan de **exacte fysieke regel**
+(één-gebaseerd) van het oorspronkelijke bericht, niet aan een toolresultaat,
+turn-start, bestandsdatum of het gesprek als geheel. Kies het originele
+producerlog, niet een fork, import of herschreven kopie. Controleer bij selectie
+dat een `user`-record echte menselijke invoer is, geen meegestuurde context.
+Een resultaatbubble kan een samenvatting zijn: de checker verifieert de tijden
+van de geselecteerde records, niet hun inhoudelijke identiteit. Het contract
+is begrensd tot één Codex-rollout met `session_meta` op regel 1 (de binding
+`session_id` slaat op `session_meta.payload.id`, de thread-ID) en
+`response_item`-berichten met rol `user` of `assistant` (`phase: final_answer`
+voor assistent; oudere antwoorden zonder phase geeft deze route niet als
+geverifieerd terug). De note moet Event Note v1.1 met `provenance-v1` zijn en
+uitsluitend canonical `Codex-chat`-footers met rol `human` of `codex` hebben.
+
+De checker vergelijkt de ISO-datum in de dagmarker en de minuut in de footer
+met het broninstant in de opgegeven IANA-tijdzone, inclusief zomertijd en
+dagoverloop. Het vrije daglabel wordt niet gecontroleerd. Exit 0: alle gebonden tijden
+kloppen; exit 1: afwijking, ook bij `—` als de bron een tijd heeft; exit 2:
+onvoldoende bewijs of ongeldige invoer, dus geen geverifieerde uitslag. Hij
+leest alleen de expliciet gekozen bestanden, schrijft niets en toont geen
+transcriptinhoud. Grenzen: 64 KiB bindings, 256 KiB/4.000 regels note, 64 MiB
+rolloutprefix en 2 MiB per geselecteerd record. Bewaar bindings en sessielog privé.
+
+Gewone layoutchecks zoeken geen sessielogs en blijven `—` toestaan voor
+werkelijk onbekende historische tijden. Laat in dat geval de onbekende tijd
+staan en claim geen bronverificatie. Deze controle activeert geen producer of
+writer en vervangt de layoutcheck niet.
+
 Zie [[vault-navigation-handleiding#Principes en regels]] en de lokale adapter.
 
 ## Voorbeeldnotes
