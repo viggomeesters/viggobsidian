@@ -129,6 +129,13 @@ of onder de knoppen. Houd koppen eenduidig en gebruik alleen koppen die de
 lezer helpen navigeren. Bronlinks staan bij de bewering en wijzen naar de
 echte note, kop of passage. Gebruik waar passend een kort bronlabel met `↗`.
 
+Gewone interne en externe links in gerenderde Wiki-alinea’s, lijsten en tabellen
+gebruiken de gedempte tekstkleur en een subtiele onderstreping. Bij aanwijzen
+of toetsenbordfocus geldt de normale tekstkleur. Dit geldt ook voor
+tabelkoppen en links binnen vet of cursief. Controleer in Reading View én Live
+Preview een link in een alinea en in een tabelcel. Navigatieknoppen,
+inhoudsopgave en callouts hebben hun eigen opmaak.
+
 Een benoemde gids naast `wiki/wiki.md` kan op een bestaand toegestaan pad
 dezelfde leesopmaak gebruiken met `layer: wiki`, `vault-wiki` en
 `vault-wiki-overview`. Kies dat overzicht wanneer de gids twee tot vier
