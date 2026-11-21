@@ -462,6 +462,10 @@
       "target": ".agents/tools/activity-core/src/activity_delivery.rs"
     },
     {
+      "source": "crates/activity-core/src/provenance.rs",
+      "target": ".agents/tools/activity-core/src/provenance.rs"
+    },
+    {
       "source": "crates/activity-core/src/mail_draft.rs",
       "target": ".agents/tools/activity-core/src/mail_draft.rs"
     },

@@ -1,5 +1,6 @@
 //! Bounded, create-only local Raw-task intake. No provider/registry or status updates.
 use crate::{activity_layout, event_header, iso_date, read_metadata, strings, text};
+use activity_core::provenance::{self, SourceKind};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
@@ -10,6 +11,26 @@ use std::{
 };
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
+pub(crate) fn read_request(reader: impl Read) -> Result<Value> {
+    const MAX_REQUEST_BYTES: usize = 8 * 1024 * 1024;
+    let mut input = Vec::new();
+    reader
+        .take(MAX_REQUEST_BYTES as u64 + 1)
+        .read_to_end(&mut input)?;
+    if input.len() > MAX_REQUEST_BYTES {
+        return Err("Work intake request limit exceeded".into());
+    }
+    let request = serde_json::from_slice(&input)?;
+    let options = serde_saphyr::options! {
+        duplicate_keys: serde_saphyr::DuplicateKeyPolicy::Error,
+        merge_keys: serde_saphyr::MergeKeyPolicy::Error,
+    };
+    let _: Value = serde_saphyr::from_str_with_options(std::str::from_utf8(&input)?, options)
+        .map_err(|_| "duplicate or invalid Work intake JSON fields")?;
+    Ok(request)
+}
+
 fn field<'a>(data: &'a Value, key: &str) -> Result<&'a str> {
     text(data, key)
         .filter(|v| !v.trim().is_empty())
@@ -320,6 +341,22 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
     {
         return Err("work_date must be YYYY-MM-DD when supplied".into());
     }
+    let bound_provenance = input.get("provenance");
+    let rendered = bound_provenance.map(provenance::render).transpose()?;
+    if rendered.as_ref().is_some_and(|rendered| {
+        rendered.day != day
+            || !matches!(
+                rendered.kind,
+                SourceKind::LauncherAction | SourceKind::ChatMessage
+            )
+    }) {
+        return Err(
+            "Work intake provenance must be the dated launcher action or chat message".into(),
+        );
+    }
+    // The source facts are part of the immutable request on a same-package
+    // retry, even when two inputs would produce the same displayed minute.
+    let provenance_digest = bound_provenance.map(|input| digest(input.to_string().as_bytes()));
     // Cooperating local producers share this lock. It is deliberately not a Syncthing lock.
     let lock_path = raw_abs.join(".work-intake.lock");
     if fs::symlink_metadata(&lock_path).is_ok_and(|m| !m.is_file() || m.is_symlink()) {
@@ -347,6 +384,8 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
             || text(&old, "request_sha256") != Some(&digest)
             || text(&old, "name") != Some(format!("{old_code} · {title}").as_str())
             || old.get("work_date") != input.get("work_date")
+            || old.get("activity_provenance_sha256")
+                != provenance_digest.as_ref().map(|v| json!(v)).as_ref()
         {
             return Err("package exists with different input; nothing overwritten".into());
         }
@@ -362,6 +401,9 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
         "cssclasses":["vault-navigation","vault-dashboard","vault-event","vault-event-v1-1"]});
     if let Some(date) = input.get("work_date") {
         data["work_date"] = date.clone();
+    }
+    if let Some(digest) = provenance_digest {
+        data["activity_provenance_sha256"] = json!(digest);
     }
     let breadcrumb = component
         .ancestors()
@@ -382,22 +424,42 @@ pub(crate) fn create(root: &Path, raw: &Path, input: Value) -> Result<Value> {
         .replace(' ', "%20")
         .replace('#', "%23")
         .replace('?', "%3F");
-    let actor = text(&schema, "activity_actor").unwrap_or("Human");
-    if actor.trim().is_empty()
-        || !actor
-            .chars()
-            .all(|c| c.is_alphabetic() || matches!(c, ' ' | '-' | '.'))
-    {
-        return Err("invalid local activity_actor".into());
-    }
+    let (actor, footer) = if let Some(rendered) = &rendered {
+        (rendered.author, rendered.footer())
+    } else {
+        let actor = text(&schema, "activity_actor").unwrap_or("Human");
+        if actor.trim().is_empty()
+            || !actor
+                .chars()
+                .all(|c| c.is_alphabetic() || matches!(c, ' ' | '-' | '.'))
+        {
+            return Err("invalid local activity_actor".into());
+        }
+        (
+            actor,
+            provenance::legacy_unknown_footer(actor, "Work intake"),
+        )
+    };
     let mut body = format!(
         "# {task_code} · {title}\n\n> [!navigation|shortcuts]\n> - [[{}/raw|Back]]\n> - [Finder](file://{folder_url})\n\n> [!wiki-facts|dossier]\n> - Dossier **{breadcrumb}**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> Oorspronkelijke opdracht: {title}\n\n## Activity\n\n> [!activity-day|{day}] {day}\n\n> [!activity-message|human] {actor}\n",
         raw.display()
     );
+    let content_start = body.len();
     for line in request.split('\n') {
         body.push_str(&format!("> {line}\n"));
     }
-    body.push_str(&format!(">\n> *— · {actor} · Work intake*\n"));
+    body.push_str(&footer);
+    if bound_provenance.is_some()
+        && (activity_layout::check_task_event(&body).is_err()
+            || !activity_core::activity_delivery::provenance_findings(&body).is_empty())
+    {
+        body.truncate(content_start);
+        body.push_str(&provenance::folded_verbatim(request));
+        body.push_str(&footer);
+        if !activity_core::activity_delivery::provenance_findings(&body).is_empty() {
+            return Err("invalid Activity provenance in the rendered task".into());
+        }
+    }
     event_header::check(root, &destination, &data, &body)?;
     activity_layout::check_task_event(&body)?;
     let mut content = String::from("---\n");

@@ -3,6 +3,8 @@ pub mod activity_delivery;
 pub mod activity_layout;
 pub mod history_migration;
 pub mod mail_draft;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod provenance;
 mod snapshot;
 pub use snapshot::{MAX_NOTE_BYTES, MAX_REQUEST_BYTES, respond};
 #[cfg(target_arch = "wasm32")]

@@ -1,6 +1,6 @@
 # Native source preparation
 
-`source-preparation-core` owns the reusable `source-capture-v1` postimage for an
+`source-preparation-core` owns reusable Raw postimages for an
 explicitly selected plain `type: note`, `category: source` capture. It applies the
 numbered-v1 Raw/Event Note convention. It is not a general Markdown formatter,
 mail/task adapter, source classifier or writer. Existing producers and legacy
@@ -15,7 +15,8 @@ bridge, background service or new write authority follows from this component.
 
 ## Request and result
 
-Select `schema: viggobsidian.source-preparation.v1`, `format: source-capture-v1`
+For new authoring, select `schema: viggobsidian.source-preparation.v1`,
+`format: source-capture-v2`
 and `operation: prepare` with these string fields:
 
 - `source_note`: complete UTF-8 source including its original frontmatter.
@@ -31,12 +32,29 @@ stamp describes preparation, not the original human author or an invented source
 time. Original heading anchors remain usable. Original complete source bytes
 must also remain available through the host's existing pinned Git preimage.
 
+The v2 format requires `provenance` as documented in
+[Event bubble provenance](activity-provenance.md), with kind
+`vault-contribution` and local day matching `date`. This describes actual
+preparation authoring, not the time of a later chat reply. It renders the
+footer after the folded source and pins the input digest in the postimage.
+Supply explicit unknown time if no trustworthy clock is available. The existing
+host intent owns the complete unrounded source facts, not just the rendered
+time or digest. Use `source-capture-v1` without these fields only for existing
+pinned adapters or byte-for-byte reconstruction of their intents.
+
 `operation: mark-wiki-processed` takes the prepared `source_note`, its existing Raw
 `source_path`, and additionally `original_note`, `preparation_date`, `wiki_target`
 and `summary`. The preparation date comes from the sealed preparation intent.
 The core reconstructs the exact prepared postimage before producing the narrow
 processed metadata and attributed Wiki-processing bubble. The host must prove
 that the target is a unique existing Wiki heading and the summary is true.
+
+If preparation used v2, supply its exact sealed
+`preparation_provenance` for reconstruction (never sample the time again).
+When authoring with v2 on a v1 preparation, omit `preparation_provenance`.
+Supply the new Wiki contribution's separate `provenance`; it must follow
+the same kind/day checks. The renderer preserves the earlier bubble and rejects
+a changed preparation intent even if it would display the same minute.
 
 `viggobsidian.source-preparation-result.v1` reports `status: complete`, component
 `engine_version`, format/operation, source/prepared locators, `before_sha256`,

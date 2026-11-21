@@ -52,7 +52,8 @@
         "viggobsidian.source-preparation-result.v1"
       ],
       "rulesets": [
-        "source-capture-v1"
+        "source-capture-v1",
+        "source-capture-v2"
       ],
       "commands": [
         "source-note-transform"
