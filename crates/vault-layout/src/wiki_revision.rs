@@ -398,6 +398,13 @@ fn has_event(
                 .any(|key| cites_event(&before["sections"], key, event, None))
             && fresh(event, &event_text)?
         {
+            let package = vault.join(package);
+            let (_, archive_findings) = crate::native_source_archives::check(&package, &data)?;
+            if !archive_findings.is_empty()
+                || !crate::source_inventory::check(vault, &package, &data, &body)?.is_empty()
+            {
+                continue;
+            }
             covered.extend(changed.iter().filter(|key| covers(key, &target)).copied());
         }
     }
@@ -436,7 +443,21 @@ pub(crate) fn checkpoint(vault: &Path, paths: &BTreeMap<PathBuf, &str>) -> Resul
             && raw.ends_with("raw")
             && event_package(raw, path).is_some()
         {
-            before.insert(path, json!({"event_existed": vault.join(path).is_file()}));
+            let observed = vault.join(path).is_file()
+                || (vault.join(".git").exists()
+                    && !git(
+                        vault,
+                        &[
+                            "log",
+                            "-1",
+                            "--format=%H",
+                            "--all",
+                            "--",
+                            path.to_str().ok_or("non-UTF-8 Event path")?,
+                        ],
+                    )?
+                    .is_empty());
+            before.insert(path, json!({"event_existed": observed}));
         }
     }
     Ok(json!(before))

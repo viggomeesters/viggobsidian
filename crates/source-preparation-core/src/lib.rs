@@ -1,4 +1,6 @@
 //! Pure native-source postimages. No filesystem, registry, clock or write authority.
+use activity_core::activity_delivery::provenance_findings;
+use activity_core::activity_layout::{WIKI_PROCESSING_TITLE_LINE, visible_wiki_processing_titles};
 use activity_core::provenance::{self, RenderedProvenance, SourceKind};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -7,6 +9,8 @@ pub const MAX_REQUEST_BYTES: usize = 8 * 1024 * 1024;
 pub const MAX_NOTE_BYTES: usize = 1024 * 1024;
 pub const FORMAT: &str = "source-capture-v1";
 pub const PROVENANCE_FORMAT: &str = "source-capture-v2";
+pub const AUTHORED_ACTIVITY_FORMAT: &str = "authored-activity-v1";
+pub const LEGACY_PLAIN_SOURCE_FORMAT: &str = "legacy-plain-source-v1";
 
 type Result<T> = std::result::Result<T, &'static str>;
 
@@ -87,11 +91,7 @@ fn url(value: &str) -> String {
     output
 }
 
-fn note(text: &str) -> Result<(&str, &str, Value)> {
-    if text.len() > MAX_NOTE_BYTES || text.contains('\0') {
-        return Err("note_limit_or_encoding");
-    }
-    let (header, body) = text.split_once("\n---\n").ok_or("frontmatter_required")?;
+fn parse_metadata(header: &str) -> Result<Value> {
     let yaml = header.strip_prefix("---\n").ok_or("frontmatter_required")?;
     // Enforce merge semantics at the parser, including nested/flow/tagged keys.
     // Quoted or explicitly string-tagged << keys remain ordinary source data.
@@ -99,17 +99,99 @@ fn note(text: &str) -> Result<(&str, &str, Value)> {
         duplicate_keys: serde_saphyr::DuplicateKeyPolicy::Error,
         merge_keys: serde_saphyr::MergeKeyPolicy::Error
     };
-    let metadata: Value = serde_saphyr::from_str_with_options(yaml, options).map_err(|error| {
+    serde_saphyr::from_str_with_options(yaml, options).map_err(|error| {
         if matches!(error, serde_saphyr::Error::MergeKeyNotAllowed { .. }) {
             "metadata_merge_refused"
         } else {
             "metadata_invalid"
         }
-    })?;
-    if !metadata.is_object() || metadata["type"] != "note" || metadata["category"] != "source" {
-        return Err("plain_note_source_required");
+    })
+}
+
+fn note<'a>(text: &'a str, format: &str) -> Result<(&'a str, &'a str, Value)> {
+    if text.len() > MAX_NOTE_BYTES || text.contains('\0') {
+        return Err("note_limit_or_encoding");
+    }
+    let (header, body) = text.split_once("\n---\n").ok_or("frontmatter_required")?;
+    let metadata = parse_metadata(header)?;
+    let (category, error) = match format {
+        AUTHORED_ACTIVITY_FORMAT => ("general", "authored_activity_note_required"),
+        LEGACY_PLAIN_SOURCE_FORMAT => ("plugin-testing", "legacy_plain_source_required"),
+        _ => ("source", "plain_note_source_required"),
+    };
+    if !metadata.is_object()
+        || metadata["type"] != "note"
+        || metadata["category"] != category
+        || (format == AUTHORED_ACTIVITY_FORMAT && metadata["activity_contract"] != "provenance-v1")
+        || (matches!(
+            format,
+            AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
+        ) && [
+            "task-id",
+            "task_id",
+            "component-id",
+            "component_id",
+            "project_id",
+            "layer",
+            "source_archives",
+        ]
+        .iter()
+        .any(|key| metadata.get(key).is_some()))
+    {
+        return Err(error);
     }
     Ok((header, body, metadata))
+}
+
+fn authored_sections<'a>(body: &'a str, day: &str) -> Result<(&'a str, String, &'a str)> {
+    let (intro, activity) = body
+        .split_once("\n## Activity\n")
+        .ok_or("authored_activity_required")?;
+    if !provenance_findings(body).is_empty() {
+        return Err("invalid_authored_activity_provenance");
+    }
+    if visible_wiki_processing_titles(body) != 0 {
+        return Err("authored_activity_has_wiki_processing_title");
+    }
+    let mut first_in_block = true;
+    for line in activity.lines() {
+        if first_in_block
+            && let Some((existing_day, _)) = line
+                .strip_prefix("> [!activity-day|")
+                .and_then(|rest| rest.split_once("] "))
+            && existing_day > day
+        {
+            return Err("authored_activity_after_preparation_date");
+        }
+        first_in_block = line.trim().is_empty();
+    }
+    let (title, context) = intro
+        .trim_start_matches('\n')
+        .split_once("\n\n")
+        .ok_or("authored_activity_title_and_context_required")?;
+    let title = title
+        .strip_prefix("# ")
+        .ok_or("authored_activity_title_and_context_required")?;
+    let context = context.trim_end_matches('\n');
+    if title.trim().is_empty()
+        || title.contains(['\r', '\n'])
+        || context.is_empty()
+        || context.lines().any(|line| {
+            line.trim().is_empty()
+                || line.starts_with(['#', '>', ' ', '\t', '<', '`', '~', '=', '|', '-'])
+                || line.starts_with("* ")
+                || line.starts_with("+ ")
+                || line.contains('\r')
+        })
+    {
+        return Err("authored_activity_title_and_context_required");
+    }
+    let quoted_context = context
+        .lines()
+        .map(|line| format!("> {line}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    Ok((title, quoted_context, activity))
 }
 
 fn quoted(body: &str) -> String {
@@ -164,7 +246,10 @@ fn transform(v: &Value) -> Result<Value> {
     }
     let format = field(v, "format")?;
     if v["schema"] != "viggobsidian.source-preparation.v1"
-        || !matches!(format, FORMAT | PROVENANCE_FORMAT)
+        || !matches!(
+            format,
+            FORMAT | PROVENANCE_FORMAT | AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
+        )
     {
         return Err("schema_or_format");
     }
@@ -173,7 +258,12 @@ fn transform(v: &Value) -> Result<Value> {
     {
         return Err("provenance_requires_source_capture_v2");
     }
-    if format == PROVENANCE_FORMAT && v.get("provenance").is_none() {
+    let authored = format == AUTHORED_ACTIVITY_FORMAT;
+    let pins_original = matches!(
+        format,
+        AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
+    );
+    if format != FORMAT && v.get("provenance").is_none() {
         return Err("vault_contribution_provenance_required");
     }
     let operation = field(v, "operation")?;
@@ -225,7 +315,7 @@ fn transform(v: &Value) -> Result<Value> {
         return Err("source_destination_mismatch");
     }
     let before = field(v, "source_note")?;
-    let (header, body, metadata) = note(before)?;
+    let (header, body, metadata) = note(before, format)?;
     let classes = json!([
         "vault-navigation",
         "vault-dashboard",
@@ -235,12 +325,12 @@ fn transform(v: &Value) -> Result<Value> {
     let after;
     let original_hash;
     if operation == "prepare" {
+        original_hash = hash(before);
         if [
             "wiki_status",
             "cssclasses",
             "activity_format",
             "raw_preparation_format",
-            "activity_contract",
             "wiki_processed_on",
             "wiki_target",
             "raw_preparation_provenance_sha256",
@@ -248,7 +338,10 @@ fn transform(v: &Value) -> Result<Value> {
         ]
         .iter()
         .any(|key| metadata.get(key).is_some())
-            || body.lines().any(|line| line == "## Activity")
+            || (pins_original && metadata.get("raw_preparation_original_sha256").is_some())
+            || (!authored
+                && (metadata.get("activity_contract").is_some()
+                    || body.lines().any(|line| line == "## Activity")))
             || [
                 "original_note",
                 "wiki_target",
@@ -261,30 +354,50 @@ fn transform(v: &Value) -> Result<Value> {
         {
             return Err("unprepared_source_required");
         }
-        let title = body
-            .lines()
-            .find_map(|line| line.strip_prefix("# "))
-            .unwrap_or(package);
         let finder = url(&format!("{vault}/{raw}/{package}"));
-        let actor = event.as_ref().map_or("Agent", |event| event.author);
-        let legacy = if event.is_none() {
-            "> `— · Agent · vault-process`\n"
-        } else {
-            ""
+        let entrance = |title: &str, context: &str| {
+            format!(
+                "# {title}\n\n> [!navigation|shortcuts]\n> - [[{raw}/raw|Back]]\n> - [Finder](file://{finder})\n\n> [!wiki-facts|dossier]\n> - Dossier **[[{dossier}/{label}|{label}]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n{context}\n\n## Activity\n"
+            )
         };
-        let footer = event
-            .as_ref()
-            .map_or_else(String::new, RenderedProvenance::footer);
         let pin = provenance_pin("raw_preparation_provenance_sha256", v.get("provenance"));
-        after = format!(
-            "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: {format}\nactivity_contract: provenance-v1{pin}\n---\n\n# {title}\n\n> [!navigation|shortcuts]\n> - [[{raw}/raw|Back]]\n> - [Finder](file://{finder})\n\n> [!wiki-facts|dossier]\n> - Dossier **[[{dossier}/{label}|{label}]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> {title}\n\n## Activity\n\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n{legacy}> <!-- viggobsidian:activity:v1 kind=result goal=raw-preparation -->\n> De oorspronkelijke inhoud is hieronder behouden voor plaatsing bij dit dossier.\n>\n> > [!info]- Meer\n{}{footer}",
-            quoted(body)
-        );
-        original_hash = hash(before);
+        let original_pin = if pins_original {
+            format!("\nraw_preparation_original_sha256: \"{original_hash}\"")
+        } else {
+            String::new()
+        };
+        after = if authored {
+            let (title, context, activity) = authored_sections(body, day)?;
+            let entrance = entrance(title, &context);
+            format!(
+                "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: {format}{original_pin}{pin}\n---\n\n{entrance}{activity}"
+            )
+        } else {
+            let title = body
+                .lines()
+                .find_map(|line| line.strip_prefix("# "))
+                .unwrap_or(package);
+            let entrance = entrance(title, &format!("> {title}"));
+            let actor = event.as_ref().map_or("Agent", |event| event.author);
+            let legacy = if event.is_none() {
+                "> `— · Agent · vault-process`\n"
+            } else {
+                ""
+            };
+            let footer = event
+                .as_ref()
+                .map_or_else(String::new, RenderedProvenance::footer);
+            format!(
+                "{header}\nwiki_status: pending\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\nraw_preparation_format: {format}{original_pin}\nactivity_contract: provenance-v1{pin}\n---\n\n{entrance}\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n{legacy}> <!-- viggobsidian:activity:v1 kind=result goal=raw-preparation -->\n> De oorspronkelijke inhoud is hieronder behouden voor plaatsing bij dit dossier.\n>\n> > [!info]- Meer\n{}{footer}",
+                quoted(body)
+            )
+        };
     } else {
         let preparation_format = metadata["raw_preparation_format"]
             .as_str()
-            .filter(|&prepared| prepared == FORMAT || prepared == format)
+            .filter(|&prepared| {
+                prepared == format || (format == PROVENANCE_FORMAT && prepared == FORMAT)
+            })
             .ok_or("prepared_pending_source_required")?;
         if metadata["wiki_status"] != "pending"
             || metadata["activity_contract"] != "provenance-v1"
@@ -300,18 +413,19 @@ fn transform(v: &Value) -> Result<Value> {
         if !date(preparation_date) || preparation_date > day {
             return Err("invalid_preparation_date");
         }
-        let (_, original_body, _) = note(original)?;
+        let (_, original_body, _) = note(original, format)?;
         let preparation = v.get("preparation_provenance");
-        if (preparation_format == PROVENANCE_FORMAT) != preparation.is_some() {
+        if (preparation_format != FORMAT) != preparation.is_some() {
             return Err("preparation_provenance_does_not_match_format");
         }
         let previous = contribution(preparation, preparation_date)?;
         let previous_footer = previous
             .as_ref()
             .map_or_else(String::new, RenderedProvenance::footer);
-        if !body
-            .strip_suffix(&previous_footer)
-            .is_some_and(|body| body.ends_with(&quoted(original_body)))
+        if !authored
+            && !body
+                .strip_suffix(&previous_footer)
+                .is_some_and(|body| body.ends_with(&quoted(original_body)))
         {
             return Err("original_body_changed");
         }
@@ -331,13 +445,20 @@ fn transform(v: &Value) -> Result<Value> {
             .strip_prefix(&target_prefix)
             .and_then(|s| s.strip_suffix("]]"))
             .ok_or("wiki_target_required")?;
-        if anchor.trim().is_empty() || anchor.contains(['\n', '\r', '[', ']', '|']) {
+        if anchor.trim().is_empty()
+            || anchor.contains(['\n', '\r', '[', ']', '|'])
+            || (pins_original
+                && (anchor.trim_start().starts_with('^')
+                    || anchor.contains(['<', '>', '`'])
+                    || anchor.chars().any(char::is_control)))
+        {
             return Err("wiki_target_required");
         }
         let summary = field(v, "summary")?;
         if summary.trim().is_empty()
             || summary.len() > 16384
             || summary.contains(['\n', '\r', '\0'])
+            || (pins_original && !summary.chars().any(char::is_alphabetic))
         {
             return Err("processing_summary");
         }
@@ -367,8 +488,9 @@ fn transform(v: &Value) -> Result<Value> {
         let unsafe_leading = [">", "!", "*", "[!", "```", "~~~", "<!--"]
             .iter()
             .any(|prefix| summary_text.starts_with(prefix));
-        let processing_text = if format == PROVENANCE_FORMAT
-            && (summary_text.len() + target.len() > 900 || unsafe_leading)
+        let inline_markup = pins_original && summary_text.contains(['<', '>', '[', ']', '`', '\\']);
+        let processing_text = if format != FORMAT
+            && (summary_text.len() + target.len() > 900 || unsafe_leading || inline_markup)
         {
             format!(
                 "> Samenvatting van de Wiki-verwerking: {target}\n{}",
@@ -377,23 +499,47 @@ fn transform(v: &Value) -> Result<Value> {
         } else {
             format!("> {summary_text} {target}\n")
         };
+        let separator = if authored && !body.ends_with('\n') {
+            "\n\n"
+        } else {
+            "\n"
+        };
         after = format!(
-            "{changed_header}\nwiki_processed_on: {day}\nwiki_target: {target_json}{pin}\n---\n{body}\n> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n> <!-- viggobsidian:activity:v1 kind=result goal=wiki-processing -->\n> **Verwerking in Wiki**\n{processing_text}{footer}",
+            "{changed_header}\nwiki_processed_on: {day}\nwiki_target: {target_json}{pin}\n---\n{body}{separator}> [!activity-day|{day}] {day}\n\n> [!activity-message|agent] {actor}\n> <!-- viggobsidian:activity:v1 kind=result goal=wiki-processing -->\n{WIKI_PROCESSING_TITLE_LINE}\n{processing_text}{footer}",
         );
         original_hash = hash(original);
     }
     if after.len() > 2 * MAX_NOTE_BYTES {
         return Err("postimage_limit");
     }
-    if format == PROVENANCE_FORMAT
-        && !activity_core::activity_delivery::provenance_findings(
-            after
-                .split_once("\n---\n")
-                .expect("postimage has metadata")
-                .1,
-        )
-        .is_empty()
-    {
+    let (rendered_header, rendered_body) =
+        after.split_once("\n---\n").expect("postimage has metadata");
+    if pins_original {
+        let rendered = parse_metadata(rendered_header).map_err(|_| "invalid_rendered_metadata")?;
+        let processing = operation == "mark-wiki-processed";
+        let status = if processing { "processed" } else { "pending" };
+        if rendered["raw_preparation_format"] != format
+            || rendered["wiki_status"] != status
+            || metadata
+                .as_object()
+                .expect("parsed note has mapping")
+                .iter()
+                .any(|(key, value)| key != "wiki_status" && rendered.get(key) != Some(value))
+        {
+            return Err("invalid_rendered_metadata");
+        }
+        let prospective_body;
+        let processing_body = if processing {
+            rendered_body
+        } else {
+            prospective_body = format!("{rendered_body}\n\n{WIKI_PROCESSING_TITLE_LINE}\n");
+            &prospective_body
+        };
+        if visible_wiki_processing_titles(processing_body) != 1 {
+            return Err("invalid_rendered_wiki_processing");
+        }
+    }
+    if format != FORMAT && !provenance_findings(rendered_body).is_empty() {
         return Err("invalid_rendered_activity_provenance");
     }
     Ok(

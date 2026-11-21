@@ -1,0 +1,12 @@
+[package]
+name = "task-conversion-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT"
+description = "Pure in-place task conversion preparation for local writers"
+publish = false
+
+[dependencies]
+serde_json = "=1.0.154"
+task-status-core = { path = "../task-status-core" }

@@ -2,9 +2,9 @@
 
 `source-preparation-core` owns reusable Raw postimages for an
 explicitly selected plain `type: note`, `category: source` capture. It applies the
-numbered-v1 Raw/Event Note convention. It is not a general Markdown formatter,
-mail/task adapter, source classifier or writer. Existing producers and legacy
-recovery formats keep their own contracts.
+numbered-v1 Raw/Event Note convention. The opt-in `authored-activity-v1` format
+also accepts a narrow category of already-authored notes. Existing producers,
+source classification, writers and legacy recovery retain their own contracts.
 
 The native `source-note-transform` executable reads bounded JSON on stdin and
 returns one JSON response on stdout. It performs no filesystem, process, registry,
@@ -55,6 +55,45 @@ When authoring with v2 on a v1 preparation, omit `preparation_provenance`.
 Supply the new Wiki contribution's separate `provenance`; it must follow
 the same kind/day checks. The renderer preserves the earlier bubble and rejects
 a changed preparation intent even if it would display the same minute.
+
+### Already-authored Activity
+
+Select `format: authored-activity-v1` for an unprepared `type: note`,
+`category: general` capture with `activity_contract: provenance-v1`. The body
+must start with a title and one plain context paragraph, followed by an existing
+valid Event Note v1.1 Activity section. The preparation date cannot precede its
+Activity. The core preserves the original metadata and Activity bytes, including
+the existing authors, timestamps and attachment links. It places the context
+paragraph in the Raw header. The metadata pins the exact original file hash and
+the digest of the explicit preparation contribution.
+
+To mark the authored source processed, use the same format, its exact original
+input, preparation date and preparation provenance. The core reconstructs the
+prepared postimage before appending an attributed processing message. The
+original Activity stays byte-identical. This format applies to new preparation
+intents and preserves the existing replay contracts for `source-capture-v1` and
+`source-capture-v2`.
+
+### Proven legacy plain source
+
+Select `format: legacy-plain-source-v1` for the unprepared original of a
+`type: note`, `category: plugin-testing` source. The host must first verify
+the prior ready receipt, its original Git source and exact legacy postimage.
+The host supplies the original bytes in `source_note` with a new preparation
+contribution. The core generates a new reading layer with the original body
+inside a folded Activity bubble. The source category and attachment links are
+preserved, and metadata binds the exact original bytes and preparation facts.
+
+Mark processing with the same format and the exact original, new preparation
+date and new preparation provenance. The host owns the crash-safe transition
+from the old receipt to the new recipe. The original receipt remains available
+for legacy replay.
+
+Both opt-in formats validate the complete generated frontmatter and visible
+Wiki-processing evidence. An authored Activity with an existing direct
+processing title requires separate historical review. Processing summaries
+must contain text. Markdown control syntax in a summary goes into literal
+folded details so the Wiki backlink remains visible.
 
 `viggobsidian.source-preparation-result.v1` reports `status: complete`, component
 `engine_version`, format/operation, source/prepared locators, `before_sha256`,

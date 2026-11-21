@@ -1,5 +1,5 @@
 use crate::{
-    activity_layout::message_heading,
+    activity_layout::{WIKI_PROCESSING_TITLE_LINE, message_heading},
     index_navigation::{visible_body, wiki_links},
     shortcut_links::{anchor_count, decode_percent, heading},
 };
@@ -26,7 +26,7 @@ pub(crate) fn check_event(
             let block = activity[offset..].split("\n\n").next()?;
             block
                 .lines()
-                .any(|line| line == "> **Verwerking in Wiki**")
+                .any(|line| line == WIKI_PROCESSING_TITLE_LINE)
                 .then_some((&activity[..offset], block))
         });
     let (before, processing) = internal

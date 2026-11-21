@@ -314,6 +314,10 @@
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
     {
+      "source": "crates/vault-layout/src/codex_chat_times.rs",
+      "target": ".agents/tools/vault-layout/src/codex_chat_times.rs"
+    },
+    {
       "source": "crates/vault-layout/src/project_codes.rs",
       "target": ".agents/tools/vault-layout/src/project_codes.rs"
     },

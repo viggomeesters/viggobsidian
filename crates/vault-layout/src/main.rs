@@ -10,6 +10,7 @@ use std::{
 mod activity_delivery;
 mod activity_layout;
 mod adoption;
+mod codex_chat_times;
 mod dossier_tables;
 mod event_header;
 mod export_artifacts;
@@ -65,6 +66,14 @@ fn main() -> ExitCode {
 
 fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut args = env::args_os().skip(1).peekable();
+    if args.next_if_eq("--check-codex-chat-times").is_some() {
+        let note = PathBuf::from(args.next().ok_or(USAGE)?);
+        let rollout = PathBuf::from(args.next().ok_or(USAGE)?);
+        if args.next().is_some() {
+            return Err(USAGE.into());
+        }
+        return codex_chat_times::run(&note, &rollout, io::stdin().lock());
+    }
     let mut vault = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let mut folder = None;
     let mut json_output = false;
@@ -98,6 +107,9 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
                 println!(
                     "{USAGE}\n{WIKI_REVISION_USAGE}\nManaged Wiki revisions: {}",
                     write_set::WIKI_REVISION_REQUEST
+                );
+                println!(
+                    "       vault-layout --check-codex-chat-times ABS_NOTE ABS_ROLLOUT < BINDINGS.json"
                 );
                 return Ok(0);
             }

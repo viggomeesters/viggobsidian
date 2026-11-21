@@ -1,11 +1,14 @@
 use serde_json::{Value, json};
 use source_preparation_core::{
-    FORMAT, MAX_NOTE_BYTES, MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash, respond,
+    AUTHORED_ACTIVITY_FORMAT, FORMAT, LEGACY_PLAIN_SOURCE_FORMAT, MAX_NOTE_BYTES,
+    MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash, respond,
 };
 use std::io::Write;
 use std::process::{Command, Stdio};
 
 const ORIGINAL: &str = "---\ntype: note\ncategory: source\ncreated: 2026-11-02\nsource_identity: fixture:original\n---\n\n# Original source\n\n## Original request\n\nKeep these exact words: café → knowledge.\n\n> [!note] Original callout\n> Unchanged.\n\n```text\nAn original fence.\n```\n";
+
+const AUTHORED: &str = "---\ntype: note\ncategory: general\ncreated: 2026-11-02\nactivity_contract: provenance-v1\nsource_identity: 'fixture:authored'\nsource_timestamp: '2026-11-02T09:02:31+01:00'\n---\n\n# Authored source\n\nOriginal context with a [diagram](diagram.png).\n\n## Activity\n\n> [!activity-day|2026-11-02] 2 November\n\n> [!activity-message|human] Alex Example\n> `09:02 · Alex Example · Chat`\n> ## Original heading\n> Keep the original words and [diagram](diagram.png).  \n\n> [!activity-message|assistant] Fictional Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=source-review -->\n> The fictional source was read.\n>\n> *09:11 · Fictional Assistant · Chat*";
 
 fn request() -> Value {
     json!({"schema":"viggobsidian.source-preparation.v1", "format":FORMAT, "operation":"prepare",
@@ -15,6 +18,279 @@ fn request() -> Value {
 
 fn run(v: &Value) -> Value {
     respond(&serde_json::to_vec(v).unwrap())
+}
+
+fn authored_request() -> Value {
+    let mut v = request();
+    v["format"] = json!(AUTHORED_ACTIVITY_FORMAT);
+    v["source_note"] = json!(AUTHORED);
+    v["provenance"] = json!({
+        "kind":"vault-contribution", "timestamp":"2026-11-13T09:00:14+01:00",
+        "display_timezone":"Europe/Amsterdam", "author":"Fictional Assistant", "channel":"Vault"
+    });
+    v
+}
+
+#[test]
+fn authored_activity_and_metadata_are_preserved_and_marking_replays_exactly() {
+    let prepared_request = authored_request();
+    let prepared = run(&prepared_request);
+    assert_eq!(prepared["status"], "complete", "{prepared}");
+    assert_eq!(run(&prepared_request), prepared);
+    let postimage = prepared["postimage"].as_str().unwrap();
+    let original_header = AUTHORED.split_once("\n---\n").unwrap().0;
+    let original_activity = AUTHORED.split_once("\n## Activity\n").unwrap().1;
+    assert!(postimage.starts_with(original_header));
+    assert!(
+        postimage.contains(
+            "> [!event-context] Context\n> Original context with a [diagram](diagram.png)."
+        )
+    );
+    assert_eq!(
+        postimage.split_once("\n## Activity\n").unwrap().1,
+        original_activity
+    );
+    assert_eq!(prepared["original_sha256"], hash(AUTHORED));
+    assert_eq!(prepared["before_sha256"], hash(AUTHORED));
+    assert_eq!(prepared["after_sha256"], hash(postimage));
+
+    let mut processing = marking();
+    processing["format"] = json!(AUTHORED_ACTIVITY_FORMAT);
+    processing["source_note"] = prepared["postimage"].clone();
+    processing["original_note"] = json!(AUTHORED);
+    processing["preparation_provenance"] = prepared_request["provenance"].clone();
+    processing["provenance"] = prepared_request["provenance"].clone();
+    processing["provenance"]["timestamp"] = json!("2026-11-13T09:01:16+01:00");
+    let processed = run(&processing);
+    assert_eq!(processed["status"], "complete", "{processed}");
+    assert_eq!(run(&processing), processed);
+    let processed_image = processed["postimage"].as_str().unwrap();
+    assert!(processed_image.starts_with(original_header));
+    assert_eq!(
+        processed_image
+            .matches("activity_contract: provenance-v1")
+            .count(),
+        1
+    );
+    assert!(processed_image.contains("\nwiki_status: processed\n"));
+    assert!(processed_image.contains(&format!(
+        "{original_activity}\n\n> [!activity-day|2026-11-13]"
+    )));
+    assert!(processed_image.contains("> *09:01 · Fictional Assistant · Vault*"));
+    assert_eq!(processed["original_sha256"], hash(AUTHORED));
+    assert_eq!(processed["before_sha256"], hash(postimage));
+    assert_eq!(processed["after_sha256"], hash(processed_image));
+
+    for (field, changed) in [
+        ("source_note", postimage.replace("words and", "words or")),
+        ("original_note", AUTHORED.replace("09:02:31", "09:02:32")),
+        (
+            "original_note",
+            AUTHORED.replace("\n\n# Authored", "\n\n\n# Authored"),
+        ),
+    ] {
+        let mut bad = processing.clone();
+        bad[field] = json!(changed);
+        assert_eq!(run(&bad)["reason"], "prepared_postimage_changed");
+    }
+    processing["preparation_provenance"]["timestamp"] = json!("2026-11-13T09:00:15+01:00");
+    assert_eq!(run(&processing)["reason"], "prepared_postimage_changed");
+}
+
+#[test]
+fn authored_activity_refuses_ambiguous_or_unrelated_sources() {
+    for (before, after, reason) in [
+        (
+            "category: general",
+            "category: source",
+            "authored_activity_note_required",
+        ),
+        (
+            "type: note",
+            "type: task",
+            "authored_activity_note_required",
+        ),
+        (
+            "type: note",
+            "type: note\nlayer: wiki",
+            "authored_activity_note_required",
+        ),
+        (
+            "activity_contract: provenance-v1",
+            "activity_contract: unknown",
+            "authored_activity_note_required",
+        ),
+        (
+            "type: note",
+            "type: note\nwiki_status: pending",
+            "unprepared_source_required",
+        ),
+        ("## Activity", "## Comments", "authored_activity_required"),
+        (
+            "\n\n## Activity",
+            "\n\n## Unmapped source\n\nAnother section.\n\n## Activity",
+            "authored_activity_title_and_context_required",
+        ),
+        (
+            "|2026-11-02]",
+            "|2026-11-14]",
+            "authored_activity_after_preparation_date",
+        ),
+        (
+            "09:02 · Alex Example",
+            "09:02 · Other Person",
+            "invalid_authored_activity_provenance",
+        ),
+        (
+            "The fictional source was read.",
+            "The fictional source was read.\nUnwrapped text",
+            "invalid_authored_activity_provenance",
+        ),
+    ] {
+        let mut v = authored_request();
+        v["source_note"] = json!(AUTHORED.replace(before, after));
+        let out = run(&v);
+        assert_eq!(out["reason"], reason, "{before}: {out}");
+        assert!(out.get("postimage").is_none());
+    }
+    let mut v = authored_request();
+    v["format"] = json!(PROVENANCE_FORMAT);
+    assert_eq!(run(&v)["reason"], "plain_note_source_required");
+    v["format"] = json!(AUTHORED_ACTIVITY_FORMAT);
+    v.as_object_mut().unwrap().remove("provenance");
+    assert_eq!(run(&v)["reason"], "vault_contribution_provenance_required");
+}
+
+#[test]
+fn legacy_plain_source_replays_with_the_exact_original_and_its_attachments() {
+    let original = "---\ntype: note\ncategory: plugin-testing\ncreated: 2026-11-02\nsource_identity: legacy:fictional\n---\n\n# Fictional legacy note\n\n## Test result\n\nSee [diagram](diagram.png).\n";
+    let mut prepare = authored_request();
+    prepare["format"] = json!(LEGACY_PLAIN_SOURCE_FORMAT);
+    prepare["source_note"] = json!(original);
+    let prepared = run(&prepare);
+    assert_eq!(prepared["status"], "complete", "{prepared}");
+    assert_eq!(run(&prepare), prepared);
+    assert_eq!(prepared["original_sha256"], hash(original));
+    let postimage = prepared["postimage"].as_str().unwrap();
+    assert!(postimage.contains("category: plugin-testing\n"));
+    assert!(postimage.contains("> > ## Test result\n> > \n> > See [diagram](diagram.png).\n"));
+    assert!(!postimage.contains("\n## Test result\n"));
+
+    let mut process = marking();
+    process["format"] = json!(LEGACY_PLAIN_SOURCE_FORMAT);
+    process["source_note"] = prepared["postimage"].clone();
+    process["original_note"] = json!(original);
+    process["preparation_provenance"] = prepare["provenance"].clone();
+    process["provenance"] = prepare["provenance"].clone();
+    process["provenance"]["timestamp"] = json!("2026-11-13T09:01:16+01:00");
+    let processed = run(&process);
+    assert_eq!(processed["status"], "complete", "{processed}");
+    assert_eq!(run(&process), processed);
+    assert_eq!(processed["before_sha256"], hash(postimage));
+    assert_eq!(processed["original_sha256"], hash(original));
+    assert!(
+        processed["postimage"]
+            .as_str()
+            .unwrap()
+            .contains("> > ## Test result\n> > \n> > See [diagram](diagram.png).\n")
+    );
+
+    process["original_note"] = json!(original.trim_end_matches('\n'));
+    assert_eq!(run(&process)["reason"], "prepared_postimage_changed");
+    process["original_note"] = json!(original);
+    process["source_note"] =
+        json!(postimage.replace("wiki_status: pending", "wiki_status: processed"));
+    assert_eq!(run(&process)["reason"], "prepared_pending_source_required");
+
+    for (note, reason) in [
+        (ORIGINAL.to_owned(), "legacy_plain_source_required"),
+        (
+            original.replace("type: note", "type: task"),
+            "legacy_plain_source_required",
+        ),
+        (
+            original.replace("category: plugin-testing", "category: email"),
+            "legacy_plain_source_required",
+        ),
+        (
+            original.replace("## Test result", "## Activity"),
+            "unprepared_source_required",
+        ),
+        (
+            original.replace("type: note", "type: note\nwiki_status: pending"),
+            "unprepared_source_required",
+        ),
+    ] {
+        prepare["source_note"] = json!(note);
+        let result = run(&prepare);
+        assert_eq!(result["reason"], reason, "{result}");
+        assert!(result.get("postimage").is_none());
+    }
+}
+
+#[test]
+fn authored_processing_title_must_not_shadow_new_evidence() {
+    let mut request = authored_request();
+    request["source_note"] = json!(AUTHORED.replace(
+        "> The fictional source was read.",
+        "> **Verwerking in Wiki**\n> The fictional source was read."
+    ));
+    let out = run(&request);
+    assert_eq!(out["reason"], "authored_activity_has_wiki_processing_title");
+    assert!(out.get("postimage").is_none());
+
+    request["source_note"] = json!(AUTHORED.replace(
+        "> The fictional source was read.",
+        "> The fictional source was read.\n>\n> > [!info]- Meer\n> > **Verwerking in Wiki**"
+    ));
+    assert_eq!(run(&request)["status"], "complete");
+}
+
+#[test]
+fn opt_in_recipes_require_valid_appendable_metadata_and_visible_processing_evidence() {
+    for (format, original, category, additional) in [
+        (
+            AUTHORED_ACTIVITY_FORMAT,
+            AUTHORED,
+            "general",
+            ", activity_contract: provenance-v1",
+        ),
+        (
+            LEGACY_PLAIN_SOURCE_FORMAT,
+            "---\ntype: note\ncategory: plugin-testing\n---\n\n# Legacy source\n\nA fictional older input.\n",
+            "plugin-testing",
+            "",
+        ),
+    ] {
+        let mut prepare = authored_request();
+        prepare["format"] = json!(format);
+        let body = original.split_once("\n---\n").unwrap().1;
+        prepare["source_note"] = json!(format!(
+            "---\n{{type: note, category: {category}{additional}}}\n---\n{body}"
+        ));
+        let flow = run(&prepare);
+        assert_eq!(flow["reason"], "invalid_rendered_metadata", "{flow}");
+        assert!(flow.get("postimage").is_none());
+
+        prepare["source_note"] = json!(original);
+        let prepared = run(&prepare);
+        assert_eq!(prepared["status"], "complete");
+        let mut mark = marking();
+        mark["format"] = json!(format);
+        mark["source_note"] = prepared["postimage"].clone();
+        mark["original_note"] = json!(original);
+        mark["preparation_provenance"] = prepare["provenance"].clone();
+        mark["provenance"] = prepare["provenance"].clone();
+        mark["summary"] = json!("Recorded <!-- hidden");
+        let marked = run(&mark);
+        assert_eq!(marked["status"], "complete", "{marked}");
+        let postimage = marked["postimage"].as_str().unwrap();
+        assert!(postimage.contains("> Samenvatting van de Wiki-verwerking: [[30-topics/example/wiki/wiki#Existing knowledge]]\n"));
+        assert!(postimage.contains("> > ```text\n> > Recorded <!-- hidden\n> > ```"));
+
+        mark["summary"] = json!("123.45");
+        assert_eq!(run(&mark)["reason"], "processing_summary");
+    }
 }
 
 #[test]
