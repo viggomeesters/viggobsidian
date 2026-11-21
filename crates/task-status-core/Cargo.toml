@@ -1,0 +1,11 @@
+[package]
+name = "task-status-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT"
+description = "Pure task status keys, intents and Activity text"
+publish = false
+
+[dependencies]
+serde_json = "1"
