@@ -95,7 +95,10 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
-                println!("{USAGE}\n{WIKI_REVISION_USAGE}");
+                println!(
+                    "{USAGE}\n{WIKI_REVISION_USAGE}\nManaged Wiki revisions: {}",
+                    write_set::WIKI_REVISION_REQUEST
+                );
                 return Ok(0);
             }
             Some("--json") => json_output = true,

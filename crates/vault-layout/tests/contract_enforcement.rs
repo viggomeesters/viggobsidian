@@ -11,6 +11,14 @@ use std::{
 
 type ProviderDocumentMutation = Box<dyn Fn(&mut Value)>;
 
+fn bind_wiki_revision(event: &str, before: &str, after: &str) -> String {
+    let before = format!("{:x}", Sha256::digest(before.as_bytes()));
+    let after = format!("{:x}", Sha256::digest(after.as_bytes()));
+    event.replacen("---\n", &format!(
+        "---\nwiki_revision:\n  schema: viggobsidian.wiki-revision.v1\n  before_sha256: \"{before}\"\n  after_sha256: \"{after}\"\n"
+    ), 1)
+}
+
 fn wiki_revision_event(fixture: &Fixture, path: &str, wiki: &str, anchor: &str) -> String {
     let package = Path::new(path).parent().unwrap();
     let raw = package.parent().unwrap().display();
@@ -59,11 +67,10 @@ fn wiki_revision_audit_checks_direct_edits_against_a_git_baseline() {
     let event_note = |path: &str, anchor: &str| {
         wiki_revision_event(&fixture, path, "30-topics/example/wiki/wiki", anchor)
     };
+    let wiki_before = "# Wiki\n\n## Decision\n\nOld knowledge.\n\n## Other\n\nOther knowledge.\n";
     git(&["init", "-q"]);
-    fixture.write(
-        wiki,
-        "# Wiki\n\n## Decision\n\nOld knowledge.\n\n## Other\n\nOther knowledge.\n",
-    );
+    fixture.write(wiki, wiki_before);
+    fixture.write(".gitattributes", "*.md text eol=lf\n");
     fixture.write(&format!("{raw}/raw.md"), "# Raw\n");
     let guide_before = "---\nlayer: wiki\n---\n# Guide\n\nOld guidance.\n";
     fixture.write(guide, guide_before);
@@ -82,6 +89,9 @@ fn wiki_revision_audit_checks_direct_edits_against_a_git_baseline() {
         "Baseline",
     ]);
     assert_eq!(audit(&[]).1["wiki_checked"], 0);
+    fixture.write(wiki, wiki_before.replace('\n', "\r\n"));
+    assert_eq!(audit(&[]).0, 1);
+    fixture.write(wiki, wiki_before);
 
     let without_raw = "30-topics/new-dossier/wiki/wiki.md";
     fixture.write(without_raw, "# Wiki\n\n## New\n\nUnbacked knowledge.\n");
@@ -139,10 +149,63 @@ fn wiki_revision_audit_checks_direct_edits_against_a_git_baseline() {
     );
     assert_eq!(audit(&[]).0, 1);
     fixture.write(wiki, &valid);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &valid),
+    );
     let (code, report) = audit(&[]);
     assert_eq!(code, 0, "{report}");
     assert_eq!(report["wiki_checked"], 1);
 
+    let wrong_section = valid.replace("Other knowledge.", "Changed elsewhere.");
+    fixture.write(wiki, &wrong_section);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &wrong_section),
+    );
+    assert_eq!(audit(&[]).0, 1);
+    for literal in ["Literal `<!--`.", "> ```markdown\n> Quoted example"] {
+        let changed = wrong_section.replace("## Other", &format!("{literal}\n\n## Other"));
+        fixture.write(wiki, &changed);
+        fixture.write(
+            &event,
+            bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &changed),
+        );
+        assert_eq!(audit(&[]).0, 1);
+    }
+    let indented = valid.replace("New knowledge. [[", "New knowledge.\n\n    [[");
+    fixture.write(wiki, &indented);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &indented),
+    );
+    assert_eq!(audit(&[]).0, 1);
+    let emphasis = valid.replace("## Decision", "## **Decision**");
+    fixture.write(wiki, &emphasis);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &emphasis),
+    );
+    assert_eq!(audit(&[]).0, 0);
+    fixture.write(wiki, &valid);
+    assert_eq!(audit(&[]).0, 1);
+    fixture.write(
+        &event,
+        bind_wiki_revision(&event_note(&event, "Decision"), wiki_before, &valid),
+    );
+
+    git(&["add", &event]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.com",
+        "commit",
+        "-qm",
+        "Enter Raw proof before the Wiki",
+    ]);
+    assert_eq!(audit(&[]).0, 1);
+    assert_eq!(audit(&["--base", "HEAD^"]).0, 0);
     git(&["add", "."]);
     git(&[
         "-c",
@@ -154,9 +217,23 @@ fn wiki_revision_audit_checks_direct_edits_against_a_git_baseline() {
         "Direct update",
     ]);
     assert_eq!(audit(&[]).1["wiki_checked"], 0);
-    assert_eq!(audit(&["--base", "HEAD^"]).1["wiki_checked"], 1);
+    assert_eq!(audit(&["--base", "HEAD~2"]).0, 0);
     fixture.write(wiki, valid.replace("New knowledge.", "A later edit."));
     assert_eq!(audit(&[]).0, 1);
+    assert_eq!(audit(&["--base", "HEAD~2"]).0, 1);
+    fixture.write(wiki, wiki_before);
+    git(&["add", wiki]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.com",
+        "commit",
+        "-qm",
+        "Revert Wiki without altering Raw proof",
+    ]);
+    fixture.write(wiki, &valid);
+    assert_eq!(audit(&["--base", "HEAD~3"]).0, 1);
 }
 
 #[test]
@@ -1432,6 +1509,22 @@ fn historical_identity_mismatch_and_new_chronology_regression_remain_blocking() 
 }
 
 fn write_check(fixture: &Fixture, phase: &str, changes: Value, baseline: Value) -> (Output, Value) {
+    write_check_version(
+        "viggobsidian.write-set.v1",
+        fixture,
+        phase,
+        changes,
+        baseline,
+    )
+}
+
+fn write_check_version(
+    schema: &str,
+    fixture: &Fixture,
+    phase: &str,
+    changes: Value,
+    baseline: Value,
+) -> (Output, Value) {
     let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
         .arg("--vault")
         .arg(&fixture.0)
@@ -1441,7 +1534,11 @@ fn write_check(fixture: &Fixture, phase: &str, changes: Value, baseline: Value) 
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    serde_json::to_writer(child.stdin.take().unwrap(), &json!({"schema":"viggobsidian.write-set.v1","phase":phase,"changes":changes,"baseline":baseline})).unwrap();
+    serde_json::to_writer(
+        child.stdin.take().unwrap(),
+        &json!({"schema":schema,"phase":phase,"changes":changes,"baseline":baseline}),
+    )
+    .unwrap();
     let output = child.wait_with_output().unwrap();
     let report = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
     (output, report)
@@ -1678,6 +1775,15 @@ fn verified_link_repair_requires_paired_archive_and_retains_only_exact_existing_
 
 #[test]
 fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_strict() {
+    let write_check = |fixture, phase, changes, baseline| {
+        write_check_version(
+            "viggobsidian.write-set.v2",
+            fixture,
+            phase,
+            changes,
+            baseline,
+        )
+    };
     let f = Fixture::new("managed-wiki-section");
     f.write(
         "99-system/contracts/navigation-scope.yaml",
@@ -1728,16 +1834,20 @@ fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_
     let owner = "topics/example/wiki/wiki.md";
     let archive = "topics/example/raw/20261117-report/_source-assets/before.md.txt";
     let event = "topics/example/raw/20261121-new-proof/20261121-new-proof.md";
-    let event_note = wiki_revision_event(&f, event, owner.trim_end_matches(".md"), "Daily report");
     let result = format!("New result. [[{}]]", event.trim_end_matches(".md"));
     let before = "---\ntype: note\ncategory: knowledge\nlayer: wiki\ncssclasses: [vault-navigation, vault-dashboard, vault-wiki]\n---\n\n# Example\n\n> [!navigation|shortcuts]\n> - [[topics/example/example|Back]]\n> - [[topics/example/raw/raw|Raw]]\n> - [Finder](file:///different-host/topics/example/wiki)\n\n<!-- report:v1 begin -->\n## Daily report\n\nOld result.\n<!-- report:v1 end -->\n\n## Retained history\n\nHistory stays.\n";
+    let after = before.replace("Old result.", &result);
+    let event_note = bind_wiki_revision(
+        &wiki_revision_event(&f, event, owner.trim_end_matches(".md"), "Daily report"),
+        before,
+        &after,
+    );
     f.write(owner, before);
     let proof = json!({"kind":"managed-wiki-section","before":before,"archive":archive,"marker":"report:v1","replacement":format!("\n## Daily report\n\n{result}\n")});
     let archive_proof = json!({"kind":"source-preimage-archive","before":null,"source":owner,"source_before":before});
     let unsupported = json!([{"path":owner,"expect":"present","proof":proof},{"path":archive,"expect":"present","proof":archive_proof}]);
     f.write(event, &event_note);
     let (_, without_event) = write_check(&f, "baseline", unsupported.clone(), Value::Null);
-    let after = before.replace("Old result.", &result);
     f.write(owner, &after);
     f.write(archive, before);
     let (out, report) = write_check(&f, "validate", unsupported, without_event);
@@ -1756,7 +1866,8 @@ fn managed_wiki_section_pairs_archive_preserves_siblings_and_keeps_new_findings_
     );
     f.write(owner, before);
     fs::remove_file(f.0.join(archive)).unwrap();
-    let changes = json!([{"path":owner,"expect":"present","proof":proof},{"path":archive,"expect":"present","proof":archive_proof},{"path":event,"expect":"present"}]);
+    let event_hash = format!("{:x}", Sha256::digest(event_note.as_bytes()));
+    let changes = json!([{"path":owner,"expect":"present","proof":proof},{"path":archive,"expect":"present","proof":archive_proof},{"path":event,"expect":"present","post_sha256":event_hash}]);
     let (_, stale_baseline) = write_check(&f, "baseline", changes.clone(), Value::Null);
     f.write(owner, &after);
     f.write(archive, before);

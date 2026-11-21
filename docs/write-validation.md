@@ -18,9 +18,26 @@ review what is staged separately if staged bytes differ from the working files.
 A changed dossier `wiki/wiki.md`, maintained `layer: wiki` subpage or
 direct-Wiki folder note must cite a new
 processed Event Note under the same dossier's Raw. Use its full vault-relative
-wikilink in the heading section that the event points back to. The event must
-be absent from the baseline and include the regular Event header and processing
-bubble. Editing an old event or putting the citation in code does not qualify.
+wikilink under the exact heading that the event targets. A parent heading can
+cover changes below it. Changes under different headings need covering evidence.
+The event must be absent from the baseline and include the regular Event header
+and processing bubble. Editing an old event or citing it in code does not qualify.
+
+The event also binds the exact Wiki file bytes in its frontmatter:
+
+```yaml
+wiki_revision:
+  schema: viggobsidian.wiki-revision.v1
+  before_sha256: "<lowercase SHA-256 of the entire prior Wiki>"
+  after_sha256: "<lowercase SHA-256 of the entire final Wiki>"
+```
+
+Use a YAML null for `before_sha256` when the Wiki file is new. Calculate each
+digest on the actual bytes, including frontmatter and line endings. Write the
+Wiki's link to the new event path before calculating its final digest. Git
+audit refuses hidden index states and checks historical reuse across a wider
+baseline. Keep one revision per commit when auditing a history of multiple
+successive edits to the same Wiki.
 Complete removal of a maintained Wiki fails the check because the changed
 page cannot retain the citation. Unchanged Wiki notes are outside the audit.
 
@@ -35,12 +52,24 @@ Use `vault-layout --vault ROOT --write-set` with a JSON request on stdin for
 bounded writes. Keep `--strict PATH`, `--check-all` and `--check-work` for full
 audits. An unrelated sibling's existing errors must not block a transaction.
 
-The request schema is `viggobsidian.write-set.v1`, with `phase: baseline` and
+For fresh Wiki-aware writes use `viggobsidian.write-set.v2`, with `phase: baseline` and
 `changes: [{"path":"30-topics/example/example.md","expect":"present"}]`.
 Use `absent` for deleted files. Include every created, updated and deleted file,
 including both ends of moves and changed parent navigation. Paths must be
 visible relative normalized file paths without symlinks. Hidden provider state
 is validated separately by its owning writer.
+
+Existing adapters and stored receipts retain `viggobsidian.write-set.v1`, which
+continues its original structural and link checks. It does not audit Wiki
+revision evidence. The same adapter must keep a request on the chosen version
+through both phases. Use the v2 form for new integrations with the Wiki gate.
+
+For a created Raw event that backs a changed Wiki, its exact change row must
+include `post_sha256` as a lowercase SHA-256 of the full Event Note. Both phases
+bind that value into the write set. Validation verifies the installed event bytes.
+Passing a baseline without the new event in its inventory does not qualify.
+Providers that keep their own pending journals must retain their versions and
+bindings when activating this checker for fresh writes.
 
 The two supported producer manifests, `.mail-source.json` and
 `.reading-list-source.json`, may be declared as regular leaf files so complete
