@@ -41,7 +41,7 @@
       "target": ".agents/tools/wiki-layout-core/src/lib.rs"
     },
     {
-      "sha256": "1de3cfd06cd1b7a3d575afb048edb2d5c83a3da3b4ad5e8b21b7084e4b5b1a02",
+      "sha256": "08e2a078673ab4aaa2926abce947ded7233f243573be41aede3982d234fec096",
       "source": "crates/wiki-layout-core/src/headings.rs",
       "target": ".agents/tools/wiki-layout-core/src/headings.rs"
     },
@@ -91,12 +91,17 @@
       "target": ".agents/tools/vault-layout/fixtures/activity-deliveries.md"
     },
     {
-      "sha256": "9e669f44aaa58606ea62bff169728d478625b6397fdcdfa0676a3c167a57d137",
+      "sha256": "0f76edf6d67f8f595a791f5848dcb1fd3c698261c0b79875d6ef30a9dc6582da",
       "source": "crates/vault-layout/src/maintenance.rs",
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
     {
-      "sha256": "343b8756085a12f839163699278b1ab64f6b5eb0c4d75f33be3c57f0a6ec8b75",
+      "sha256": "de35814489bfff2069efcc4a46a2f015889cef0eefdddec482c6ddf3b24e9e6c",
+      "source": "crates/vault-layout/src/managed_wiki.rs",
+      "target": ".agents/tools/vault-layout/src/managed_wiki.rs"
+    },
+    {
+      "sha256": "dcf1c55c54272041e705fb108872052681e624394c64cfa5724362fee1f78b0e",
       "source": "crates/vault-layout/src/verified_links.rs",
       "target": ".agents/tools/vault-layout/src/verified_links.rs"
     },
@@ -111,12 +116,17 @@
       "target": ".agents/tools/vault-layout/src/adoption.rs"
     },
     {
-      "sha256": "6a3fdcc48e109ad0aa36962952d9ed3650b4a62766db6d7745b76903ace95708",
+      "sha256": "11b56a1389469a6c800bac329d5f5741a28f30c2b0b8d8ad403c64eba326534f",
       "source": "crates/vault-layout/src/write_set.rs",
       "target": ".agents/tools/vault-layout/src/write_set.rs"
     },
     {
-      "sha256": "1f1814fba32caea87394db873987a3ff6827bc97a76f6e7558468677365c4334",
+      "sha256": "d2b1c4c2b13b15e19b428c9dc78e1a96a53f277cf8688b035536926276bc451f",
+      "source": "crates/vault-layout/src/wiki_revision.rs",
+      "target": ".agents/tools/vault-layout/src/wiki_revision.rs"
+    },
+    {
+      "sha256": "b19b3074814c2bec4a060f3b3f9902af5f5230b1359f6a2507f4ebf0f35ce532",
       "source": "docs/write-validation.md",
       "target": ".viggobsidian/core/write-validation.md"
     },
@@ -126,7 +136,7 @@
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "97c3d18371e21a8f1b587ccf97073d112526eb0dd1d4692199caec00ae5c6eec",
+      "sha256": "47e49dbd8fef06702616b9d3479a8e874103c9243325dc05821ebc27931cfb90",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -307,7 +317,7 @@
       "target": ".agents/tools/vault-layout/src/wiki_layout.rs"
     },
     {
-      "sha256": "a8af65627a900d2a86c125383d09357ff02120ba1b707aec5c033938fb30cc6d",
+      "sha256": "cb3966c595db5d83d72563a44a046e890776941fb11cbfbf386876af18dbd56f",
       "source": "crates/vault-layout/src/index_navigation.rs",
       "target": ".agents/tools/vault-layout/src/index_navigation.rs"
     },
@@ -362,7 +372,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "2019c501dd0ef0c74fe7392d4d0c61e2bce2c0e4251b12921485be121b950f59",
+      "sha256": "7eb5961bac5de75bf50b2fc316124ac151e4af3ce9031243e20004a4db76edbd",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -387,7 +397,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "db0aca5373bdbacd6c0d91351815912c358be276df11be7dba369671280c419e",
+      "sha256": "34341f02597d998d9b684846dc7bd6eb74d57f63d5933fdc611dca99fdfde0b3",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -572,7 +582,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "63fdabfe207e6fd5f7ebd6cfbe40d761b8166156",
+  "revision": "e84103729cbc7b9e6c85dabce122438c6f1bd4b7",
   "schema": "viggobsidian.package.v1",
-  "version": "0.32.3"
+  "version": "0.32.4"
 }

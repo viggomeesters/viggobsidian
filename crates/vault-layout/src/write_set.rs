@@ -4,6 +4,7 @@ use crate::{
     Finding, SCHEMA, Scan, TILE_CSS, navigation_contract, tile_styles, without_css_comments,
 };
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::{
     cell::OnceCell,
     collections::{BTreeMap, BTreeSet},
@@ -13,6 +14,7 @@ use std::{
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const REQUEST: &str = "viggobsidian.write-set.v1";
+pub(crate) const WIKI_REVISION_REQUEST: &str = "viggobsidian.write-set.v2";
 const REPORT: &str = "viggobsidian.write-check.v1";
 
 fn keys(value: &Value, allowed: &[&str]) -> Result<()> {
@@ -128,7 +130,8 @@ pub(crate) fn run(vault: &Path, request: Value) -> Result<u8> {
 
 fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
     keys(&request, &["schema", "phase", "changes", "baseline"])?;
-    if request["schema"] != REQUEST {
+    let wiki_revisions = request["schema"] == WIKI_REVISION_REQUEST;
+    if request["schema"] != REQUEST && !wiki_revisions {
         return Err("unknown write-set schema".into());
     }
     let phase = request["phase"].as_str().ok_or("write-set phase missing")?;
@@ -143,9 +146,33 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
     }
     let mut paths = BTreeMap::new();
     let mut proofs = BTreeMap::new();
+    let mut post_hashes = BTreeMap::new();
     for change in changes {
-        keys(change, &["path", "expect", "proof"])?;
+        keys(change, &["path", "expect", "proof", "post_sha256"])?;
         let path = checked_path(vault, change["path"].as_str().ok_or("missing change path")?)?;
+        if let Some(post_hash) = change.get("post_sha256") {
+            if !wiki_revisions {
+                return Err("write-set post_sha256 requires v2".into());
+            }
+            let hash = post_hash
+                .as_str()
+                .filter(|hash| {
+                    hash.len() == 64
+                        && hash
+                            .bytes()
+                            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                })
+                .ok_or("invalid write-set post_sha256")?;
+            if change["expect"] != "present" {
+                return Err("write-set post_sha256 requires a present file".into());
+            }
+            if phase == "validate"
+                && format!("{:x}", Sha256::digest(fs::read(vault.join(&path))?)) != hash
+            {
+                return Err("write-set post_sha256 does not match the installed bytes".into());
+            }
+            post_hashes.insert(path.clone(), hash);
+        }
         if let Some(proof) = change.get("proof") {
             let after = crate::maintenance::transform(path.to_str().ok_or("invalid path")?, proof)?;
             let archive = proof["kind"] == "source-preimage-archive";
@@ -167,7 +194,12 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
             }
             let targets: Vec<_> = if matches!(
                 proof["kind"].as_str(),
-                Some("verified-link-repair" | "activity-append" | "source-preimage-archive")
+                Some(
+                    "verified-link-repair"
+                        | "activity-append"
+                        | "source-preimage-archive"
+                        | "managed-wiki-section"
+                )
             ) {
                 Vec::new()
             } else if proof["kind"] == "owner-handoff" {
@@ -203,9 +235,15 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
     crate::verified_links::bindings(vault, &proofs)?;
     let changes: Vec<_> = paths
         .iter()
-        .map(|(p, e)| match proofs.get(p) {
-            Some(proof) => json!({"path":p,"expect":e,"proof":proof}),
-            None => json!({"path":p,"expect":e}),
+        .map(|(p, e)| {
+            let mut change = json!({"path":p,"expect":e});
+            if let Some(proof) = proofs.get(p) {
+                change["proof"] = proof.clone();
+            }
+            if let Some(hash) = post_hashes.get(p) {
+                change["post_sha256"] = json!(hash);
+            }
+            change
         })
         .collect();
     let baseline = &request["baseline"];
@@ -229,12 +267,16 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
                 "adoption",
                 "legacy_findings",
                 "preservation",
+                "link_report",
+                "links_checked",
+                "wiki_revision_state",
             ],
         )?;
         if baseline["schema"] != REPORT
             || baseline["phase"] != "baseline"
             || baseline["changes"] != json!(changes)
             || baseline["adoption"] != adoption
+            || baseline.get("wiki_revision_state").is_some() != wiki_revisions
         {
             return Err("write-set baseline is not bound to the exact changes".into());
         }
@@ -440,14 +482,31 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
         .map(Value::to_string)
         .collect();
     let mut legacy_findings = Vec::new();
-    let mut errors = Vec::new();
+    let wiki_revision_state = wiki_revisions
+        .then(|| crate::wiki_revision::checkpoint(vault, &paths))
+        .transpose()?;
+    let mut errors = if phase == "validate"
+        && let Some(state) = &wiki_revision_state
+    {
+        crate::wiki_revision::validate_write_set(
+            vault,
+            &paths,
+            &baseline["wiki_revision_state"],
+            state,
+            &post_hashes,
+        )?
+    } else {
+        Vec::new()
+    };
     for row in &owned_findings {
         let path = row["path"].as_str().ok_or("finding path missing")?;
         let exempt = crate::adoption::formatting(vault, row)?
             && (phase == "baseline" || old_owned.contains(&row.to_string()))
             && crate::adoption::retained(vault, &adoption, path)?;
-        let preserved = (!paths.contains_key(Path::new(path))
-            || proofs.contains_key(Path::new(path)))
+        let unchanged_structure = proofs.get(Path::new(path)).is_some_and(|proof| {
+            proof["kind"] != "managed-wiki-section" || row["code"] == "dossier-dashboard-finder"
+        });
+        let preserved = (!paths.contains_key(Path::new(path)) || unchanged_structure)
             && preservation
                 .keys()
                 .any(|scope| Path::new(path).starts_with(scope))
@@ -475,15 +534,67 @@ fn check(vault: &Path, request: Value) -> Result<(Value, u8)> {
             .filter(|row| !old_boundary.contains(&row.to_string()))
             .cloned(),
     );
+    let managed = proofs
+        .values()
+        .any(|proof| proof["kind"] == "managed-wiki-section");
+    let mut link_report = Value::Null;
+    let mut links_checked = false;
+    if managed {
+        if phase == "validate" && !baseline["link_report"]["checked_paths"].is_array() {
+            return Err("managed write-set needs its exact baseline link audit".into());
+        }
+        let selected = paths
+            .iter()
+            .filter(|(path, expect)| {
+                **expect == "present"
+                    && path.extension().is_some_and(|ext| ext == "md")
+                    && (phase == "validate" || vault.join(path).is_file())
+            })
+            .map(|(path, _)| path.clone())
+            .collect::<Vec<_>>();
+        link_report = crate::index_navigation::managed_write_audit(
+            vault,
+            &selected,
+            &proofs,
+            if phase == "validate" {
+                Some(&baseline["link_report"])
+            } else {
+                None
+            },
+        )?;
+        let coverage =
+            link_report["checked_paths"] == json!(selected) && link_report["excluded"] == json!([]);
+        links_checked = phase == "validate" && coverage;
+        if phase == "validate" {
+            if !coverage {
+                errors.push(json!({"path":"","code":"unchecked-link-scope","message":"managed link audit must cover every exact changed Markdown path without exclusions"}));
+            }
+            for issue in link_report["issues"]
+                .as_array()
+                .ok_or("link audit issues missing")?
+                .iter()
+                .filter(|issue| issue["severity"] == "error")
+            {
+                errors.push(
+                    json!({"path":issue["path"],"code":issue["kind"],"message":issue["target"]}),
+                );
+            }
+        }
+    }
     let code = if phase == "validate" && !errors.is_empty() {
         1
     } else {
         0
     };
-    Ok((
-        json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"legacy_findings":legacy_findings,"adoption":adoption,"findings":errors,"preservation":preservation}),
-        code,
-    ))
+    let mut report = json!({"schema":REPORT,"phase":phase,"changes":changes,"owned_scopes":owned,"boundary_scopes":boundary,"folders_checked":scan.folders,"owned_findings":owned_findings,"boundary_findings":boundary_findings,"legacy_findings":legacy_findings,"adoption":adoption,"findings":errors,"preservation":preservation});
+    if let Some(state) = wiki_revision_state {
+        report["wiki_revision_state"] = state;
+    }
+    if managed {
+        report["link_report"] = link_report;
+        report["links_checked"] = json!(links_checked);
+    }
+    Ok((report, code))
 }
 
 #[cfg(test)]

@@ -405,6 +405,7 @@ pub(crate) fn transform(raw: &str, proof: &Value) -> Result<String> {
         return Err("protected source is not a maintained owner".into());
     }
     match proof["kind"].as_str() {
+        Some("managed-wiki-section") => crate::managed_wiki::transform(p, before, &data, proof),
         Some("verified-link-repair" | "activity-append") => {
             let kind = proof["kind"].as_str().unwrap();
             let fields = if kind == "verified-link-repair" {

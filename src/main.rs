@@ -274,11 +274,13 @@ fn allowed(target: &str) -> bool {
         "export_artifacts",
         "native_source_archives",
         "wiki_layout",
+        "wiki_revision",
         "work_intake",
         "work_package",
         "write_set",
         "skill_routes",
         "maintenance",
+        "managed_wiki",
         "verified_links",
     ]
     .iter()

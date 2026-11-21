@@ -18,6 +18,7 @@ mod link_style;
 mod mail_draft;
 mod mail_manifest;
 mod maintenance;
+mod managed_wiki;
 mod native_source_archives;
 mod navigation_contract;
 mod project_codes;
@@ -28,6 +29,7 @@ mod skill_routes;
 mod source_inventory;
 mod verified_links;
 mod wiki_layout;
+mod wiki_revision;
 mod work_intake;
 mod work_package;
 mod write_set;
@@ -37,6 +39,8 @@ const SCHEMA: &str = "99-system/contracts/vault-schema.yaml";
 const TILE_CSS: &str = ".obsidian/snippets/folder-note.css";
 const TASK_SUMMARY: &str = "```vault-task-summary";
 const OPEN_TASKS: &str = "![[vault-dossier.base#Open tasks]]";
+const WIKI_REVISION_USAGE: &str =
+    "vault-layout [--json] --vault ROOT --check-wiki-changes [--base COMMIT]";
 const RAW_SUMMARY: &str = "```vault-raw-summary";
 const RAW_SUMMARY_PLUGIN: &str = "vault-raw-summary";
 const TEMPLATES_INDEX: &str = "90-templates/90-templates.md";
@@ -73,6 +77,8 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut strict = false;
     let mut check_work = false;
     let mut check_all = false;
+    let mut check_wiki_changes = false;
+    let mut wiki_base = None;
     let mut new_work_task = false;
     let mut promotion_plan = false;
     let mut link_style = None;
@@ -87,7 +93,10 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
-                println!("{USAGE}");
+                println!(
+                    "{USAGE}\n{WIKI_REVISION_USAGE}\nManaged Wiki revisions: {}",
+                    write_set::WIKI_REVISION_REQUEST
+                );
                 return Ok(0);
             }
             Some("--json") => json_output = true,
@@ -105,6 +114,10 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             Some("--strict") => strict = true,
             Some("--check-work") => check_work = true,
             Some("--check-all") => check_all = true,
+            Some("--check-wiki-changes") if !check_wiki_changes => check_wiki_changes = true,
+            Some("--base") if wiki_base.is_none() => {
+                wiki_base = Some(args.next().ok_or(USAGE)?.into_string().map_err(|_| USAGE)?);
+            }
             Some("--write-set") if !write_set_mode => write_set_mode = true,
             Some("--adoption-plan") if adoption_mode.is_none() => adoption_mode = Some("plan"),
             Some("--adoption-apply") if adoption_mode.is_none() => adoption_mode = Some("apply"),
@@ -144,6 +157,39 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             _ if folder.is_none() => folder = Some(PathBuf::from(arg)),
             _ => return Err(USAGE.into()),
         }
+    }
+    if check_wiki_changes || wiki_base.is_some() {
+        if !check_wiki_changes
+            || !explicit_vault
+            || skill_route.is_some()
+            || skill_routes
+            || source_adapter.is_some()
+            || skill_capability.is_some()
+            || folder.is_some()
+            || tiles_only
+            || indexes
+            || !paths.is_empty()
+            || !anchors
+            || scope_policy.is_some()
+            || resolve_code.is_some()
+            || stage_raw_task
+            || strict
+            || check_work
+            || check_all
+            || new_work_task
+            || promotion_plan
+            || link_style.is_some()
+            || write_set_mode
+            || adoption_mode.is_some()
+            || maintenance_transform
+        {
+            return Err(WIKI_REVISION_USAGE.into());
+        }
+        return wiki_revision::run(
+            &vault.canonicalize()?,
+            wiki_base.as_deref().unwrap_or("HEAD"),
+            json_output,
+        );
     }
     if skill_route.is_some()
         || skill_routes

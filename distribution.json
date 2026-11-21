@@ -77,6 +77,10 @@
       "target": ".agents/tools/vault-layout/src/maintenance.rs"
     },
     {
+      "source": "crates/vault-layout/src/managed_wiki.rs",
+      "target": ".agents/tools/vault-layout/src/managed_wiki.rs"
+    },
+    {
       "source": "crates/vault-layout/src/verified_links.rs",
       "target": ".agents/tools/vault-layout/src/verified_links.rs"
     },
@@ -91,6 +95,10 @@
     {
       "source": "crates/vault-layout/src/write_set.rs",
       "target": ".agents/tools/vault-layout/src/write_set.rs"
+    },
+    {
+      "source": "crates/vault-layout/src/wiki_revision.rs",
+      "target": ".agents/tools/vault-layout/src/wiki_revision.rs"
     },
     {
       "source": "docs/write-validation.md",

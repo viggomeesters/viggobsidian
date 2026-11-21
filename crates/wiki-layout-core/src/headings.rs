@@ -159,7 +159,7 @@ pub fn decode_percent(heading: &str) -> String {
     String::from_utf8_lossy(&decoded).into_owned()
 }
 
-fn heading_text(title: &str) -> String {
+pub fn heading_text(title: &str) -> String {
     let mut title = title.replace('`', "");
     for marker in ["**", "__", "~~", "*", "_"] {
         let mut offset = 0;
