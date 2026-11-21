@@ -1,7 +1,7 @@
 use serde_json::{Value, json};
 use source_preparation_core::{
-    AUTHORED_ACTIVITY_FORMAT, FORMAT, LEGACY_PLAIN_SOURCE_FORMAT, MAX_NOTE_BYTES,
-    MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash, respond,
+    AUTHORED_ACTIVITY_FORMAT, FOLDER_NOTE_CAPTURE_FORMAT, FORMAT, LEGACY_PLAIN_SOURCE_FORMAT,
+    MAX_NOTE_BYTES, MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash, respond,
 };
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -225,6 +225,75 @@ fn legacy_plain_source_replays_with_the_exact_original_and_its_attachments() {
         let result = run(&prepare);
         assert_eq!(result["reason"], reason, "{result}");
         assert!(result.get("postimage").is_none());
+    }
+}
+
+#[test]
+fn folder_note_capture_replaces_only_the_presentation_and_replays() {
+    let original = "---\ntype: note\ncategory: family\nprivacy: private\ncssclasses: [folder-note]\nowner: '30-topics/example/example.md'\n---\n\n# Fictional capture\n\n## Original input\n\nSee [attachment](evidence.pdf).\n";
+    let mut prepare = authored_request();
+    prepare["format"] = json!(FOLDER_NOTE_CAPTURE_FORMAT);
+    prepare["source_note"] = json!(original);
+    let prepared = run(&prepare);
+    assert_eq!(prepared["status"], "complete", "{prepared}");
+    assert_eq!(prepared["original_sha256"], hash(original));
+    let postimage = prepared["postimage"].as_str().unwrap();
+    assert!(
+        postimage.contains(
+            "category: family\nprivacy: private\nowner: '30-topics/example/example.md'\n"
+        )
+    );
+    assert!(!postimage.contains("cssclasses: [folder-note]"));
+    assert!(
+        postimage.contains("> > ## Original input\n> > \n> > See [attachment](evidence.pdf).\n")
+    );
+
+    let mut process = marking();
+    process["format"] = json!(FOLDER_NOTE_CAPTURE_FORMAT);
+    process["source_note"] = prepared["postimage"].clone();
+    process["original_note"] = json!(original);
+    process["preparation_provenance"] = prepare["provenance"].clone();
+    process["provenance"] = prepare["provenance"].clone();
+    let processed = run(&process);
+    assert_eq!(processed["status"], "complete", "{processed}");
+    assert_eq!(processed["original_sha256"], hash(original));
+
+    prepare["destination_owner"] = json!("30-topics/other/other.md");
+    assert_eq!(
+        run(&prepare)["reason"],
+        "folder_note_capture_owner_mismatch"
+    );
+    prepare["destination_owner"] = json!("30-topics/example/example.md");
+
+    for heading in ["  ## Activity ", "Activity\n--------"] {
+        prepare["source_note"] = json!(format!("{original}\n{heading}\n"));
+        assert_eq!(run(&prepare)["reason"], "unprepared_source_required");
+    }
+    for (old, new, reason) in [
+        (
+            "[folder-note]",
+            "[folder-note, other]",
+            "folder_note_capture_presentation_required",
+        ),
+        (
+            "category: family",
+            "category: email",
+            "folder_note_capture_required",
+        ),
+        ("type: note", "type: task", "folder_note_capture_required"),
+        (
+            "privacy: private",
+            "privacy: private\nwiki_status: pending",
+            "unprepared_source_required",
+        ),
+        (
+            "privacy: private",
+            "privacy: private\ntask_id: task:fixture",
+            "folder_note_capture_required",
+        ),
+    ] {
+        prepare["source_note"] = json!(original.replace(old, new));
+        assert_eq!(run(&prepare)["reason"], reason);
     }
 }
 
