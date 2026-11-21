@@ -276,7 +276,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             return Err(USAGE.into());
         }
         let raw = folder.ok_or(USAGE)?;
-        let input: Value = serde_json::from_reader(io::stdin().lock())?;
+        let input = work_intake::read_request(io::stdin().lock())?;
         println!("{}", work_intake::create(&vault, &raw, input)?);
         return Ok(0);
     }

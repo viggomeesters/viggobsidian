@@ -1,5 +1,7 @@
 use serde_json::{Value, json};
-use source_preparation_core::{FORMAT, MAX_NOTE_BYTES, MAX_REQUEST_BYTES, hash, respond};
+use source_preparation_core::{
+    FORMAT, MAX_NOTE_BYTES, MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash, respond,
+};
 use std::io::Write;
 use std::process::{Command, Stdio};
 
@@ -86,6 +88,96 @@ fn marking_is_exact_and_rejects_changed_original_or_native_header() {
         bad[field] = json!(value);
         assert_eq!(run(&bad)["status"], "incomplete", "{field}");
     }
+}
+
+#[test]
+fn contribution_provenance_stays_outside_details_and_is_bound_to_exact_preimage() {
+    let provenance = json!({
+        "kind": "vault-contribution",
+        "timestamp": "2026-11-12T23:43:12Z",
+        "display_timezone": "Europe/Amsterdam",
+        "author": "Fictional Assistant",
+        "channel": "Vault processing"
+    });
+    let mut request = request();
+    request["format"] = json!(PROVENANCE_FORMAT);
+    assert_eq!(
+        run(&request)["reason"],
+        "vault_contribution_provenance_required"
+    );
+    request["provenance"] = provenance.clone();
+    let prepared = run(&request);
+    assert_eq!(prepared["status"], "complete", "{prepared}");
+    let postimage = prepared["postimage"].as_str().unwrap();
+    assert!(postimage.contains(
+        "> > An original fence.\n> > ```\n>\n> *00:43 · Fictional Assistant · Vault processing*\n"
+    ));
+    assert!(postimage.contains("> [!activity-day|2026-11-13]"));
+    assert!(!postimage.contains("activity-meta"));
+    assert!(!postimage.contains("> `—"));
+    assert!(activity_core::activity_delivery::provenance_findings(postimage).is_empty());
+    assert_eq!(run(&request), prepared);
+
+    let mut processing = marking();
+    processing["format"] = json!(PROVENANCE_FORMAT);
+    processing["source_note"] = prepared["postimage"].clone();
+    processing["preparation_provenance"] = provenance.clone();
+    processing["provenance"] = provenance;
+    processing["provenance"]["timestamp"] = json!("2026-11-13T09:01:00+01:00");
+    let processed = run(&processing);
+    assert_eq!(processed["status"], "complete", "{processed}");
+    let processed_image = processed["postimage"].as_str().unwrap();
+    assert!(processed_image.ends_with(">\n> *09:01 · Fictional Assistant · Vault processing*\n"));
+    assert!(activity_core::activity_delivery::provenance_findings(processed_image).is_empty());
+    assert_eq!(run(&processing), processed);
+    let original_summary = "Unabridged fictional summary. ".repeat(80);
+    processing["summary"] = json!(original_summary);
+    let long = run(&processing);
+    assert_eq!(long["status"], "complete", "{long}");
+    let long = long["postimage"].as_str().unwrap();
+    assert!(long.contains(&format!("> > ```text\n> > {original_summary}\n> > ```\n>\n> *09:01 · Fictional Assistant · Vault processing*\n")));
+
+    // A changed second wouldn't change the footer, but it changes the intent.
+    processing["preparation_provenance"]["timestamp"] = json!("2026-11-12T23:43:13Z");
+    assert_eq!(run(&processing)["reason"], "prepared_postimage_changed");
+    processing["preparation_provenance"]["timestamp"] = json!("2026-11-12T23:43:12Z");
+    processing["provenance"]["kind"] = json!("chat-message");
+    assert_eq!(
+        run(&processing)["reason"],
+        "vault_contribution_kind_or_day_mismatch"
+    );
+    request["date"] = json!("2026-11-12");
+    assert_eq!(
+        run(&request)["reason"],
+        "vault_contribution_kind_or_day_mismatch"
+    );
+}
+
+#[test]
+fn v2_wiki_processing_retains_a_v1_preparation_and_supports_explicit_unknown_time() {
+    let mut processing = marking();
+    let original = processing["source_note"]
+        .as_str()
+        .unwrap()
+        .split_once("\n---\n")
+        .unwrap()
+        .1
+        .to_owned();
+    processing["format"] = json!(PROVENANCE_FORMAT);
+    processing["provenance"] = json!({
+        "kind":"vault-contribution", "timestamp":null, "day":"2026-11-13",
+        "display_timezone":"Europe/Amsterdam", "author":"Fictional Assistant", "channel":"Vault"
+    });
+    let result = run(&processing);
+    assert_eq!(result["status"], "complete", "{result}");
+    let body = result["postimage"].as_str().unwrap();
+    assert!(body.contains(&original));
+    assert!(body.ends_with(">\n> *— · Fictional Assistant · Vault*\n"));
+    processing["format"] = json!(FORMAT);
+    assert_eq!(
+        run(&processing)["reason"],
+        "provenance_requires_source_capture_v2"
+    );
 }
 
 #[test]

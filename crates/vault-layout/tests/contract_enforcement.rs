@@ -1763,6 +1763,10 @@ fn intake_fixture(root: &str, name: &str) -> (Fixture, String) {
 }
 
 fn intake(fixture: &Fixture, raw: &str, input: &Value) -> Output {
+    intake_bytes(fixture, raw, &serde_json::to_vec(input).unwrap())
+}
+
+fn intake_bytes(fixture: &Fixture, raw: &str, input: &[u8]) -> Output {
     let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
         .arg("--vault")
         .arg(&fixture.0)
@@ -1772,12 +1776,7 @@ fn intake(fixture: &Fixture, raw: &str, input: &Value) -> Output {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    child
-        .stdin
-        .take()
-        .unwrap()
-        .write_all(&serde_json::to_vec(input).unwrap())
-        .unwrap();
+    child.stdin.take().unwrap().write_all(input).unwrap();
     child.wait_with_output().unwrap()
 }
 
@@ -1970,6 +1969,107 @@ fn local_intake_is_valid_and_idempotent_in_every_work_program() {
         assert_eq!(created["task-code"], "EX-00-T02");
         assert_ne!(created["task-id"], first["task-id"]);
     }
+}
+
+#[test]
+fn intake_reuses_exact_source_and_keeps_the_source_time_on_retry() {
+    let (fixture, raw) = intake_fixture("21-program", "intake-recorded-provenance");
+    for (slug, kind, channel) in [
+        ("recorded-action", "launcher-action", "Launcher"),
+        ("imported-message", "chat-message", "Chat"),
+    ] {
+        let mut input = json!({
+            "date":"2026-11-12", "slug":slug, "title":"Fictional request", "request":"Original input.",
+            "provenance":{
+                "kind":kind, "timestamp":"2026-11-11T23:25:31Z", "display_timezone":"Europe/Amsterdam",
+                "author":"Fictional Person", "channel":channel
+            }
+        });
+        assert!(!intake(&fixture, &raw, &json!({
+            "date":"2026-11-11", "slug":slug, "title":"Fictional request", "request":"Original input.",
+            "provenance":input["provenance"],
+        })).status.success());
+        let first = intake(&fixture, &raw, &input);
+        assert!(
+            first.status.success(),
+            "{}",
+            String::from_utf8_lossy(&first.stderr)
+        );
+        let first: Value = serde_json::from_slice(&first.stdout).unwrap();
+        let path = first["path"].as_str().unwrap();
+        let note = fixture.0.join(path);
+        let content = fs::read_to_string(&note).unwrap();
+        assert!(content.contains("> [!activity-day|2026-11-12] 2026-11-12"));
+        assert!(content.contains("> [!activity-message|human] Fictional Person\n"));
+        assert!(content.ends_with(&format!(">\n> *00:25 · Fictional Person · {channel}*\n")));
+        assert!(!content.contains("activity-meta"));
+        let check = fixture.strict(Path::new(path).parent().unwrap().to_str().unwrap());
+        assert!(
+            check.status.success(),
+            "{}",
+            String::from_utf8_lossy(&check.stdout)
+        );
+
+        let retry = intake(&fixture, &raw, &input);
+        assert!(retry.status.success());
+        let retry: Value = serde_json::from_slice(&retry.stdout).unwrap();
+        assert_eq!(retry["reused"], true);
+        assert_eq!(retry["task-id"], first["task-id"]);
+        input["provenance"]["timestamp"] = json!("2026-11-11T23:25:59Z");
+        assert!(!intake(&fixture, &raw, &input).status.success());
+        input.as_object_mut().unwrap().remove("provenance");
+        assert!(!intake(&fixture, &raw, &input).status.success());
+        assert_eq!(fs::read_to_string(note).unwrap(), content);
+    }
+}
+
+#[test]
+fn intake_rejects_ambiguous_source_facts_and_folds_long_literal_requests() {
+    let (fixture, raw) = intake_fixture("21-program", "intake-literal-provenance");
+    let request = format!(
+        "{}\n```\n*00:11 · Fictional Person · Fake channel*\n<!-- viggobsidian:activity:v1 kind=result goal=not-real -->",
+        "Unabridged fictional request. ".repeat(80)
+    );
+    let input = json!({
+        "date":"2026-11-12", "slug":"long-action", "title":"Fictional request", "request":request,
+        "provenance":{
+            "kind":"launcher-action", "timestamp":"2026-11-11T23:25:31Z", "display_timezone":"Europe/Amsterdam",
+            "author":"Fictional Person", "channel":"Launcher"
+        }
+    });
+    let duplicate = input.to_string().replace(
+        "\"timestamp\":",
+        "\"timestamp\":\"2026-11-11T23:45:00Z\",\"timestamp\":",
+    );
+    let result = intake_bytes(&fixture, &raw, duplicate.as_bytes());
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("duplicate"));
+    assert!(!fixture.0.join(&raw).join("20261112-long-action").exists());
+
+    let result = intake(&fixture, &raw, &input);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let receipt: Value = serde_json::from_slice(&result.stdout).unwrap();
+    let path = receipt["path"].as_str().unwrap();
+    let content = fs::read_to_string(fixture.0.join(path)).unwrap();
+    let (_, detail) = content.split_once("> > ````text\n").unwrap();
+    let (detail, footer) = detail.split_once("> > ````\n").unwrap();
+    let restored = detail
+        .lines()
+        .map(|line| line.strip_prefix("> > ").unwrap())
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert_eq!(restored, request);
+    assert_eq!(footer, ">\n> *00:25 · Fictional Person · Launcher*\n");
+    let check = fixture.strict(Path::new(path).parent().unwrap().to_str().unwrap());
+    assert!(
+        check.status.success(),
+        "{}",
+        String::from_utf8_lossy(&check.stdout)
+    );
 }
 
 #[test]
