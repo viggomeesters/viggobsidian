@@ -1,11 +1,14 @@
 use serde_json::{Value, json};
 use source_preparation_core::{
-    FORMAT, MAX_NOTE_BYTES, MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash, respond,
+    AUTHORED_ACTIVITY_FORMAT, FORMAT, MAX_NOTE_BYTES, MAX_REQUEST_BYTES, PROVENANCE_FORMAT, hash,
+    respond,
 };
 use std::io::Write;
 use std::process::{Command, Stdio};
 
 const ORIGINAL: &str = "---\ntype: note\ncategory: source\ncreated: 2026-11-02\nsource_identity: fixture:original\n---\n\n# Original source\n\n## Original request\n\nKeep these exact words: café → knowledge.\n\n> [!note] Original callout\n> Unchanged.\n\n```text\nAn original fence.\n```\n";
+
+const AUTHORED: &str = "---\ntype: note\ncategory: general\ncreated: 2026-11-02\nactivity_contract: provenance-v1\nsource_identity: 'fixture:authored'\nsource_timestamp: '2026-11-02T09:02:31+01:00'\n---\n\n# Authored source\n\nOriginal context with a [diagram](diagram.png).\n\n## Activity\n\n> [!activity-day|2026-11-02] 2 November\n\n> [!activity-message|human] Alex Example\n> `09:02 · Alex Example · Chat`\n> ## Original heading\n> Keep the original words and [diagram](diagram.png).  \n\n> [!activity-message|assistant] Fictional Assistant\n> <!-- viggobsidian:activity:v1 kind=result goal=source-review -->\n> The fictional source was read.\n>\n> *09:11 · Fictional Assistant · Chat*";
 
 fn request() -> Value {
     json!({"schema":"viggobsidian.source-preparation.v1", "format":FORMAT, "operation":"prepare",
@@ -15,6 +18,147 @@ fn request() -> Value {
 
 fn run(v: &Value) -> Value {
     respond(&serde_json::to_vec(v).unwrap())
+}
+
+fn authored_request() -> Value {
+    let mut v = request();
+    v["format"] = json!(AUTHORED_ACTIVITY_FORMAT);
+    v["source_note"] = json!(AUTHORED);
+    v["provenance"] = json!({
+        "kind":"vault-contribution", "timestamp":"2026-11-13T09:00:14+01:00",
+        "display_timezone":"Europe/Amsterdam", "author":"Fictional Assistant", "channel":"Vault"
+    });
+    v
+}
+
+#[test]
+fn authored_activity_and_metadata_are_preserved_and_marking_replays_exactly() {
+    let prepared_request = authored_request();
+    let prepared = run(&prepared_request);
+    assert_eq!(prepared["status"], "complete", "{prepared}");
+    assert_eq!(run(&prepared_request), prepared);
+    let postimage = prepared["postimage"].as_str().unwrap();
+    let original_header = AUTHORED.split_once("\n---\n").unwrap().0;
+    let original_activity = AUTHORED.split_once("\n## Activity\n").unwrap().1;
+    assert!(postimage.starts_with(original_header));
+    assert!(
+        postimage.contains(
+            "> [!event-context] Context\n> Original context with a [diagram](diagram.png)."
+        )
+    );
+    assert_eq!(
+        postimage.split_once("\n## Activity\n").unwrap().1,
+        original_activity
+    );
+    assert_eq!(prepared["original_sha256"], hash(AUTHORED));
+    assert_eq!(prepared["before_sha256"], hash(AUTHORED));
+    assert_eq!(prepared["after_sha256"], hash(postimage));
+
+    let mut processing = marking();
+    processing["format"] = json!(AUTHORED_ACTIVITY_FORMAT);
+    processing["source_note"] = prepared["postimage"].clone();
+    processing["original_note"] = json!(AUTHORED);
+    processing["preparation_provenance"] = prepared_request["provenance"].clone();
+    processing["provenance"] = prepared_request["provenance"].clone();
+    processing["provenance"]["timestamp"] = json!("2026-11-13T09:01:16+01:00");
+    let processed = run(&processing);
+    assert_eq!(processed["status"], "complete", "{processed}");
+    assert_eq!(run(&processing), processed);
+    let processed_image = processed["postimage"].as_str().unwrap();
+    assert!(processed_image.starts_with(original_header));
+    assert_eq!(
+        processed_image
+            .matches("activity_contract: provenance-v1")
+            .count(),
+        1
+    );
+    assert!(processed_image.contains("\nwiki_status: processed\n"));
+    assert!(processed_image.contains(&format!(
+        "{original_activity}\n\n> [!activity-day|2026-11-13]"
+    )));
+    assert!(processed_image.contains("> *09:01 · Fictional Assistant · Vault*"));
+    assert_eq!(processed["original_sha256"], hash(AUTHORED));
+    assert_eq!(processed["before_sha256"], hash(postimage));
+    assert_eq!(processed["after_sha256"], hash(processed_image));
+
+    for (field, changed) in [
+        ("source_note", postimage.replace("words and", "words or")),
+        ("original_note", AUTHORED.replace("09:02:31", "09:02:32")),
+        (
+            "original_note",
+            AUTHORED.replace("\n\n# Authored", "\n\n\n# Authored"),
+        ),
+    ] {
+        let mut bad = processing.clone();
+        bad[field] = json!(changed);
+        assert_eq!(run(&bad)["reason"], "prepared_postimage_changed");
+    }
+    processing["preparation_provenance"]["timestamp"] = json!("2026-11-13T09:00:15+01:00");
+    assert_eq!(run(&processing)["reason"], "prepared_postimage_changed");
+}
+
+#[test]
+fn authored_activity_refuses_ambiguous_or_unrelated_sources() {
+    for (before, after, reason) in [
+        (
+            "category: general",
+            "category: source",
+            "authored_activity_note_required",
+        ),
+        (
+            "type: note",
+            "type: task",
+            "authored_activity_note_required",
+        ),
+        (
+            "type: note",
+            "type: note\nlayer: wiki",
+            "authored_activity_note_required",
+        ),
+        (
+            "activity_contract: provenance-v1",
+            "activity_contract: unknown",
+            "authored_activity_note_required",
+        ),
+        (
+            "type: note",
+            "type: note\nwiki_status: pending",
+            "unprepared_source_required",
+        ),
+        ("## Activity", "## Comments", "authored_activity_required"),
+        (
+            "\n\n## Activity",
+            "\n\n## Unmapped source\n\nAnother section.\n\n## Activity",
+            "authored_activity_title_and_context_required",
+        ),
+        (
+            "|2026-11-02]",
+            "|2026-11-14]",
+            "authored_activity_after_preparation_date",
+        ),
+        (
+            "09:02 · Alex Example",
+            "09:02 · Other Person",
+            "invalid_authored_activity_provenance",
+        ),
+        (
+            "The fictional source was read.",
+            "The fictional source was read.\nUnwrapped text",
+            "invalid_authored_activity_provenance",
+        ),
+    ] {
+        let mut v = authored_request();
+        v["source_note"] = json!(AUTHORED.replace(before, after));
+        let out = run(&v);
+        assert_eq!(out["reason"], reason, "{before}: {out}");
+        assert!(out.get("postimage").is_none());
+    }
+    let mut v = authored_request();
+    v["format"] = json!(PROVENANCE_FORMAT);
+    assert_eq!(run(&v)["reason"], "plain_note_source_required");
+    v["format"] = json!(AUTHORED_ACTIVITY_FORMAT);
+    v.as_object_mut().unwrap().remove("provenance");
+    assert_eq!(run(&v)["reason"], "vault_contribution_provenance_required");
 }
 
 #[test]
