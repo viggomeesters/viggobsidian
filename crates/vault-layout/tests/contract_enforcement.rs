@@ -12,6 +12,48 @@ use std::{
 type ProviderDocumentMutation = Box<dyn Fn(&mut Value)>;
 
 #[test]
+fn named_wiki_guides_opt_in_to_the_existing_overview_layout() {
+    let fixture = Fixture::new("wiki-guide-overview");
+    let folder = "99-system/vault/example/wiki";
+    let guide = format!("{folder}/guide.md");
+    fixture.write(
+        "99-system/contracts/system-layout.yaml",
+        format!("collections: []\nfixed_files: [{guide}]\ndelegated: {{}}\n"),
+    );
+    fixture.write(
+        &format!("{folder}/wiki.md"),
+        "---\ntype: note\ncategory: knowledge\nlayer: wiki\n---\n# Wiki\n",
+    );
+    let metadata = "---\ntype: reference\ncategory: guide\nlayer: wiki\ncssclasses: [vault-wiki, vault-wiki-overview]\n---\n";
+    let header = "# Guide\n\n> [!navigation|shortcuts]\n> - [[fictional-inbox|Back]]\n> - [[fictional-raw|Raw]]\n> - [Finder](file:///fictional/wiki)\n\n";
+    let facts = "> [!wiki-facts]\n> - Region **North**\n> - Service **Express**\n\n";
+    let toc = "```wiki-toc\n```\n\n";
+    let sections = "## Intake\n\n## Processing\n\n## Follow-up\n\n## Checks\n";
+    let guide_findings = |note: String| {
+        fixture.write(&guide, note);
+        let report: Value = serde_json::from_slice(&fixture.strict(folder).stdout).unwrap();
+        report["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|f| f["path"] == guide)
+            .map(|f| f["code"].as_str().unwrap().to_string())
+            .collect::<Vec<_>>()
+    };
+    assert!(guide_findings(format!("{metadata}{header}{facts}{toc}{sections}")).is_empty());
+    assert_eq!(
+        guide_findings(format!("{metadata}{header}{facts}{sections}")),
+        ["wiki-toc"]
+    );
+    assert_eq!(
+        guide_findings(format!("{metadata}{header}{toc}{sections}")),
+        ["wiki-facts"]
+    );
+    let ordinary = metadata.replace(", vault-wiki-overview", "");
+    assert!(guide_findings(format!("{ordinary}{header}{sections}")).is_empty());
+}
+
+#[test]
 fn shared_source_preparation_goldens_pass_native_raw_gates() {
     let fixture = Fixture::new("shared-source-preparation");
     fixture.write(

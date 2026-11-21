@@ -12,9 +12,18 @@ pub fn is_wiki_layout_target<'a>(
     path: &str,
     mut cssclasses: impl Iterator<Item = &'a str>,
 ) -> bool {
-    cssclasses.any(|class| class == "vault-wiki-direct")
+    cssclasses.any(|class| class == "vault-wiki-direct" || is_named_guide_overview(path, class))
         || (path.rsplit('/').next() == Some("wiki.md")
             && path.split('/').rev().skip(1).any(|part| part == "wiki"))
+}
+
+pub fn is_named_guide_overview(path: &str, cssclass: &str) -> bool {
+    let mut parts = path.rsplit('/');
+    cssclass == "vault-wiki-overview"
+        && parts
+            .next()
+            .is_some_and(|name| name != "wiki.md" && name.ends_with(".md"))
+        && parts.next() == Some("wiki")
 }
 
 /// Preserve the original bytes for audits while allowing a fixed, visible notice.
@@ -38,6 +47,17 @@ pub fn without_knowledge_owner_notice(body: &str) -> &str {
 
 const FACTS: &str = "> [!wiki-facts]";
 const TOC: &str = "```wiki-toc";
+
+pub fn guide_overview_findings(body: &str) -> (bool, Vec<(&'static str, &'static str)>) {
+    let (has_facts, mut findings) = findings(body);
+    if !has_facts {
+        findings.push((
+            "wiki-facts",
+            "include two to four supported facts below the guide shortcuts",
+        ));
+    }
+    (has_facts, findings)
+}
 
 pub fn findings(body: &str) -> (bool, Vec<(&'static str, &'static str)>) {
     let mut findings = Vec::new();
