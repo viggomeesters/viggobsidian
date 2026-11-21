@@ -282,6 +282,7 @@ fn allowed(target: &str) -> bool {
         "export_artifacts",
         "native_source_archives",
         "wiki_layout",
+        "wiki_revision",
         "work_intake",
         "work_package",
         "write_set",

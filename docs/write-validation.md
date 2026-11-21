@@ -1,5 +1,36 @@
 # Transaction validation
 
+## Wiki changes made directly in Markdown
+
+Run this read-only check on the vault's Git working tree before committing:
+
+```sh
+vault-layout --vault ROOT --check-wiki-changes
+```
+
+It compares the current files with HEAD, including untracked files Git does
+not ignore. Supply `--base COMMIT` to review a committed range or to include a
+Raw event committed separately before the Wiki edit. Select the commit before
+that event and the Wiki revision. The baseline must be an ancestor of HEAD.
+The report includes its resolved commit. This mode checks working files, so
+review what is staged separately if staged bytes differ from the working files.
+
+A changed dossier `wiki/wiki.md`, maintained `layer: wiki` subpage or
+direct-Wiki folder note must cite a new
+processed Event Note under the same dossier's Raw. Use its full vault-relative
+wikilink in the heading section that the event points back to. The event must
+be absent from the baseline and include the regular Event header and processing
+bubble. Editing an old event or putting the citation in code does not qualify.
+Complete removal of a maintained Wiki fails the check because the changed
+page cannot retain the citation. Unchanged Wiki notes are outside the audit.
+
+Exit 0 means accepted, 1 means a Wiki revision is missing a qualifying event,
+and 2 means the check could not run. This mode uses Git and the Markdown files
+directly. It requires no writer, registration, hook or plugin. It checks on
+invocation and does not intercept editor saves or certify source meaning.
+
+## Managed write sets
+
 Use `vault-layout --vault ROOT --write-set` with a JSON request on stdin for
 bounded writes. Keep `--strict PATH`, `--check-all` and `--check-work` for full
 audits. An unrelated sibling's existing errors must not block a transaction.

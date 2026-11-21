@@ -12,6 +12,147 @@ use std::{
 type ProviderDocumentMutation = Box<dyn Fn(&mut Value)>;
 
 #[test]
+fn wiki_revision_audit_checks_direct_edits_against_a_git_baseline() {
+    let fixture = Fixture::new("wiki-revision-git");
+    let git = |args: &[&str]| {
+        let result = Command::new("git")
+            .current_dir(&fixture.0)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{args:?}: {}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+    };
+    let audit = |extra: &[&str]| {
+        let result = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+            .arg("--vault")
+            .arg(&fixture.0)
+            .args(["--check-wiki-changes", "--json"])
+            .args(extra)
+            .output()
+            .unwrap();
+        let report: Value = serde_json::from_slice(&result.stdout)
+            .unwrap_or_else(|_| panic!("{}", String::from_utf8_lossy(&result.stderr)));
+        (result.status.code().unwrap(), report)
+    };
+    let dossier = "30-topics/example";
+    let wiki = "30-topics/example/wiki/wiki.md";
+    let guide = "30-topics/example/wiki/guide.md";
+    let direct = "30-topics/direct/direct.md";
+    let raw = "30-topics/example/raw";
+    let event = format!("{raw}/20261121-new-proof/20261121-new-proof.md");
+    let old = format!("{raw}/20261120-old-proof/20261120-old-proof.md");
+    let event_note = |path: &str, anchor: &str| {
+        let package = Path::new(path).parent().unwrap();
+        format!(
+            "---\ntype: note\ncategory: source\nwiki_status: processed\nwiki_processed_on: 2026-11-21\nwiki_target: \"[[{dossier}/wiki/wiki#{anchor}]]\"\ncssclasses: [vault-navigation, vault-dashboard, vault-event, vault-event-v1-1]\n---\n\n# Event\n\n> [!navigation|shortcuts]\n> - [[{raw}/raw|Back]]\n> - [Finder](file://{})\n\n> [!wiki-facts|dossier]\n> - Dossier **[[{dossier}/example|Example]]**\n\n```vault-event-detail\n```\n\n> [!event-context] Context\n> A new decision.\n\n## Activity\n\n> [!activity-day|2026-11-21] 21 November\n\n> [!activity-message|human] Alex\n> **Verwerking in Wiki**\n> A new decision was recorded in [[{dossier}/wiki/wiki#{anchor}]].\n>\n> *— · Alex · editor*\n",
+            fixture.0.join(package).display()
+        )
+    };
+    git(&["init", "-q"]);
+    fixture.write(
+        wiki,
+        "# Wiki\n\n## Decision\n\nOld knowledge.\n\n## Other\n\nOther knowledge.\n",
+    );
+    fixture.write(&format!("{raw}/raw.md"), "# Raw\n");
+    let guide_before = "---\nlayer: wiki\n---\n# Guide\n\nOld guidance.\n";
+    fixture.write(guide, guide_before);
+    fixture.write("30-topics/direct/raw/raw.md", "# Raw\n");
+    let direct_before = "---\nlayer: wiki\ncssclasses: [vault-wiki-direct]\n---\n# Direct wiki\n\n## Decision\n\nOld knowledge.\n";
+    fixture.write(direct, direct_before);
+    fixture.write(&old, event_note(&old, "Decision"));
+    git(&["add", "."]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.com",
+        "commit",
+        "-qm",
+        "Baseline",
+    ]);
+    assert_eq!(audit(&[]).1["wiki_checked"], 0);
+
+    let without_raw = "30-topics/new-dossier/wiki/wiki.md";
+    fixture.write(without_raw, "# Wiki\n\n## New\n\nUnbacked knowledge.\n");
+    assert_eq!(audit(&[]).1["findings"][0]["path"], without_raw);
+    fs::remove_file(fixture.0.join(without_raw)).unwrap();
+
+    fixture.write(direct, direct_before.replace("Old knowledge.", "Changed."));
+    let (code, report) = audit(&[]);
+    assert_eq!(code, 1);
+    assert_eq!(report["findings"][0]["path"], direct);
+    fixture.write(direct, direct_before);
+
+    fixture.write(
+        guide,
+        guide_before.replace("Old guidance.", "New guidance."),
+    );
+    assert_eq!(audit(&[]).1["findings"][0]["path"], guide);
+    fixture.write(guide, guide_before);
+
+    let no_ext = event.trim_end_matches(".md");
+    let old_no_ext = old.trim_end_matches(".md");
+    fixture.write(
+        wiki,
+        format!("# Wiki\n\n## Decision\n\nNew knowledge. [[{old_no_ext}]]\n"),
+    );
+    assert_eq!(audit(&[]).0, 1);
+
+    fixture.write(&event, event_note(&event, "Other"));
+    fixture.write(
+        wiki,
+        format!(
+            "# Wiki\n\n## Decision\n\nNew knowledge. [[{no_ext}]]\n\n## Other\n\nOther knowledge.\n"
+        ),
+    );
+    assert_eq!(audit(&[]).0, 1);
+
+    let valid = format!(
+        "# Wiki\n\n## Decision\n\nNew knowledge. [[{no_ext}|Decision source]]\n\n## Other\n\nOther knowledge.\n"
+    );
+    fixture.write(&event, event_note(&event, "Decision"));
+    let elsewhere = event.replace("30-topics/example/", "30-topics/other/");
+    fixture.write(&elsewhere, event_note(&elsewhere, "Decision"));
+    fixture.write(
+        wiki,
+        valid.replace(no_ext, elsewhere.trim_end_matches(".md")),
+    );
+    assert_eq!(audit(&[]).0, 1);
+    fs::remove_file(fixture.0.join(elsewhere)).unwrap();
+    fixture.write(
+        wiki,
+        valid.replace(
+            &format!("[[{no_ext}|Decision source]]"),
+            &format!("`[[{no_ext}]]`"),
+        ),
+    );
+    assert_eq!(audit(&[]).0, 1);
+    fixture.write(wiki, &valid);
+    let (code, report) = audit(&[]);
+    assert_eq!(code, 0, "{report}");
+    assert_eq!(report["wiki_checked"], 1);
+
+    git(&["add", "."]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.com",
+        "commit",
+        "-qm",
+        "Direct update",
+    ]);
+    assert_eq!(audit(&[]).1["wiki_checked"], 0);
+    assert_eq!(audit(&["--base", "HEAD^"]).1["wiki_checked"], 1);
+    fixture.write(wiki, valid.replace("New knowledge.", "A later edit."));
+    assert_eq!(audit(&[]).0, 1);
+}
+
+#[test]
 fn named_wiki_guides_opt_in_to_the_existing_overview_layout() {
     let fixture = Fixture::new("wiki-guide-overview");
     let folder = "99-system/vault/example/wiki";

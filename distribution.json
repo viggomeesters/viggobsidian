@@ -105,6 +105,10 @@
       "target": ".agents/tools/vault-layout/src/write_set.rs"
     },
     {
+      "source": "crates/vault-layout/src/wiki_revision.rs",
+      "target": ".agents/tools/vault-layout/src/wiki_revision.rs"
+    },
+    {
       "source": "docs/write-validation.md",
       "target": ".viggobsidian/core/write-validation.md"
     },
