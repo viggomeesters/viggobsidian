@@ -96,6 +96,22 @@ pub fn visible_activity_headings(body: &str) -> usize {
     headings
 }
 
+pub const WIKI_PROCESSING_TITLE_LINE: &str = "> **Verwerking in Wiki**";
+
+/// Count direct processing titles visible under Activity, excluding literal examples.
+pub fn visible_wiki_processing_titles(body: &str) -> usize {
+    let visible = crate::index_navigation::visible_body(body);
+    visible
+        .split_once("\n## Activity\n")
+        .map_or(0, |(_, activity)| {
+            activity
+                .lines()
+                .take_while(|line| !line.starts_with("## "))
+                .filter(|line| *line == WIKI_PROCESSING_TITLE_LINE)
+                .count()
+        })
+}
+
 pub fn check_task_event(body: &str) -> Result<(), &'static str> {
     let visible = crate::index_navigation::visible_body(body);
     let (_, activity) = visible
