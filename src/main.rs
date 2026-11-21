@@ -265,6 +265,7 @@ fn allowed(target: &str) -> bool {
         "main",
         "activity_layout",
         "activity_delivery",
+        "codex_chat_times",
         "adoption",
         "dossier_tables",
         "event_header",

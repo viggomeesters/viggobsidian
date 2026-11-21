@@ -201,6 +201,66 @@ pub fn provenance_findings(body: &str) -> Vec<String> {
     result
 }
 
+/// A canonical footer selected for external source verification. Legacy
+/// provenance still passes ordinary layout checks, but cannot enter this mode.
+#[derive(Debug, PartialEq, Eq)]
+pub struct CodexChatFooter<'a> {
+    pub day: &'a str,
+    pub role: &'a str,
+    pub author: &'a str,
+    pub stamp: &'a str,
+}
+
+pub fn codex_chat_footers(body: &str) -> Result<Vec<CodexChatFooter<'_>>, &'static str> {
+    if !provenance_findings(body).is_empty() {
+        return Err("invalid Activity provenance");
+    }
+    let lines = visible_lines(body);
+    let start = lines
+        .iter()
+        .position(|line| *line == "## Activity")
+        .unwrap();
+    let mut day = "";
+    let mut footers = Vec::new();
+    let mut lines = lines[start + 1..].iter().copied().peekable();
+    while let Some(line) = lines.next() {
+        if let Some((date, _)) = line
+            .strip_prefix("> [!activity-day|")
+            .and_then(|v| v.split_once("] "))
+        {
+            day = date;
+        }
+        let Some((role, author)) = crate::activity_layout::message_heading(line) else {
+            continue;
+        };
+        let mut stamp = None;
+        while let Some(next) = lines.next_if(|next| {
+            !next.is_empty()
+                && !next.starts_with("> [!activity-day|")
+                && crate::activity_layout::message_heading(next).is_none()
+        }) {
+            if let Some(footer) = next
+                .strip_prefix("> *")
+                .and_then(|text| text.strip_suffix('*'))
+                .filter(|text| valid_stamp(text, author))
+            {
+                stamp = Some(footer);
+            }
+        }
+        let stamp = stamp
+            .filter(|value| value.ends_with(" · Codex-chat"))
+            .filter(|_| matches!(role, "human" | "codex"))
+            .ok_or("source check requires canonical Codex-chat footers on every bubble")?;
+        footers.push(CodexChatFooter {
+            day,
+            role,
+            author,
+            stamp,
+        });
+    }
+    Ok(footers)
+}
+
 fn visible_lines(body: &str) -> Vec<&str> {
     let mut fence = None;
     body.lines()
