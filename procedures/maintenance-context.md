@@ -1,6 +1,14 @@
 # Onderhoud, compilatie en context
 
-## Eén project bijwerken
+## Eén eigenaar bijwerken
+
+Een lokale provider kan een expliciete directe dossierrefresh aanbieden voor een
+andere eigenaarscope dan projecten. Controleer die capability en haar eigen
+write-set; de hieronder beschreven projectroute wordt daardoor niet ruimer.
+De bron-naar-kennisprocedure bezit de directe Raw/Wiki-volgorde en het onderscheid
+tussen nieuwe input, een bestaande capture en afzonderlijke taakafronding.
+
+### Bestaande projectroute
 
 Lees expliciet de doelvault, volledige actuele eigenaar, primaire nieuwe bronnen,
 voorgaande verwerking en gekoppelde doelen/taken. Bepaal welke claim werkelijk
