@@ -1,6 +1,8 @@
 //! Pure native-source postimages. No filesystem, registry, clock or write authority.
 use activity_core::activity_delivery::provenance_findings;
-use activity_core::activity_layout::{WIKI_PROCESSING_TITLE_LINE, visible_wiki_processing_titles};
+use activity_core::activity_layout::{
+    WIKI_PROCESSING_TITLE_LINE, visible_activity_headings, visible_wiki_processing_titles,
+};
 use activity_core::provenance::{self, RenderedProvenance, SourceKind};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -11,6 +13,8 @@ pub const FORMAT: &str = "source-capture-v1";
 pub const PROVENANCE_FORMAT: &str = "source-capture-v2";
 pub const AUTHORED_ACTIVITY_FORMAT: &str = "authored-activity-v1";
 pub const LEGACY_PLAIN_SOURCE_FORMAT: &str = "legacy-plain-source-v1";
+pub const FOLDER_NOTE_CAPTURE_FORMAT: &str = "folder-note-capture-v1";
+const CAPTURE_PRESENTATION: &str = "cssclasses: [folder-note]";
 
 type Result<T> = std::result::Result<T, &'static str>;
 
@@ -114,18 +118,29 @@ fn note<'a>(text: &'a str, format: &str) -> Result<(&'a str, &'a str, Value)> {
     }
     let (header, body) = text.split_once("\n---\n").ok_or("frontmatter_required")?;
     let metadata = parse_metadata(header)?;
-    let (category, error) = match format {
-        AUTHORED_ACTIVITY_FORMAT => ("general", "authored_activity_note_required"),
-        LEGACY_PLAIN_SOURCE_FORMAT => ("plugin-testing", "legacy_plain_source_required"),
-        _ => ("source", "plain_note_source_required"),
+    let category = metadata["category"].as_str();
+    let (category_allowed, error) = match format {
+        AUTHORED_ACTIVITY_FORMAT => (
+            category == Some("general"),
+            "authored_activity_note_required",
+        ),
+        LEGACY_PLAIN_SOURCE_FORMAT => (
+            category == Some("plugin-testing"),
+            "legacy_plain_source_required",
+        ),
+        FOLDER_NOTE_CAPTURE_FORMAT => (
+            matches!(category, Some("family" | "source")),
+            "folder_note_capture_required",
+        ),
+        _ => (category == Some("source"), "plain_note_source_required"),
     };
     if !metadata.is_object()
         || metadata["type"] != "note"
-        || metadata["category"] != category
+        || !category_allowed
         || (format == AUTHORED_ACTIVITY_FORMAT && metadata["activity_contract"] != "provenance-v1")
         || (matches!(
             format,
-            AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
+            AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT | FOLDER_NOTE_CAPTURE_FORMAT
         ) && [
             "task-id",
             "task_id",
@@ -248,7 +263,11 @@ fn transform(v: &Value) -> Result<Value> {
     if v["schema"] != "viggobsidian.source-preparation.v1"
         || !matches!(
             format,
-            FORMAT | PROVENANCE_FORMAT | AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
+            FORMAT
+                | PROVENANCE_FORMAT
+                | AUTHORED_ACTIVITY_FORMAT
+                | LEGACY_PLAIN_SOURCE_FORMAT
+                | FOLDER_NOTE_CAPTURE_FORMAT
         )
     {
         return Err("schema_or_format");
@@ -259,9 +278,10 @@ fn transform(v: &Value) -> Result<Value> {
         return Err("provenance_requires_source_capture_v2");
     }
     let authored = format == AUTHORED_ACTIVITY_FORMAT;
+    let folder_capture = format == FOLDER_NOTE_CAPTURE_FORMAT;
     let pins_original = matches!(
         format,
-        AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT
+        AUTHORED_ACTIVITY_FORMAT | LEGACY_PLAIN_SOURCE_FORMAT | FOLDER_NOTE_CAPTURE_FORMAT
     );
     if format != FORMAT && v.get("provenance").is_none() {
         return Err("vault_contribution_provenance_required");
@@ -316,6 +336,13 @@ fn transform(v: &Value) -> Result<Value> {
     }
     let before = field(v, "source_note")?;
     let (header, body, metadata) = note(before, format)?;
+    if folder_capture
+        && metadata
+            .get("owner")
+            .is_some_and(|bound_owner| bound_owner != owner)
+    {
+        return Err("folder_note_capture_owner_mismatch");
+    }
     let classes = json!([
         "vault-navigation",
         "vault-dashboard",
@@ -328,7 +355,6 @@ fn transform(v: &Value) -> Result<Value> {
         original_hash = hash(before);
         if [
             "wiki_status",
-            "cssclasses",
             "activity_format",
             "raw_preparation_format",
             "wiki_processed_on",
@@ -338,10 +364,12 @@ fn transform(v: &Value) -> Result<Value> {
         ]
         .iter()
         .any(|key| metadata.get(key).is_some())
+            || (!folder_capture && metadata.get("cssclasses").is_some())
             || (pins_original && metadata.get("raw_preparation_original_sha256").is_some())
             || (!authored
                 && (metadata.get("activity_contract").is_some()
                     || body.lines().any(|line| line == "## Activity")))
+            || (folder_capture && visible_activity_headings(body) != 0)
             || [
                 "original_note",
                 "wiki_target",
@@ -354,6 +382,37 @@ fn transform(v: &Value) -> Result<Value> {
         {
             return Err("unprepared_source_required");
         }
+        let replacement_header;
+        let header = if folder_capture {
+            if metadata["cssclasses"] != json!(["folder-note"])
+                || header
+                    .lines()
+                    .filter(|line| *line == CAPTURE_PRESENTATION)
+                    .count()
+                    != 1
+            {
+                return Err("folder_note_capture_presentation_required");
+            }
+            replacement_header = header
+                .match_indices(&format!("\n{CAPTURE_PRESENTATION}"))
+                .find_map(|(offset, matched)| {
+                    let rest = &header[offset + matched.len()..];
+                    (rest.is_empty() || rest.starts_with('\n'))
+                        .then(|| format!("{}{rest}", &header[..offset]))
+                })
+                .ok_or("folder_note_capture_presentation_required")?;
+            let mut expected = metadata.clone();
+            expected
+                .as_object_mut()
+                .expect("parsed note mapping")
+                .remove("cssclasses");
+            if parse_metadata(&replacement_header)? != expected {
+                return Err("folder_note_capture_presentation_required");
+            }
+            &replacement_header
+        } else {
+            header
+        };
         let finder = url(&format!("{vault}/{raw}/{package}"));
         let entrance = |title: &str, context: &str| {
             format!(
@@ -524,7 +583,11 @@ fn transform(v: &Value) -> Result<Value> {
                 .as_object()
                 .expect("parsed note has mapping")
                 .iter()
-                .any(|(key, value)| key != "wiki_status" && rendered.get(key) != Some(value))
+                .any(|(key, value)| {
+                    key != "wiki_status"
+                        && (key != "cssclasses" || !folder_capture || processing)
+                        && rendered.get(key) != Some(value)
+                })
         {
             return Err("invalid_rendered_metadata");
         }

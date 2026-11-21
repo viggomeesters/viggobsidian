@@ -89,7 +89,18 @@ date and new preparation provenance. The host owns the crash-safe transition
 from the old receipt to the new recipe. The original receipt remains available
 for legacy replay.
 
-Both opt-in formats validate the complete generated frontmatter and visible
+### Plain Inbox captures with folder-note presentation
+
+Select `format: folder-note-capture-v1` for a plain `type: note` capture
+with `category: family` or `category: source` and the exact top-level
+`cssclasses: [folder-note]` field. The core replaces this presentation
+field, preserves every other original metadata value and embeds the entire
+original body in Activity. The result pins the exact original Git source
+bytes supplied by the host. The same format and exact original are required
+when marking processing. The host continues to own destination validation,
+attachment inventory, claims and receipts.
+
+The opt-in formats validate the complete generated frontmatter and visible
 Wiki-processing evidence. An authored Activity with an existing direct
 processing title requires separate historical review. Processing summaries
 must contain text. Markdown control syntax in a summary goes into literal
