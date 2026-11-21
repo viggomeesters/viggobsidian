@@ -126,7 +126,7 @@
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "4e854ce789692da8870aa2618221df4a54e57dfabb5c40e77b129953178e4cd8",
+      "sha256": "97c3d18371e21a8f1b587ccf97073d112526eb0dd1d4692199caec00ae5c6eec",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -256,7 +256,7 @@
       "target": "99-system/vault/vault-navigation/standaard/wiki/vault-templates.base"
     },
     {
-      "sha256": "ae10e76975af0bbfe68a3909269b28b75a26bc02ed6462bd615fe4ce1c8b771e",
+      "sha256": "46a4fb9149df9d1df68bdf66c41c1cfc3a17d13e444a95401743fd324a393f77",
       "source": "assets/folder-note.css",
       "target": ".viggobsidian/core/folder-note.css"
     },
@@ -271,7 +271,7 @@
       "target": ".obsidian/snippets/active-note-contrast.css"
     },
     {
-      "sha256": "ae10e76975af0bbfe68a3909269b28b75a26bc02ed6462bd615fe4ce1c8b771e",
+      "sha256": "46a4fb9149df9d1df68bdf66c41c1cfc3a17d13e444a95401743fd324a393f77",
       "source": "assets/folder-note.css",
       "target": ".obsidian/snippets/folder-note.css",
       "transform": "css-v1"
@@ -572,7 +572,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "343660507906e859738d2da5227191012dad5776",
+  "revision": "63fdabfe207e6fd5f7ebd6cfbe40d761b8166156",
   "schema": "viggobsidian.package.v1",
-  "version": "0.32.2"
+  "version": "0.32.3"
 }

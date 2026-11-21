@@ -144,7 +144,7 @@
   color: var(--wiki-detail-accent);
 }
 
-.vault-wiki :is(p, li) > a.internal-link:not(.callout *) {
+.vault-wiki :is(p, li, th, td) :is(a.internal-link, a.external-link):not(:is(.callout, nav) *) {
   margin-inline-start: 0;
   font-size: 0.82em;
   font-weight: inherit;
@@ -155,9 +155,17 @@
   white-space: normal;
 }
 
-.vault-wiki :is(p, li) > a.internal-link:not(.callout *):is(:hover, :focus-visible) {
-  color: var(--text-accent);
+.vault-wiki :is(p, li, th, td) :is(a.internal-link, a.external-link):not(:is(.callout, nav) *):is(:hover, :focus-visible) {
+  color: var(--text-normal);
   text-decoration-color: currentColor;
+}
+
+.vault-wiki.is-live-preview .cm-line:not(:is(.HyperMD-quote, .HyperMD-codeblock)) :is(.cm-hmd-internal-link, .cm-link, .cm-url) {
+  --link-color: var(--text-muted);
+  --link-unresolved-color: var(--text-muted);
+  --link-external-color: var(--text-muted);
+  --link-color-hover: var(--text-normal);
+  --link-external-color-hover: var(--text-normal);
 }
 
 .vault-wiki nav[aria-label="Inhoudsopgave"] {
