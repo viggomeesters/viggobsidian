@@ -472,6 +472,13 @@ name = "task-date-core"
 version = "0.1.0"
 
 [[package]]
+name = "task-project-core"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "task-selection-core"
 version = "0.1.0"
 dependencies = [
