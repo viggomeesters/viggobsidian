@@ -4,7 +4,7 @@ use std::{
     collections::BTreeMap,
     fs,
     io::Write,
-    os::unix::fs::symlink,
+    os::unix::fs::{PermissionsExt, symlink},
     path::{Path, PathBuf},
     process::{Command, Output, Stdio},
 };
@@ -584,6 +584,372 @@ fn adopt(fixture: &Fixture, owners: Value) {
 
 fn appended() -> &'static str {
     "\n> [!activity-day|2026-11-12] 12 November 2026\n\n> [!activity-message|human] Alex\n> `— · Alex · chat`\n> New source-bound information.\n"
+}
+
+#[cfg(unix)]
+struct RelocationFixture {
+    vault: Fixture,
+}
+
+#[cfg(unix)]
+impl RelocationFixture {
+    const OLD: &'static str = "15-projects";
+    const NEW: &'static str = "20-projects";
+    const LEGACY: &'static str = "2026-11-example/legacy/legacy.md";
+    const STRICT: &'static str = "2026-11-example/strict/strict.md";
+    const HISTORICAL: &'static str = "---\ntype: note\ncategory: knowledge\nactivity_contract: provenance-v1\n---\n# Legacy\n\n## Activity\n\n> [!activity-day|2026-11-11] 11 November 2026\n\n> [!activity-message|human] Alex\n> Historical source with no stamp.\n";
+    fn new(name: &str) -> Self {
+        let vault = Fixture::new(name);
+        vault.write(".viggobsidian/integration.json", r#"{"schema":"viggobsidian.integration.v1","profile":"numbered-v1","adoption":{"legacy_project_roots":["15-projects","17-other"]},"local_adapter":"example-local.md"}"#);
+        vault.write("15-projects/15-projects.md", "# Projects\n");
+        vault.write("15-projects/2026-11-example/2026-11-example.md", "---\ntype: project\nproject-month: \"2026-11\"\nproject-code: EX\nproject_id: stable-project-id\n---\n# Example\n");
+        vault.write(
+            "15-projects/2026-11-example/.original.bin",
+            b"Original source bytes\x00",
+        );
+        vault.write(
+            "15-projects/2026-11-example/legacy/task.md",
+            "---\ntask-id: 00000000-0000-4000-8000-000000000001\n---\n# A task\n",
+        );
+        vault.write(&format!("15-projects/{}", Self::LEGACY), Self::HISTORICAL);
+        vault.write(
+            &format!("15-projects/{}", Self::STRICT),
+            "---\ntype: note\ncategory: knowledge\nlayer: wiki\n---\n# Strict\n",
+        );
+        vault.write("outside/outside.md", "# Original outside\n");
+        adopt(
+            &vault,
+            json!({"15-projects/2026-11-example/legacy":"legacy", "outside":"legacy"}),
+        );
+        // Pin a strict owner next to the legacy owner.
+        let path = vault.0.join(".viggobsidian/adoption.json");
+        let mut state: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        state["owners"]["15-projects/2026-11-example/strict"] =
+            json!({"state":"strict","files":{}});
+        fs::write(path, serde_json::to_vec_pretty(&state).unwrap()).unwrap();
+        Self { vault }
+    }
+
+    fn run(&self, mode: &str, input: &Value) -> (Output, Value) {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+            .arg("--vault")
+            .arg(&self.vault.0)
+            .args(["--project-relocation", mode])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        serde_json::to_writer(child.stdin.take().unwrap(), input).unwrap();
+        let output = child.wait_with_output().unwrap();
+        let value = serde_json::from_slice(&output.stdout).unwrap_or(Value::Null);
+        (output, value)
+    }
+
+    fn success(&self, mode: &str, input: &Value) -> Value {
+        let (output, value) = self.run(mode, input);
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        value
+    }
+
+    fn request() -> Value {
+        json!({"schema":"viggobsidian.project-relocation-request.v1","source":Self::OLD})
+    }
+
+    fn simulated_obsidian_folder_move(&self) {
+        // This represents the external FileManager boundary in the native
+        // test. The production CLI never renames content.
+        fs::rename(self.vault.0.join(Self::OLD), self.vault.0.join(Self::NEW)).unwrap();
+    }
+
+    fn simulated_obsidian_rootnote_rename(&self) {
+        fs::rename(
+            self.vault.0.join(Self::NEW).join("15-projects.md"),
+            self.vault.0.join(Self::NEW).join("20-projects.md"),
+        )
+        .unwrap();
+    }
+}
+
+#[test]
+#[cfg(unix)]
+fn project_relocation_preserves_project_routes_adoption_and_write_boundaries() {
+    let fixture = RelocationFixture::new("project-relocation-preserves");
+    let old_coll = format!("{}/{}", RelocationFixture::OLD, RelocationFixture::LEGACY);
+    let new_coll = format!("{}/{}", RelocationFixture::NEW, RelocationFixture::LEGACY);
+    let state_path = fixture.vault.0.join(".viggobsidian/adoption.json");
+    let integration_path = fixture.vault.0.join(".viggobsidian/integration.json");
+    fs::set_permissions(&state_path, fs::Permissions::from_mode(0o600)).unwrap();
+    fs::set_permissions(&integration_path, fs::Permissions::from_mode(0o640)).unwrap();
+    let old_state: Value = serde_json::from_slice(&fs::read(&state_path).unwrap()).unwrap();
+    let readback = |path: &str| {
+        write_check(
+            &fixture.vault,
+            "baseline",
+            json!([{"path":path,"expect":"present"}]),
+            Value::Null,
+        )
+    };
+    let (_, before) = readback(&old_coll);
+    assert!(
+        before["legacy_findings"]
+            .as_array()
+            .is_some_and(|rows| !rows.is_empty())
+    );
+    let plan = fixture.success("plan", &RelocationFixture::request());
+    assert_eq!(plan["project_routes"][0]["id"], "stable-project-id");
+    assert_eq!(
+        fixture.success("begin", &plan)["status"],
+        "prepared-for-obsidian"
+    );
+    assert_eq!(readback(&old_coll).0.status.code(), Some(2));
+    assert_eq!(fixture.run("apply", &plan).0.status.code(), Some(2));
+    fixture.simulated_obsidian_folder_move();
+    assert_eq!(fixture.run("validate", &plan).0.status.code(), Some(2));
+    assert_eq!(fixture.run("abort", &plan).0.status.code(), Some(2));
+    fixture.simulated_obsidian_rootnote_rename();
+    assert_eq!(
+        fixture.success("validate", &plan)["status"],
+        "verified-move-inventory"
+    );
+    assert_eq!(
+        fixture.success("apply", &plan)["status"],
+        "adoption-and-integration-rebound"
+    );
+    assert_eq!(
+        fs::metadata(&state_path).unwrap().permissions().mode() & 0o777,
+        0o600
+    );
+    assert_eq!(
+        fs::metadata(&integration_path)
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777,
+        0o640
+    );
+    let next: Value = serde_json::from_slice(&fs::read(&state_path).unwrap()).unwrap();
+    let old_owner = "15-projects/2026-11-example/legacy";
+    let new_owner = "20-projects/2026-11-example/legacy";
+    assert_eq!(
+        old_state["owners"][old_owner]["files"][&old_coll],
+        next["owners"][new_owner]["files"][&new_coll]
+    );
+    assert_eq!(next["owners"][old_owner], Value::Null);
+    assert_eq!(
+        next["owners"]["20-projects/2026-11-example/strict"]["state"],
+        "strict"
+    );
+    assert_eq!(next["owners"]["outside"], old_state["owners"]["outside"]);
+    let integration: Value = serde_json::from_slice(
+        &fs::read(fixture.vault.0.join(".viggobsidian/integration.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        integration["adoption"]["legacy_project_roots"],
+        json!(["17-other"])
+    );
+    assert_eq!(integration["local_adapter"], "example-local.md");
+    let (_, new_baseline) = readback(&new_coll);
+    assert_eq!(
+        before["legacy_findings"]
+            .to_string()
+            .replace("15-projects/", "20-projects/"),
+        new_baseline["legacy_findings"].to_string(),
+    );
+    let changes = json!([{"path":new_coll,"expect":"present"}]);
+    assert_eq!(
+        write_check(&fixture.vault, "validate", changes.clone(), before)
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+    fixture.vault.write(
+        &new_coll,
+        format!("{}{}", RelocationFixture::HISTORICAL, appended()),
+    );
+    let (out, report) = write_check(&fixture.vault, "validate", changes, new_baseline);
+    assert!(out.status.success(), "{report}");
+    let strict_path = format!("20-projects/{}", RelocationFixture::STRICT);
+    fixture
+        .vault
+        .write(&strict_path, RelocationFixture::HISTORICAL);
+    let (_, report) = readback(&strict_path);
+    assert!(
+        !report["legacy_findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["path"] == strict_path)
+    );
+    assert!(
+        report["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["path"] == strict_path)
+    );
+    let route = Command::new(env!("CARGO_BIN_EXE_vault-layout"))
+        .args(["--vault"])
+        .arg(&fixture.vault.0)
+        .args(["--json", "--resolve-code", "EX"])
+        .output()
+        .unwrap();
+    assert!(
+        route.status.success(),
+        "{}",
+        String::from_utf8_lossy(&route.stderr)
+    );
+    assert!(String::from_utf8_lossy(&route.stdout).contains("20-projects/2026-11-example"));
+}
+
+#[test]
+#[cfg(unix)]
+fn project_relocation_refuses_conflicts_drift_and_protected_link_rewrites() {
+    let fixture = RelocationFixture::new("project-relocation-drift");
+    let plan = fixture.success("plan", &RelocationFixture::request());
+    fixture
+        .vault
+        .write("20-projects/20-projects.md", "# Existing root");
+    assert_eq!(fixture.run("begin", &plan).0.status.code(), Some(2));
+    fs::remove_dir_all(fixture.vault.0.join("20-projects")).unwrap();
+    fixture.vault.write(
+        ".viggobsidian/adoption.lock",
+        "owned by another transaction",
+    );
+    assert_eq!(fixture.run("begin", &plan).0.status.code(), Some(2));
+    fs::remove_file(fixture.vault.0.join(".viggobsidian/adoption.lock")).unwrap();
+    for name in ["pending.json", "rollback.json"] {
+        let path = format!(".viggobsidian/{name}");
+        fixture
+            .vault
+            .write(&path, "unresolved release transaction without a lock");
+        assert_eq!(fixture.run("begin", &plan).0.status.code(), Some(2));
+        fs::remove_file(fixture.vault.0.join(&path)).unwrap();
+    }
+    fixture.vault.write("15-projects/extra.md", "unreviewed");
+    assert_eq!(fixture.run("begin", &plan).0.status.code(), Some(2));
+    fs::remove_file(fixture.vault.0.join("15-projects/extra.md")).unwrap();
+    fixture.success("begin", &plan);
+    fixture.simulated_obsidian_folder_move();
+    fixture.simulated_obsidian_rootnote_rename();
+    let schema = fixture
+        .vault
+        .0
+        .join("99-system/contracts/vault-schema.yaml");
+    let original_schema = fs::read(&schema).unwrap();
+    fixture
+        .vault
+        .write("99-system/contracts/vault-schema.yaml", "changed");
+    assert_eq!(fixture.run("validate", &plan).0.status.code(), Some(2));
+    fs::write(schema, original_schema).unwrap();
+    let changed = format!("20-projects/{}", RelocationFixture::LEGACY);
+    fixture.vault.write(&changed, "[[20-projects/20-projects]]");
+    assert_eq!(fixture.run("validate", &plan).0.status.code(), Some(2));
+    fixture.vault.write(&changed, RelocationFixture::HISTORICAL);
+    fixture
+        .vault
+        .write("outside/outside.md", "external protected link was changed");
+    assert_eq!(fixture.run("recover", &plan).0.status.code(), Some(2));
+    assert!(
+        fixture
+            .vault
+            .0
+            .join(".viggobsidian/project-relocation.pending.json")
+            .exists()
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn project_relocation_refuses_code_or_id_ambiguity_in_another_registered_root() {
+    let fixture = RelocationFixture::new("project-relocation-route-conflict");
+    let plan = fixture.success("plan", &RelocationFixture::request());
+    let path = "21-program/2026-11-other/2026-11-other.md";
+    fixture.vault.write(path, "---\ntype: project\nproject-month: \"2026-11\"\nproject-code: EX\nproject_id: distinct-id\n---\n");
+    assert_eq!(fixture.run("begin", &plan).0.status.code(), Some(2));
+    fixture.vault.write(path, "---\ntype: project\nproject-month: \"2026-11\"\nproject-code: OTHER\nproject_id: stable-project-id\n---\n");
+    assert_eq!(
+        fixture
+            .run("plan", &RelocationFixture::request())
+            .0
+            .status
+            .code(),
+        Some(2)
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn project_relocation_refuses_an_unchanged_adoption_image_without_opening_a_hold() {
+    let fixture = RelocationFixture::new("project-relocation-no-adoption");
+    let path = fixture.vault.0.join(".viggobsidian/adoption.json");
+    let mut state: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    state["owners"]
+        .as_object_mut()
+        .unwrap()
+        .retain(|owner, _| owner == "outside");
+    fs::write(&path, serde_json::to_vec_pretty(&state).unwrap()).unwrap();
+    let (out, _) = fixture.run("plan", &RelocationFixture::request());
+    assert_eq!(out.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("no existing adoption owners"));
+    assert!(
+        !fixture
+            .vault
+            .0
+            .join(".viggobsidian/project-relocation.pending.json")
+            .exists()
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn project_relocation_recovers_from_adoption_checkpoint_and_never_rebaselines() {
+    let fixture = RelocationFixture::new("project-relocation-recovery");
+    let plan = fixture.success("plan", &RelocationFixture::request());
+    fixture.success("begin", &plan);
+    assert_eq!(fixture.success("abort", &plan)["status"], "aborted-unmoved");
+    fixture.success("begin", &plan);
+    fixture.simulated_obsidian_folder_move();
+    fixture.simulated_obsidian_rootnote_rename();
+    // Exact observable state left by interruption after the first durable
+    // replacement, before replacing the local integration state.
+    fixture.vault.write(
+        ".viggobsidian/adoption.json",
+        serde_json::to_vec_pretty(&plan["adoption"]["after"]).unwrap(),
+    );
+    let mut altered = plan.clone();
+    altered["adoption"]["after"]["owners"] = json!({});
+    assert_eq!(fixture.run("recover", &altered).0.status.code(), Some(2));
+    assert_eq!(
+        fixture.success("recover", &plan)["status"],
+        "adoption-and-integration-rebound"
+    );
+    assert_eq!(
+        fixture.success("recover", &plan)["status"],
+        "already-applied"
+    );
+    let receipts: Vec<_> = fs::read_dir(fixture.vault.0.join(".viggobsidian"))
+        .unwrap()
+        .filter(|ent| {
+            ent.as_ref()
+                .unwrap()
+                .file_name()
+                .to_string_lossy()
+                .starts_with("project-relocation-")
+        })
+        .map(|entry| entry.unwrap().path())
+        .collect();
+    assert_eq!(receipts.len(), 1);
+    assert_eq!(
+        fs::metadata(&receipts[0]).unwrap().permissions().mode() & 0o777,
+        0o600
+    );
 }
 
 #[test]

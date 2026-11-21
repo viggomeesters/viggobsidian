@@ -22,6 +22,7 @@ mod managed_wiki;
 mod native_source_archives;
 mod navigation_contract;
 mod project_codes;
+mod project_relocation;
 mod raw_processing;
 mod raw_task;
 mod shortcut_links;
@@ -33,7 +34,7 @@ mod work_intake;
 mod work_package;
 mod write_set;
 
-const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json | --plan-work-task-promotion < INPUT.json | --skill-route vault [--skill-capability EFFECT] [--skill-source SOURCE] | --skill-routes)";
+const USAGE: &str = "Usage: vault-layout [--json] [--vault ROOT] ([--strict] FOLDER | --tiles-only [FOLDER] | --indexes [--no-anchors] [--scope-policy FILE] [--paths NOTE ...] | --link-style | --fix-link-style | --resolve-code CODE [PROJECT] | --stage-raw-task RAW | --check-all | --check-work | --new-work-task RAW < INPUT.json | --plan-work-task-promotion < INPUT.json | --skill-route vault [--skill-capability EFFECT] [--skill-source SOURCE] | --skill-routes | --project-relocation plan|begin|validate|apply|recover|abort < INPUT.json)";
 const SCHEMA: &str = "99-system/contracts/vault-schema.yaml";
 const TILE_CSS: &str = ".obsidian/snippets/folder-note.css";
 const TASK_SUMMARY: &str = "```vault-task-summary";
@@ -79,6 +80,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
     let mut link_style = None;
     let mut write_set_mode = false;
     let mut adoption_mode = None;
+    let mut relocation_mode = None;
     let mut maintenance_transform = false;
     let mut skill_route = None;
     let mut skill_routes = false;
@@ -111,6 +113,16 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             Some("--adoption-apply") if adoption_mode.is_none() => adoption_mode = Some("apply"),
             Some("--adoption-recover") if adoption_mode.is_none() => {
                 adoption_mode = Some("recover")
+            }
+            Some("--project-relocation") if relocation_mode.is_none() => {
+                let mode = args.next().ok_or(USAGE)?.into_string().map_err(|_| USAGE)?;
+                if !matches!(
+                    mode.as_str(),
+                    "plan" | "begin" | "validate" | "apply" | "recover" | "abort"
+                ) {
+                    return Err(USAGE.into());
+                }
+                relocation_mode = Some(mode);
             }
             Some("--maintenance-transform") if !maintenance_transform => {
                 maintenance_transform = true
@@ -170,6 +182,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             || link_style.is_some()
             || write_set_mode
             || adoption_mode.is_some()
+            || relocation_mode.is_some()
             || maintenance_transform
         {
             return Err("skill preflight requires --vault and one exclusive route mode".into());
@@ -181,6 +194,12 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             skill_capability.as_deref(),
             source_adapter.as_deref(),
         );
+    }
+    if relocation_mode.is_some() {
+        if !explicit_vault || !vault.is_absolute() {
+            return Err("project relocation requires an explicit absolute --vault".into());
+        }
+        skill_routes::explicit_root(&vault)?;
     }
     let vault = vault.canonicalize()?;
     if promotion_plan {
@@ -200,6 +219,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             || link_style.is_some()
             || write_set_mode
             || adoption_mode.is_some()
+            || relocation_mode.is_some()
             || maintenance_transform
         {
             return Err("task promotion planning requires --vault and an exclusive mode".into());
@@ -208,7 +228,11 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         println!("{}", work_intake::promotion(&vault, input)?);
         return Ok(0);
     }
-    if write_set_mode || maintenance_transform || adoption_mode.is_some() {
+    if write_set_mode
+        || maintenance_transform
+        || adoption_mode.is_some()
+        || relocation_mode.is_some()
+    {
         if folder.is_some()
             || tiles_only
             || indexes
@@ -224,10 +248,22 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
             || link_style.is_some()
             || (write_set_mode && maintenance_transform)
             || (adoption_mode.is_some() && (write_set_mode || maintenance_transform))
+            || (relocation_mode.is_some()
+                && (write_set_mode || maintenance_transform || adoption_mode.is_some()))
         {
             return Err(USAGE.into());
         }
         let request: Value = serde_json::from_reader(io::stdin().lock())?;
+        if let Some(mode) = relocation_mode {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&project_relocation::execute(
+                    &vault, &mode, &request
+                )?)?
+            );
+            return Ok(0);
+        }
+        let _relocation_gate = project_relocation::ordinary(&vault)?;
         if let Some(mode) = adoption_mode {
             return adoption::run(&vault, mode, request);
         }
@@ -259,6 +295,11 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         {
             return Err(USAGE.into());
         }
+        let _relocation_gate = if apply {
+            project_relocation::ordinary(&vault)?
+        } else {
+            None
+        };
         return link_style::run(&vault, apply, json_output);
     }
     if new_work_task {
@@ -277,6 +318,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         }
         let raw = folder.ok_or(USAGE)?;
         let input = work_intake::read_request(io::stdin().lock())?;
+        let _relocation_gate = project_relocation::ordinary(&vault)?;
         println!("{}", work_intake::create(&vault, &raw, input)?);
         return Ok(0);
     }
@@ -404,6 +446,7 @@ fn run() -> Result<u8, Box<dyn std::error::Error>> {
         strict,
     };
     if stage_raw_task {
+        let _relocation_gate = project_relocation::ordinary(&vault)?;
         raw_task::stage(
             &mut scan,
             &folder,
