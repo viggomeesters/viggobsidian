@@ -36,7 +36,7 @@
       "target": ".agents/tools/wiki-layout-core/Cargo.toml"
     },
     {
-      "sha256": "09937140d6966ea0ca1c825903079cfa0a5a210a437a97efecb9638d8cb9c7c6",
+      "sha256": "9bce3569a4b16bab3bd668fe2c6e74427384ab2771107f332c8ac46078e13be6",
       "source": "crates/wiki-layout-core/src/lib.rs",
       "target": ".agents/tools/wiki-layout-core/src/lib.rs"
     },
@@ -46,7 +46,7 @@
       "target": ".agents/tools/wiki-layout-core/src/headings.rs"
     },
     {
-      "sha256": "4593f54b3178b9988f62722f03cbdb61aa5c393eac405c5cebf420cefb50a75a",
+      "sha256": "3f1ffd9fed27071ed1ad4ad61859cf18f1054c3132a49d2496ec471ee94c3068",
       "source": "crates/wiki-layout-core/src/snapshot.rs",
       "target": ".agents/tools/wiki-layout-core/src/snapshot.rs"
     },
@@ -126,7 +126,7 @@
       "target": ".agents/tools/vault-layout/src/activity_delivery.rs"
     },
     {
-      "sha256": "5a99f1e1f2f620334bc3ef6482e89da7d2d3a5cc80e4e7c894c18599edaba679",
+      "sha256": "4e854ce789692da8870aa2618221df4a54e57dfabb5c40e77b129953178e4cd8",
       "source": "docs/navigation.md",
       "target": "99-system/vault/vault-navigation/vault-navigation-handleiding.md"
     },
@@ -362,7 +362,7 @@
       "target": ".agents/tools/vault-layout/src/raw_processing.rs"
     },
     {
-      "sha256": "7a9fdb6c55c49bed094d2855381ad345ff4e1f61d9b835340dae8c8b0e45eb65",
+      "sha256": "2019c501dd0ef0c74fe7392d4d0c61e2bce2c0e4251b12921485be121b950f59",
       "source": "crates/vault-layout/src/main.rs",
       "target": ".agents/tools/vault-layout/src/main.rs"
     },
@@ -387,7 +387,7 @@
       "target": ".agents/tools/vault-layout/fixtures/layout-contract.yaml"
     },
     {
-      "sha256": "21246d013a077c7f459ce1654b7ddd7e063c8717c6e77ba5e870920c8f0641f4",
+      "sha256": "db0aca5373bdbacd6c0d91351815912c358be276df11be7dba369671280c419e",
       "source": "crates/vault-layout/tests/contract_enforcement.rs",
       "target": ".agents/tools/vault-layout/tests/contract_enforcement.rs"
     },
@@ -572,7 +572,7 @@
       "target": ".agents/tools/activity-core/fixtures/activity-deliveries.md"
     }
   ],
-  "revision": "042f65ab8b9db77e51d128740297b0906aa47591",
+  "revision": "343660507906e859738d2da5227191012dad5776",
   "schema": "viggobsidian.package.v1",
-  "version": "0.32.1"
+  "version": "0.32.2"
 }
