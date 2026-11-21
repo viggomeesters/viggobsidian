@@ -1,0 +1,12 @@
+[package]
+name = "task-selection-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT"
+description = "Pure task request preparation from Markdown notes or selections"
+publish = false
+
+[dependencies]
+pulldown-cmark = { version = "=0.13.6", default-features = false }
+task-status-core = { path = "../task-status-core" }
